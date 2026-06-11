@@ -1,0 +1,14 @@
+:root { --accent:#2b7a78; --muted:#666; --bg:#f7f7f8; }
+body{font-family:Inter,system-ui,Arial;background:var(--bg);margin:0}
+header{background:var(--accent);color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+main{display:flex;gap:16px;padding:16px}
+#sales{flex:1;background:white;padding:12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+#sidebar{width:320px}
+.search-row{display:flex;gap:8px;margin-bottom:8px}
+#cartTable{width:100%;border-collapse:collapse}
+#cartTable th, #cartTable td{padding:6px;border-bottom:1px solid #eee;text-align:left}
+.totals{margin-top:12px}
+.actions{margin-top:8px;display:flex;gap:8px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.modal-inner{background:white;padding:16px;border-radius:6px;width:520px}
+.hidden{display:none}
