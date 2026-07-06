@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Poketstar POS (Demo)</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Small styles for suggestion dropdown and modal */
+    .suggestions {
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      width: calc(100% - 100px);
+      z-index: 50;
+    }
+    .suggestion-item { padding: 8px; cursor: pointer; }
+    .suggestion-item:hover { background: #f0f0f0; }
+    .modal-inner { background: #fff; padding: 16px; border-radius: 6px; }
+    .modal.hidden { display: none; }
+    #receipt { white-space: pre-wrap; font-family: monospace; border: 1px solid #ccc; padding: 12px; margin-top: 12px; }
+  </style>
 </head>
 <body>
   <header>
@@ -16,8 +33,9 @@
     <section id="sales">
       <h2>Sales</h2>
 
-      <div class="search-row">
-        <input id="barcodeInput" placeholder="Scan barcode or type product name" />
+      <div style="position:relative;" class="search-row">
+        <input id="barcodeInput" placeholder="Scan barcode or type product name" autocomplete="off" />
+        <div id="suggestions" class="suggestions hidden"></div>
         <button id="addToCartBtn">Add</button>
       </div>
 
@@ -28,16 +46,20 @@
 
       <div class="totals">
         <div>Subtotal: <span id="subtotal">KES 0.00</span></div>
-        <div>Tax: <span id="tax">KES 0.00</span></div>
+        <div>Tax (16%): <span id="tax">KES 0.00</span></div>
         <div>Discount: <span id="discount">KES 0.00</span></div>
         <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
       </div>
 
       <div class="actions">
         <input id="paymentAmount" placeholder="Amount tendered (KES)" />
+        <label style="display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="printReceiptChk" /> Print receipt</label>
         <button id="completeSaleBtn">Complete Sale</button>
         <button id="printReceiptBtn">Print Receipt</button>
       </div>
+
+      <div id="receipt" class="hidden"></div>
+      <div id="changeBox" style="margin-top:8px; font-weight:700;"></div>
     </section>
 
     <aside id="sidebar">
@@ -54,6 +76,7 @@
           <input id="p_barcode" placeholder="Barcode / SKU" />
           <input id="p_price" placeholder="Unit price (KES)" type="number" step="0.01" required />
           <input id="p_qty" placeholder="Quantity" type="number" required />
+          <input id="p_category" placeholder="Category (e.g. Beverages)" />
           <button type="submit">Save Product</button>
         </form>
 
@@ -63,9 +86,256 @@
       </div>
     </div>
 
-    <div id="receipt" class="hidden"></div>
+    <div id="receiptPrintArea" style="display:none;"></div>
+
   </main>
 
-  <script src="app.js"></script>
+  <script>
+    // Simple POS app with: money calculation (change), autocomplete suggestions, print option, categories, and persistence
+    const TAX_RATE = 0.16;
+
+    // Utilities
+    const $ = (id) => document.getElementById(id);
+    function formatKES(n) { return 'KES ' + Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
+
+    // Data stores (localStorage)
+    let products = JSON.parse(localStorage.getItem('ps_products') || '[]');
+    let sales = JSON.parse(localStorage.getItem('ps_sales') || '[]');
+    let currentCart = [];
+
+    // Elements
+    const barcodeInput = $('barcodeInput');
+    const suggestions = $('suggestions');
+    const addToCartBtn = $('addToCartBtn');
+    const cartTableBody = document.querySelector('#cartTable tbody');
+    const subtotalEl = $('subtotal');
+    const taxEl = $('tax');
+    const discountEl = $('discount');
+    const grandTotalEl = $('grandTotal');
+    const paymentAmount = $('paymentAmount');
+    const completeSaleBtn = $('completeSaleBtn');
+    const printReceiptBtn = $('printReceiptBtn');
+    const printReceiptChk = $('printReceiptChk');
+    const changeBox = $('changeBox');
+    const receiptEl = $('receipt');
+
+    // Admin modal elements
+    const adminModal = $('adminModal');
+    const openAdmin = $('openAdmin');
+    const closeAdmin = $('closeAdmin');
+    const productForm = $('productForm');
+    const p_name = $('p_name');
+    const p_barcode = $('p_barcode');
+    const p_price = $('p_price');
+    const p_qty = $('p_qty');
+    const p_category = $('p_category');
+    const productList = $('productList');
+    const exportSalesBtn = $('exportSalesBtn');
+
+    // Clock
+    setInterval(()=>{ $('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
+
+    // Renderers
+    function renderProducts() {
+      productList.innerHTML = '';
+      if (!products.length) { productList.innerHTML = '<div style="color:#666">No products added</div>'; return; }
+      products.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.style.border = '1px solid #ddd';
+        div.style.padding = '8px';
+        div.style.marginBottom = '6px';
+        div.innerHTML = `<strong>${p.name}</strong> <span style="float:right">${formatKES(p.price)}</span><br/><small>SKU: ${p.barcode || '-'} | Qty: ${p.qty} | Cat: ${p.category || '-'}</small>`;
+        div.addEventListener('click', ()=>{ addProductToCart(p); });
+        productList.appendChild(div);
+      });
+    }
+
+    function renderCart() {
+      cartTableBody.innerHTML = '';
+      currentCart.forEach((item, i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.name}</td><td><input type="number" min="1" value="${item.qty}" data-index="${i}" style="width:60px" /></td><td>${formatKES(item.price)}</td><td>${formatKES(item.price*item.qty)}</td><td><button data-remove="${i}">Remove</button></td>`;
+        cartTableBody.appendChild(tr);
+      });
+
+      // Add event listeners for qty changes / remove
+      cartTableBody.querySelectorAll('input[type=number]').forEach(inp=>{
+        inp.addEventListener('change', (e)=>{
+          const idx = +e.target.dataset.index; const v = Math.max(1, Number(e.target.value) || 1); currentCart[idx].qty = v; saveCartAndRender();
+        });
+      });
+      cartTableBody.querySelectorAll('button[data-remove]').forEach(b=>{
+        b.addEventListener('click', ()=>{ const idx = +b.dataset.remove; currentCart.splice(idx,1); saveCartAndRender(); });
+      });
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const subtotal = currentCart.reduce((s,i)=>s + i.price*i.qty, 0);
+      const tax = subtotal * TAX_RATE;
+      const discount = 0; // placeholder for future
+      const grand = subtotal + tax - discount;
+      subtotalEl.textContent = formatKES(subtotal);
+      taxEl.textContent = formatKES(tax);
+      discountEl.textContent = formatKES(discount);
+      grandTotalEl.textContent = formatKES(grand);
+      return {subtotal, tax, discount, grand};
+    }
+
+    function saveCartAndRender() {
+      renderCart();
+    }
+
+    // Product add / admin
+    openAdmin.addEventListener('click', ()=>{ adminModal.classList.remove('hidden'); });
+    closeAdmin.addEventListener('click', ()=>{ adminModal.classList.add('hidden'); });
+
+    productForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const prod = {
+        id: Date.now().toString(),
+        name: p_name.value.trim(),
+        barcode: p_barcode.value.trim(),
+        price: parseFloat(p_price.value) || 0,
+        qty: parseInt(p_qty.value) || 0,
+        category: p_category.value.trim() || 'Uncategorized'
+      };
+      // If barcode exists, update existing
+      const existing = products.findIndex(x=> x.barcode && x.barcode === prod.barcode);
+      if (existing >= 0) { products[existing] = {...products[existing], ...prod}; }
+      else products.push(prod);
+      localStorage.setItem('ps_products', JSON.stringify(products));
+      renderProducts();
+      productForm.reset();
+      adminModal.classList.add('hidden');
+    });
+
+    // Suggestion/autocomplete
+    barcodeInput.addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { suggestions.classList.add('hidden'); return; }
+      const matches = products.filter(p => (p.name && p.name.toLowerCase().includes(q)) || (p.barcode && p.barcode.includes(q)) );
+      if (!matches.length) { suggestions.classList.add('hidden'); return; }
+      suggestions.innerHTML = matches.map(m=>`<div class="suggestion-item" data-id="${m.id}">${m.name} — ${m.category || 'Uncat'} — ${m.barcode || ''} — ${formatKES(m.price)}</div>`).join('');
+      suggestions.classList.remove('hidden');
+
+      suggestions.querySelectorAll('.suggestion-item').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const id = el.dataset.id; const p = products.find(pp=>pp.id===id); if (p) addProductToCart(p); suggestions.classList.add('hidden'); barcodeInput.value = ''; barcodeInput.focus();
+        });
+      });
+    });
+
+    // Hide suggestions on outside click
+    document.addEventListener('click', (e)=>{ if (!e.target.closest('.search-row')) suggestions.classList.add('hidden'); });
+
+    // Add to cart logic
+    addToCartBtn.addEventListener('click', ()=>{ handleAddFromInput(); });
+    barcodeInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); handleAddFromInput(); } });
+
+    function handleAddFromInput() {
+      const q = barcodeInput.value.trim(); if (!q) return;
+      // try exact barcode match first
+      let p = products.find(x=> x.barcode && x.barcode === q);
+      if (!p) {
+        // try exact name
+        p = products.find(x=> x.name && x.name.toLowerCase() === q.toLowerCase());
+      }
+      if (p) { addProductToCart(p); barcodeInput.value = ''; return; }
+      // if multiple matches, show suggestion (already covered by input listener)
+      const matches = products.filter(p=> p.name && p.name.toLowerCase().includes(q.toLowerCase()));
+      if (matches.length === 1) { addProductToCart(matches[0]); barcodeInput.value = ''; suggestions.classList.add('hidden'); return; }
+      if (matches.length > 1) { suggestions.classList.remove('hidden'); return; }
+      alert('Product not found — add it in Admin');
+    }
+
+    function addProductToCart(prod) {
+      const existing = currentCart.find(x=> x.id === prod.id);
+      if (existing) existing.qty += 1; else currentCart.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 });
+      saveCartAndRender();
+    }
+
+    // Complete sale
+    completeSaleBtn.addEventListener('click', ()=>{
+      const totals = updateTotals();
+      const tendered = parseFloat(paymentAmount.value) || 0;
+      if (tendered < totals.grand) { alert('Insufficient payment amount'); return; }
+      const change = tendered - totals.grand;
+      changeBox.textContent = 'Change: ' + formatKES(change);
+
+      // record sale
+      const sale = { id: Date.now(), items: currentCart, totals, tendered, change, created_at: new Date().toISOString() };
+      sales.push(sale); localStorage.setItem('ps_sales', JSON.stringify(sales));
+
+      // reduce inventory quantities if SKU linked
+      sale.items.forEach(it=>{
+        const prod = products.find(p=> p.id === it.id);
+        if (prod && typeof prod.qty === 'number') prod.qty = Math.max(0, prod.qty - it.qty);
+      });
+      localStorage.setItem('ps_products', JSON.stringify(products));
+      renderProducts();
+
+      // prepare receipt
+      const receiptText = generateReceiptText(sale);
+      receiptEl.classList.remove('hidden'); receiptEl.textContent = receiptText;
+
+      // print if checked
+      if (printReceiptChk.checked) {
+        printReceipt(receiptText);
+      }
+
+      // clear cart
+      currentCart = [];
+      saveCartAndRender();
+      paymentAmount.value = '';
+    });
+
+    // Print button to print current receipt area
+    printReceiptBtn.addEventListener('click', ()=>{
+      if (receiptEl.classList.contains('hidden')) { alert('No receipt available. Complete a sale first.'); return; }
+      printReceipt(receiptEl.textContent);
+    });
+
+    function generateReceiptText(sale) {
+      let lines = [];
+      lines.push('POKETSTAR POS');
+      lines.push('Date: ' + new Date(sale.created_at).toLocaleString());
+      lines.push('------------------------------');
+      sale.items.forEach(it=> lines.push(`${it.name} x${it.qty} @${Number(it.price).toFixed(2)} = ${Number(it.price*it.qty).toFixed(2)}`));
+      lines.push('------------------------------');
+      lines.push('Subtotal: ' + Number(sale.totals.subtotal).toFixed(2));
+      lines.push('Tax: ' + Number(sale.totals.tax).toFixed(2));
+      lines.push('Total: ' + Number(sale.totals.grand).toFixed(2));
+      lines.push('Tendered: ' + Number(sale.tendered).toFixed(2));
+      lines.push('Change: ' + Number(sale.change).toFixed(2));
+      lines.push('Thank you for your business!');
+      return lines.join('\n');
+    }
+
+    function printReceipt(content) {
+      const w = window.open('', '_blank');
+      w.document.write('<pre>' + content.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre>');
+      w.document.close();
+      w.focus();
+      w.print();
+      setTimeout(()=>w.close(), 500);
+    }
+
+    // Export sales
+    exportSalesBtn.addEventListener('click', ()=>{
+      const data = JSON.stringify(sales, null, 2);
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'sales-'+Date.now()+'.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // init
+    function init() {
+      renderProducts(); renderCart();
+    }
+
+    init();
+  </script>
 </body>
 </html>
