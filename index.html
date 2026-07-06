@@ -651,10 +651,10 @@
                 </table>
 
                 <div class="totals">
-                    <div>Subtotal: <span id="subtotal">KES 0.00</span></div>
-                    <div>Tax (16%): <span id="tax">KES 0.00</span></div>
+                    <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
+                    <div>VAT (16%): <span id="tax">KES 0.00</span></div>
                     <div>Discount: <span id="discount">KES 0.00</span></div>
-                    <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
+                    <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
                 </div>
 
                 <div class="payment-methods">
@@ -761,7 +761,7 @@
             <form id="productForm">
                 <input id="p_name" placeholder="Product Name" required />
                 <input id="p_barcode" placeholder="Barcode / SKU" />
-                <input id="p_price" placeholder="Unit price (KES)" type="number" step="0.01" required />
+                <input id="p_price" placeholder="Retail Price incl. VAT (KES)" type="number" step="0.01" required />
                 <input id="p_qty" placeholder="Quantity in Stock" type="number" required />
                 <button type="submit">Save Product</button>
             </form>
@@ -776,6 +776,8 @@
     <script>
         // ===== STATE MANAGEMENT =====
         const currency = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' });
+        const TAX_RATE = 0.16; // 16% VAT
+        
         const state = {
             products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
             sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
@@ -791,6 +793,16 @@
 
         function format(n) {
             return currency.format(n);
+        }
+
+        // Calculate base price from retail price (VAT deducted)
+        function calculateBasePrice(retailPrice) {
+            return retailPrice / (1 + TAX_RATE);
+        }
+
+        // Calculate VAT from retail price
+        function calculateVAT(retailPrice) {
+            return retailPrice - calculateBasePrice(retailPrice);
         }
 
         // ===== DOM REFERENCES =====
@@ -837,24 +849,31 @@
         // ===== PRODUCT MANAGEMENT =====
         function renderCart() {
             cartTableBody.innerHTML = '';
-            let subtotal = 0;
+            let baseAmountTotal = 0;
+            let vatTotal = 0;
+
             state.cart.forEach((it, i) => {
                 const row = document.createElement('tr');
-                const total = it.price * it.qty;
-                subtotal += total;
-                row.innerHTML = `<td>${it.name}</td><td>${it.qty}</td><td>${format(it.price)}</td><td>${format(total)}</td>
+                const totalRetail = it.retailPrice * it.qty;
+                const baseAmount = calculateBasePrice(it.retailPrice);
+                const itemVAT = calculateVAT(it.retailPrice);
+                
+                baseAmountTotal += baseAmount * it.qty;
+                vatTotal += itemVAT * it.qty;
+
+                row.innerHTML = `<td>${it.name}</td><td>${it.qty}</td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
                     <td><button class="removeBtn" data-i="${i}">Remove</button></td>`;
                 cartTableBody.appendChild(row);
             });
-            const tax = +(subtotal * 0.16).toFixed(2);
-            const discount = 0;
-            const grand = +(subtotal + tax - discount).toFixed(2);
 
-            subtotalEl.textContent = format(subtotal);
-            taxEl.textContent = format(tax);
+            const discount = 0;
+            const amountDue = baseAmountTotal + vatTotal - discount;
+
+            subtotalEl.textContent = format(baseAmountTotal);
+            taxEl.textContent = format(vatTotal);
             discountEl.textContent = format(discount);
-            grandEl.textContent = format(grand);
-            state.currentSaleAmount = grand;
+            grandEl.textContent = format(amountDue);
+            state.currentSaleAmount = amountDue;
 
             document.querySelectorAll('.removeBtn').forEach(btn => btn.onclick = e => {
                 const idx = +e.target.dataset.i;
@@ -875,7 +894,7 @@
                 if (p.qty <= cartItem.qty) { alert('Not enough stock'); return; }
                 cartItem.qty++;
             } else {
-                state.cart.push({ barcode: p.barcode, name: p.name, price: p.price, qty: 1 });
+                state.cart.push({ barcode: p.barcode, name: p.name, retailPrice: p.price, qty: 1 });
             }
             renderCart();
             logTerminal(`Added to cart: ${p.name}`);
@@ -899,18 +918,23 @@
         completeSaleBtn.onclick = () => {
             if (state.cart.length === 0) { alert('Cart empty'); return; }
             
-            const subtotal = state.cart.reduce((s, it) => s + it.price * it.qty, 0);
-            const tax = +(subtotal * 0.16).toFixed(2);
-            const grand = +(subtotal + tax).toFixed(2);
+            let baseAmount = 0;
+            state.cart.forEach(it => {
+                const base = calculateBasePrice(it.retailPrice);
+                baseAmount += base * it.qty;
+            });
+
+            const vat = baseAmount * TAX_RATE;
+            const amountDue = baseAmount + vat;
 
             let paymentRef = `${state.selectedPaymentMethod.toUpperCase()}-${Date.now()}`;
 
             const sale = {
                 id: Date.now(),
                 items: state.cart,
-                subtotal,
-                tax,
-                grand,
+                baseAmount,
+                vat,
+                amountDue,
                 paymentMethod: state.selectedPaymentMethod.toUpperCase(),
                 paymentRef,
                 date: new Date().toISOString()
@@ -934,7 +958,11 @@
         function showReceipt(sale) {
             const receipt = document.getElementById('receipt');
             receipt.classList.remove('hidden');
-            let items = sale.items.map(i => `${i.name} x${i.qty} ${format(i.price * i.qty)}`).join('\n');
+            let items = sale.items.map(i => {
+                const itemRetail = i.retailPrice * i.qty;
+                return `${i.name} x${i.qty} ${format(itemRetail)}`;
+            }).join('\n');
+            
             receipt.innerHTML = `<pre>╔══════════════════════════════════╗
 ║     POKETSTAR POS RECEIPT       ║
 ╚══════════════════════════════════╝
@@ -947,9 +975,9 @@ Reference: ${sale.paymentRef}
 ─────────────────────────────────
 ${items}
 ─────────────────────────────────
-Subtotal:        ${format(sale.subtotal)}
-Tax (16%):       ${format(sale.tax)}
-GRAND TOTAL:     ${format(sale.grand)}
+Base Amount:     ${format(sale.baseAmount)}
+VAT (16%):       ${format(sale.vat)}
+AMOUNT DUE:      ${format(sale.amountDue)}
 ─────────────────────────────────
 
 Thank you for your purchase!
@@ -999,39 +1027,17 @@ Eastern Africa Retail Solutions</pre>`;
             if(!text) return;
 
             const chatBox = document.getElementById('chat-box');
-            const userMsg = document.createElement('div');
-            userMsg.className = 'msg';
-            userMsg.innerHTML = `<div class="msg-author">Stephen Barasa</div>${text}`;
-            
-            chatBox.appendChild(userMsg);
-            input.value = '';
+            const msg = document.createElement('div');
+            msg.className = 'msg';
+            msg.innerHTML = `<div class="msg-author">Current User</div>${text}`;
+            chatBox.appendChild(msg);
             chatBox.scrollTop = chatBox.scrollHeight;
-            logTerminal(`Broadcasted chat message: "${text}"`);
+            input.value = '';
         }
 
-        // Inventory Sync Action
         function triggerInventorySync() {
-            logTerminal("Initiating inventory synchronization sequence...");
-            setTimeout(() => {
-                logTerminal("Syncing product database with cloud servers...");
-            }, 600);
-            setTimeout(() => {
-                logTerminal("✔ Inventory Sync Complete. All products updated.");
-                const chatBox = document.getElementById('chat-box');
-                const updateMsg = document.createElement('div');
-                updateMsg.className = 'msg system';
-                updateMsg.innerHTML = `<div class="msg-author">Platform Engine</div>Inventory sync sequence completed successfully.`;
-                chatBox.appendChild(updateMsg);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }, 2000);
+            logTerminal('Inventory synchronization with backend servers initiated...');
         }
-
-        // ===== INITIALIZATION =====
-        document.addEventListener('DOMContentLoaded', () => {
-            renderCart();
-            logTerminal("Poket Star POS Enterprise System Initialized");
-            logTerminal("Ready for transactions...");
-        });
     </script>
 </body>
 </html>
