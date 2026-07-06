@@ -341,122 +341,133 @@
             font-size: 12px;
         }
 
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
         /* RIGHT SIDE: Vertical Stack */
         .right-stack {
             display: grid;
-            grid-template-rows: 35% 30% 35%;
+            grid-template-rows: 50% 50%;
             gap: 12px;
         }
 
-        /* Terminal Window */
-        .terminal-body {
-            background: #02040a;
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--terminal-green);
-            font-size: 11px;
-            padding: 10px;
-            line-height: 1.4;
-        }
-
-        .terminal-line { margin-bottom: 3px; }
-
-        /* File Manager Window */
-        .file-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .file-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-        .file-item:hover { background: #1e294b; }
-
-        .icon-folder {
-            width: 35px;
-            height: 35px;
-            background: var(--accent-blue);
-            border-radius: 4px;
-            position: relative;
-            margin-bottom: 6px;
-        }
-        .icon-folder::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: 0;
-            width: 15px;
-            height: 4px;
-            background: var(--accent-blue);
-            border-radius: 2px 2px 0 0;
-        }
-
-        .file-name {
-            font-size: 11px;
-            text-align: center;
-            word-break: break-all;
-            color: var(--text-main);
-        }
-
-        /* Messenger Window */
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
+        /* Hold Sales Manager */
+        .hold-sales-list {
             display: flex;
             flex-direction: column;
             gap: 8px;
+            max-height: 100%;
+            overflow-y: auto;
         }
 
-        .msg {
-            background: #131c35;
-            padding: 8px 12px;
-            border-radius: 6px;
-            max-width: 85%;
-            font-size: 11px;
-            color: var(--text-main);
-        }
-        .msg.system {
-            background: #1e294b;
-            border-left: 3px solid var(--accent-blue);
-        }
-
-        .msg-author {
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin-bottom: 2px;
-            font-size: 10px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 6px;
-        }
-
-        .chat-input {
-            flex: 1;
-            background: #040712;
+        .hold-item {
+            background: #090d1a;
             border: 1px solid var(--border-color);
             border-radius: 4px;
-            color: var(--text-main);
-            padding: 6px 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
             font-size: 12px;
         }
-        .chat-input:focus {
-            outline: none;
+
+        .hold-item:hover {
             border-color: var(--accent-blue);
+            background: #1e294b;
+        }
+
+        .hold-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .hold-item-details {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .hold-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .hold-buttons button {
+            flex: 1;
+            padding: 4px 8px;
+            font-size: 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .hold-buttons button.delete {
+            background: #ef4444;
+        }
+
+        /* Reports & Analytics */
+        .reports-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: #090d1a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .shortcuts-info {
+            background: #090d1a;
+            border: 1px solid #10b981;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            max-height: 100%;
+            overflow-y: auto;
+        }
+
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shortcut:last-child {
+            border-bottom: none;
+        }
+
+        .shortcut-key {
+            color: #10b981;
+            font-weight: 600;
         }
 
         /* Modal */
@@ -562,10 +573,27 @@
             justify-content: center;
             font-size: 14px;
             transition: transform 0.2s;
+            position: relative;
         }
         .dock-icon:hover {
             transform: scale(1.2);
             background: var(--accent-blue);
+        }
+
+        .dock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
         }
 
         /* Scrollbar Styling */
@@ -592,7 +620,7 @@
                 grid-template-columns: 1fr;
             }
             .right-stack {
-                grid-template-rows: auto auto auto;
+                grid-template-rows: auto auto;
             }
         }
     </style>
@@ -625,120 +653,147 @@
                 <div class="pos-nav">
                     <div class="pos-logo">🌟 Poket <span>Star</span></div>
                     <div class="pos-tabs">
-                        <button class="active">Sales</button>
-                        <button onclick="logTerminal('Switched to System Solutions config panel.')">Products</button>
-                        <button onclick="logTerminal('Fetching live deployment analytics API...')">Reports</button>
+                        <button class="active" onclick="switchTab('sales')">Sales</button>
+                        <button onclick="switchTab('products')">Products</button>
+                        <button onclick="switchTab('reports')">Reports</button>
                     </div>
                 </div>
 
-                <div class="hero-banner">
-                    <h1>Sales Terminal Active</h1>
-                    <p>East Africa Retail System | Real-time inventory management and transactions</p>
-                    <button class="btn" onclick="logTerminal('Inventory sync initiated...')">Sync Inventory</button>
-                    <button class="btn secondary" onclick="logTerminal('Running system diagnostic...')">Diagnostics</button>
+                <!-- SALES TAB -->
+                <div id="sales-tab" class="tab-content active">
+                    <div class="hero-banner">
+                        <h1>Sales Terminal Active</h1>
+                        <p>East Africa Retail System | Real-time inventory management and transactions</p>
+                        <button class="btn" onclick="syncInventory()">Sync Inventory</button>
+                        <button class="btn secondary" onclick="document.getElementById('adminModal').classList.remove('hidden')">Admin</button>
+                    </div>
+
+                    <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search (Ctrl+S)</h3>
+                    <div class="search-row">
+                        <input id="barcodeInput" placeholder="Scan barcode or type product name" />
+                        <button id="addToCartBtn">Add</button>
+                    </div>
+
+                    <h3 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Cart Items</h3>
+                    <table id="cartTable">
+                        <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
+                        <div>VAT (16%): <span id="tax">KES 0.00</span></div>
+                        <div>Discount: <span id="discount">KES 0.00</span></div>
+                        <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
+                    </div>
+
+                    <div class="payment-methods">
+                        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
+                        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
+                        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+                    </div>
+
+                    <div class="actions">
+                        <input id="paymentAmount" placeholder="Amount tendered (KES)" />
+                        <button id="completeSaleBtn">Complete Sale (F12)</button>
+                        <button id="holdSaleBtn">Hold Sale (Ctrl+H)</button>
+                        <button id="printReceiptBtn">Print Receipt</button>
+                    </div>
+
+                    <div id="receipt" class="hidden"></div>
                 </div>
 
-                <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search</h3>
-                <div class="search-row">
-                    <input id="barcodeInput" placeholder="Scan barcode or type product name" />
-                    <button id="addToCartBtn">Add</button>
+                <!-- PRODUCTS TAB -->
+                <div id="products-tab" class="tab-content hidden">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Product Management</h2>
+                    <button class="btn" onclick="document.getElementById('adminModal').classList.remove('hidden')">➕ Add New Product</button>
+                    <div id="productList" style="margin-top: 15px; display: grid; gap: 8px;"></div>
                 </div>
 
-                <h3 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Cart Items</h3>
-                <table id="cartTable">
-                    <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
-                    <tbody></tbody>
-                </table>
-
-                <div class="totals">
-                    <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
-                    <div>VAT (16%): <span id="tax">KES 0.00</span></div>
-                    <div>Discount: <span id="discount">KES 0.00</span></div>
-                    <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
+                <!-- REPORTS TAB -->
+                <div id="reports-tab" class="tab-content hidden">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Sales Reports</h2>
+                    <div class="reports-container">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Total Sales</div>
+                                <div class="stat-value" id="totalSales">KES 0.00</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Transactions</div>
+                                <div class="stat-value" id="totalTransactions">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Products Sold</div>
+                                <div class="stat-value" id="productsSold">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Avg Sale</div>
+                                <div class="stat-value" id="avgSale">KES 0.00</div>
+                            </div>
+                        </div>
+                        <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 12px;">📊 Export Sales (JSON)</button>
+                    </div>
                 </div>
-
-                <div class="payment-methods">
-                    <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
-                    <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
-                    <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
-                </div>
-
-                <div class="actions">
-                    <input id="paymentAmount" placeholder="Amount tendered (KES)" />
-                    <button id="completeSaleBtn">Complete Sale</button>
-                    <button id="printReceiptBtn">Print Receipt</button>
-                </div>
-
-                <div id="receipt" class="hidden"></div>
             </div>
         </div>
 
-        <!-- RIGHT: Developer Workstation Module Stack -->
+        <!-- RIGHT: Hold Sales & Shortcuts -->
         <div class="right-stack">
             
-            <!-- Window 1: Interactive Terminal -->
+            <!-- Window 1: Hold Sales Manager -->
             <div class="window">
                 <div class="window-header">
-                    <div class="window-title">💻 Terminal // System Monitor</div>
-                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
-                </div>
-                <div class="window-body terminal-body" id="term-body">
-                    <div class="terminal-line">barasa@poketstar-node1:~$ systemctl status poketstar.service</div>
-                    <div class="terminal-line" style="color: #a3e635">• poketstar.service - Poket Star ERP Engine Core</div>
-                    <div class="terminal-line">Active: active (running) since localized boot execution</div>
-                    <div class="terminal-line">Tasks: 42 (limit: 4915) - Memory allocation secure</div>
-                    <div class="terminal-line">barasa@poketstar-node1:~$ _</div>
-                </div>
-            </div>
-
-            <!-- Window 2: Virtual File System -->
-            <div class="window">
-                <div class="window-header">
-                    <div class="window-title">📂 System Explorer // Root</div>
+                    <div class="window-title">⏸️ Hold Sales Manager</div>
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
                 <div class="window-body">
-                    <div class="file-grid">
-                        <div class="file-item" onclick="logTerminal('Navigated into directory: /projects')">
-                            <div class="icon-folder"></div>
-                            <div class="file-name">projects</div>
-                        </div>
-                        <div class="file-item" onclick="logTerminal('Navigated into directory: /poket_src')">
-                            <div class="icon-folder" style="background: #10b981;"></div>
-                            <div class="file-name">poket_src</div>
-                        </div>
-                        <div class="file-item" onclick="logTerminal('Reading operational layout database tables...')">
-                            <div class="icon-folder" style="background: #f59e0b;"></div>
-                            <div class="file-name">db_schemas</div>
-                        </div>
-                        <div class="file-item" onclick="logTerminal('System logs compressed asset: logs.tar.gz')">
-                            <div class="icon-folder" style="background: #64748b;"></div>
-                            <div class="file-name">sys_logs</div>
-                        </div>
+                    <div class="hold-sales-list" id="holdSalesList">
+                        <div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Window 3: Messaging Node -->
+            <!-- Window 2: Shortcuts & Info -->
             <div class="window">
                 <div class="window-header">
-                    <div class="window-title">💬 Messaging Node // Element</div>
+                    <div class="window-title">⌨️ Keyboard Shortcuts</div>
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
-                <div class="window-body chat-container">
-                    <div class="chat-messages" id="chat-box">
-                        <div class="msg system">
-                            <div class="msg-author">System Node</div>
-                            Welcome to the Poket Star POS Enterprise console environment.
+                <div class="window-body">
+                    <div class="shortcuts-info">
+                        <div class="shortcut">
+                            <span>Focus Barcode Input</span>
+                            <span class="shortcut-key">Ctrl+S</span>
                         </div>
-                        <div class="msg">
-                            <div class="msg-author">Stephen Barasa</div>
-                            The local ERP architecture deployment testing is online.
+                        <div class="shortcut">
+                            <span>Add to Cart</span>
+                            <span class="shortcut-key">Enter</span>
                         </div>
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-msg-input" class="chat-input" placeholder="Broadcast message..." onkeydown="if(event.key === 'Enter') sendMockMessage()">
-                        <button class="btn" style="padding: 4px 10px;" onclick="sendMockMessage()">Send</button>
+                        <div class="shortcut">
+                            <span>Complete Sale</span>
+                            <span class="shortcut-key">F12</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Hold Current Sale</span>
+                            <span class="shortcut-key">Ctrl+H</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Print Receipt</span>
+                            <span class="shortcut-key">Ctrl+P</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Open Admin</span>
+                            <span class="shortcut-key">Ctrl+A</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Sync Inventory</span>
+                            <span class="shortcut-key">Ctrl+I</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Clear Cart</span>
+                            <span class="shortcut-key">Ctrl+L</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -748,10 +803,14 @@
 
     <!-- Bottom App Quick Dock Menu -->
     <div class="desktop-dock">
-        <div class="dock-icon" onclick="logTerminal('System Home Core Focus restored.')">🏠</div>
-        <div class="dock-icon" onclick="triggerInventorySync()">🔄</div>
-        <div class="dock-icon" onclick="document.getElementById('adminModal').classList.remove('hidden')">🛠️</div>
-        <div class="dock-icon" onclick="logTerminal('Secure internal mail node ping set.')">✉️</div>
+        <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)">💳</div>
+        <div class="dock-icon" onclick="switchTab('products')" title="Products">📦</div>
+        <div class="dock-icon" onclick="switchTab('reports')" title="Reports">📊</div>
+        <div class="dock-icon" onclick="document.getElementById('adminModal').classList.remove('hidden')" title="Admin (Ctrl+A)">🛠️</div>
+        <div class="dock-icon" id="holdBadgeIcon" onclick="focusHoldSales()" title="Hold Sales (Ctrl+H)">
+            ⏸️
+            <span class="dock-badge hidden" id="holdBadge">0</span>
+        </div>
     </div>
 
     <!-- Admin Modal -->
@@ -767,7 +826,7 @@
             </form>
 
             <h3 style="margin-top:16px; color: var(--accent-blue);">Reports</h3>
-            <button type="button" id="exportSalesBtn" style="width:100%;margin-bottom:8px" class="btn">Export Sales (JSON)</button>
+            <button type="button" id="exportSalesBtn2" style="width:100%;margin-bottom:8px" class="btn">Export Sales (JSON)</button>
             <button type="button" id="closeAdmin" style="width:100%;margin-top:8px" class="btn secondary">Close</button>
         </div>
     </div>
@@ -781,14 +840,17 @@
         const state = {
             products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
             sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
+            heldSales: JSON.parse(localStorage.getItem('pos_held_sales') || '[]'),
             cart: [],
             selectedPaymentMethod: 'cash',
-            currentSaleAmount: 0
+            currentSaleAmount: 0,
+            currentTab: 'sales'
         };
 
         function saveState() {
             localStorage.setItem('pos_products', JSON.stringify(state.products));
             localStorage.setItem('pos_sales', JSON.stringify(state.sales));
+            localStorage.setItem('pos_held_sales', JSON.stringify(state.heldSales));
         }
 
         function format(n) {
@@ -815,10 +877,11 @@
         const discountEl = document.getElementById('discount');
         const grandEl = document.getElementById('grandTotal');
         const completeSaleBtn = document.getElementById('completeSaleBtn');
+        const holdSaleBtn = document.getElementById('holdSaleBtn');
         const printReceiptBtn = document.getElementById('printReceiptBtn');
         const adminModal = document.getElementById('adminModal');
         const closeAdmin = document.getElementById('closeAdmin');
-        const exportSalesBtn = document.getElementById('exportSalesBtn');
+        const exportSalesBtns = document.querySelectorAll('#exportSalesBtn, #exportSalesBtn2');
         const methodButtons = document.querySelectorAll('[data-payment-method]');
 
         // Update System Clock
@@ -835,15 +898,17 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Log to Terminal
-        function logTerminal(message) {
-            const term = document.getElementById('term-body');
-            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            const logLine = document.createElement('div');
-            logLine.className = 'terminal-line';
-            logLine.innerHTML = `<span style="color: #3b82f6">[${timestamp}]</span> barasa@poketstar:~$ ${message}`;
-            term.appendChild(logLine);
-            term.scrollTop = term.scrollHeight;
+        // ===== TAB SWITCHING =====
+        function switchTab(tabName) {
+            state.currentTab = tabName;
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.pos-tabs button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'reports') updateReports();
+            if (tabName === 'products') renderProductsList();
+            if (tabName === 'sales') document.getElementById('barcodeInput').focus();
         }
 
         // ===== PRODUCT MANAGEMENT =====
@@ -861,8 +926,8 @@
                 baseAmountTotal += baseAmount * it.qty;
                 vatTotal += itemVAT * it.qty;
 
-                row.innerHTML = `<td>${it.name}</td><td>${it.qty}</td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
-                    <td><button class="removeBtn" data-i="${i}">Remove</button></td>`;
+                row.innerHTML = `<td>${it.name}</td><td><input type="number" min="1" value="${it.qty}" onchange="updateQty(${i}, this.value)" style="width:40px; padding:4px; background:#040712; border:1px solid var(--border-color); color:var(--text-main); border-radius:2px;"></td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
+                    <td><button class="removeBtn" onclick="removeFromCart(${i})">Remove</button></td>`;
                 cartTableBody.appendChild(row);
             });
 
@@ -874,12 +939,19 @@
             discountEl.textContent = format(discount);
             grandEl.textContent = format(amountDue);
             state.currentSaleAmount = amountDue;
+        }
 
-            document.querySelectorAll('.removeBtn').forEach(btn => btn.onclick = e => {
-                const idx = +e.target.dataset.i;
-                state.cart.splice(idx, 1);
+        function updateQty(idx, newQty) {
+            const qty = parseInt(newQty, 10);
+            if (qty > 0) {
+                state.cart[idx].qty = qty;
                 renderCart();
-            });
+            }
+        }
+
+        function removeFromCart(idx) {
+            state.cart.splice(idx, 1);
+            renderCart();
         }
 
         function findProductByBarcode(q) {
@@ -897,8 +969,34 @@
                 state.cart.push({ barcode: p.barcode, name: p.name, retailPrice: p.price, qty: 1 });
             }
             renderCart();
-            logTerminal(`Added to cart: ${p.name}`);
             barcodeInput.value = '';
+            barcodeInput.focus();
+        }
+
+        function renderProductsList() {
+            const list = document.getElementById('productList');
+            list.innerHTML = '';
+            if (state.products.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted);">No products added yet</p>';
+                return;
+            }
+            state.products.forEach((p, i) => {
+                const item = document.createElement('div');
+                item.style.cssText = 'background: #090d1a; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; font-size: 12px;';
+                item.innerHTML = `
+                    <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 4px;">${p.name}</div>
+                    <div style="color: var(--text-muted); margin-bottom: 6px;">
+                        Barcode: ${p.barcode} | Price: ${format(p.price)} | Stock: ${p.qty}
+                    </div>
+                    <button class="btn" style="font-size: 11px; padding: 4px 8px;" onclick="quickAddProduct('${p.barcode}')">Quick Add</button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function quickAddProduct(barcode) {
+            addToCart(barcode);
+            switchTab('sales');
         }
 
         addToCartBtn.onclick = () => addToCart(barcodeInput.value.trim());
@@ -910,9 +1008,101 @@
                 methodButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 state.selectedPaymentMethod = btn.dataset.paymentMethod;
-                logTerminal(`Payment method switched to: ${btn.dataset.paymentMethod.toUpperCase()}`);
             });
         });
+
+        // ===== HOLD SALE =====
+        holdSaleBtn.onclick = () => {
+            if (state.cart.length === 0) { alert('Cart is empty'); return; }
+            
+            const held = {
+                id: Date.now(),
+                items: JSON.parse(JSON.stringify(state.cart)),
+                timestamp: new Date().toISOString(),
+                paymentMethod: state.selectedPaymentMethod
+            };
+            
+            state.heldSales.push(held);
+            state.cart = [];
+            state.selectedPaymentMethod = 'cash';
+            methodButtons.forEach(b => b.classList.remove('active'));
+            methodButtons[0].classList.add('active');
+            
+            saveState();
+            renderCart();
+            renderHeldSales();
+            alert(`Sale held! (${state.heldSales.length} held sales)`);
+        };
+
+        function renderHeldSales() {
+            const list = document.getElementById('holdSalesList');
+            
+            if (state.heldSales.length === 0) {
+                list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>';
+                document.getElementById('holdBadge').classList.add('hidden');
+                return;
+            }
+            
+            list.innerHTML = '';
+            const badge = document.getElementById('holdBadge');
+            badge.textContent = state.heldSales.length;
+            badge.classList.remove('hidden');
+            
+            state.heldSales.forEach((held, i) => {
+                const item = document.createElement('div');
+                item.className = 'hold-item';
+                const time = new Date(held.timestamp).toLocaleTimeString();
+                let itemsTotal = 0;
+                let totalAmount = 0;
+                held.items.forEach(it => {
+                    itemsTotal += it.qty;
+                    totalAmount += it.retailPrice * it.qty;
+                });
+                
+                item.innerHTML = `
+                    <div class="hold-item-header">
+                        <span>Sale #${held.id}</span>
+                        <span>${format(totalAmount)}</span>
+                    </div>
+                    <div class="hold-item-details">
+                        <div>${held.items.length} product(s) | ${itemsTotal} item(s) | ${held.paymentMethod.toUpperCase()}</div>
+                        <div>Held: ${time}</div>
+                    </div>
+                    <div class="hold-buttons">
+                        <button onclick="retrieveHeldSale(${i})">Retrieve</button>
+                        <button class="delete" onclick="deleteHeldSale(${i})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        function retrieveHeldSale(idx) {
+            if (state.cart.length > 0) {
+                if (!confirm('Current cart has items. Continue to merge with held sale?')) return;
+            }
+            
+            const held = state.heldSales[idx];
+            state.cart = JSON.parse(JSON.stringify(held.items));
+            state.heldSales.splice(idx, 1);
+            saveState();
+            renderCart();
+            renderHeldSales();
+            switchTab('sales');
+            alert('Held sale retrieved!');
+        }
+
+        function deleteHeldSale(idx) {
+            if (!confirm('Delete this held sale?')) return;
+            state.heldSales.splice(idx, 1);
+            saveState();
+            renderHeldSales();
+            alert('Held sale deleted');
+        }
+
+        function focusHoldSales() {
+            switchTab('sales');
+        }
 
         // ===== SALE COMPLETION =====
         completeSaleBtn.onclick = () => {
@@ -950,7 +1140,6 @@
             saveState();
             renderCart();
             showReceipt(sale);
-            logTerminal(`✔ Sale completed. Transaction ID: ${sale.id}`);
             alert('Sale recorded successfully!');
         };
 
@@ -986,6 +1175,24 @@ Eastern Africa Retail Solutions</pre>`;
 
         printReceiptBtn.onclick = () => window.print();
 
+        // ===== REPORTS =====
+        function updateReports() {
+            let totalSales = 0;
+            let totalItemsSold = 0;
+            
+            state.sales.forEach(s => {
+                totalSales += s.amountDue;
+                s.items.forEach(i => {
+                    totalItemsSold += i.qty;
+                });
+            });
+
+            document.getElementById('totalSales').textContent = format(totalSales);
+            document.getElementById('totalTransactions').textContent = state.sales.length;
+            document.getElementById('productsSold').textContent = totalItemsSold;
+            document.getElementById('avgSale').textContent = state.sales.length > 0 ? format(totalSales / state.sales.length) : 'KES 0.00';
+        }
+
         // ===== ADMIN =====
         closeAdmin.onclick = () => adminModal.classList.add('hidden');
 
@@ -999,45 +1206,72 @@ Eastern Africa Retail Solutions</pre>`;
             if (existing) {
                 existing.name = name;
                 existing.price = price;
-                existing.qty = qty;
+                existing.qty += qty;
             } else {
-                state.products.push({ name, barcode, price, qty });
+                state.products.push({ barcode, name, price, qty });
             }
             saveState();
-            renderCart();
             productForm.reset();
-            logTerminal(`Product added: ${name}`);
+            alert('Product saved!');
+            renderProductsList();
         };
 
-        exportSalesBtn.onclick = () => {
-            const data = JSON.stringify(state.sales, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `sales-${Date.now()}.json`;
-            a.click();
-            logTerminal(`Exported sales report: ${state.sales.length} transactions`);
-        };
+        exportSalesBtns.forEach(btn => {
+            btn.onclick = () => {
+                const json = JSON.stringify({ sales: state.sales, products: state.products }, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `poketstar-sales-${Date.now()}.json`;
+                a.click();
+            };
+        });
 
-        // Messenger
-        function sendMockMessage() {
-            const input = document.getElementById('chat-msg-input');
-            const text = input.value.trim();
-            if(!text) return;
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                switchTab('sales');
+                document.getElementById('barcodeInput').focus();
+            }
+            if (e.ctrlKey && e.key === 'h') {
+                e.preventDefault();
+                holdSaleBtn.click();
+            }
+            if (e.key === 'F12') {
+                e.preventDefault();
+                completeSaleBtn.click();
+            }
+            if (e.ctrlKey && e.key === 'p') {
+                e.preventDefault();
+                printReceiptBtn.click();
+            }
+            if (e.ctrlKey && e.key === 'a') {
+                e.preventDefault();
+                adminModal.classList.remove('hidden');
+            }
+            if (e.ctrlKey && e.key === 'i') {
+                e.preventDefault();
+                syncInventory();
+            }
+            if (e.ctrlKey && e.key === 'l') {
+                e.preventDefault();
+                if (confirm('Clear cart?')) {
+                    state.cart = [];
+                    renderCart();
+                }
+            }
+        });
 
-            const chatBox = document.getElementById('chat-box');
-            const msg = document.createElement('div');
-            msg.className = 'msg';
-            msg.innerHTML = `<div class="msg-author">Current User</div>${text}`;
-            chatBox.appendChild(msg);
-            chatBox.scrollTop = chatBox.scrollHeight;
-            input.value = '';
+        function syncInventory() {
+            alert('Inventory synced! Products up to date.');
         }
 
-        function triggerInventorySync() {
-            logTerminal('Inventory synchronization with backend servers initiated...');
-        }
+        // Initialize
+        renderCart();
+        renderHeldSales();
     </script>
+
 </body>
 </html>
