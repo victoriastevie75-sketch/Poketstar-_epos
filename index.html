@@ -17,6 +17,18 @@
             --text-muted: #94a3b8;
         }
 
+        body.light-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #f5f5f5;
+            --border-color: #e0e0e0;
+            --accent-blue: #0084ff;
+            --accent-teal: #2b7a78;
+            --glow-blue: rgba(0, 132, 255, 0.2);
+            --terminal-green: #00a84f;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -31,6 +43,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* Top Desktop Status Bar */
@@ -44,6 +57,11 @@
             padding: 0 15px;
             font-size: 13px;
             user-select: none;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        body.light-mode .desktop-bar {
+            background: #f0f0f0;
         }
 
         .bar-left span, .bar-right span {
@@ -56,11 +74,27 @@
             color: var(--accent-blue);
         }
 
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--text-main);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
         /* Workspace Layout */
         .workspace {
             flex: 1;
             display: grid;
-            grid-template-columns: 60% 40%;
+            grid-template-columns: 50% 30% 20%;
             gap: 12px;
             padding: 12px;
             height: calc(100vh - 75px);
@@ -75,7 +109,7 @@
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: border-color 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
         .window:hover, .window:focus-within {
@@ -91,6 +125,11 @@
             justify-content: space-between;
             align-items: center;
             user-select: none;
+            transition: background-color 0.3s;
+        }
+
+        body.light-mode .window-header {
+            background: #e8e8e8;
         }
 
         .window-title {
@@ -166,6 +205,11 @@
             border-radius: 6px;
             padding: 20px;
             margin-bottom: 15px;
+            transition: background 0.3s;
+        }
+
+        body.light-mode .hero-banner {
+            background: linear-gradient(135deg, #e0e8ff 0%, #f0f0f0 100%);
         }
 
         .hero-banner h1 {
@@ -198,8 +242,11 @@
             border: 1px solid var(--border-color);
             color: var(--text-main);
             margin-left: 8px;
+            transition: all 0.2s;
         }
         .btn.secondary:hover { background: #1e294b; }
+
+        body.light-mode .btn.secondary:hover { background: #e0e0e0; }
 
         /* Sales Cart Section */
         .search-row {
@@ -216,7 +263,14 @@
             border-radius: 4px;
             color: var(--text-main);
             font-size: 12px;
+            transition: all 0.3s;
         }
+
+        body.light-mode .search-row input {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
         .search-row input:focus {
             outline: none;
             border-color: var(--accent-blue);
@@ -245,6 +299,7 @@
             border-bottom: 1px solid var(--border-color);
             text-align: left;
             color: var(--text-main);
+            transition: all 0.3s;
         }
 
         #cartTable th {
@@ -253,6 +308,10 @@
             color: var(--text-muted);
             font-size: 11px;
             text-transform: uppercase;
+        }
+
+        body.light-mode #cartTable th {
+            background: #e8e8e8;
         }
 
         .removeBtn {
@@ -274,6 +333,11 @@
             border-radius: 4px;
             border-left: 4px solid var(--accent-blue);
             font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        body.light-mode .totals {
+            background: #e8e8e8;
         }
 
         .totals div {
@@ -327,7 +391,14 @@
             border-radius: 4px;
             color: var(--text-main);
             font-size: 12px;
+            transition: all 0.3s;
         }
+
+        body.light-mode .actions input {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
         .actions input:focus { outline: none; border-color: var(--accent-blue); }
 
         .actions button {
@@ -345,11 +416,71 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* RIGHT SIDE: Vertical Stack */
-        .right-stack {
-            display: grid;
-            grid-template-rows: 50% 50%;
-            gap: 12px;
+        /* Product List Sidebar */
+        .product-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .product-item {
+            background: #090d1a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+        }
+
+        body.light-mode .product-item {
+            background: #f9f9f9;
+        }
+
+        .product-item:hover {
+            border-color: var(--accent-blue);
+            background: #1e294b;
+        }
+
+        body.light-mode .product-item:hover {
+            background: #f0f0f0;
+        }
+
+        .product-item-name {
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-item-details {
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-bottom: 6px;
+        }
+
+        .product-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .product-item-actions button {
+            flex: 1;
+            padding: 3px 6px;
+            font-size: 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .product-item-actions button.edit {
+            background: #10b981;
+        }
+
+        .product-item-actions button.remove {
+            background: #ef4444;
         }
 
         /* Hold Sales Manager */
@@ -371,9 +502,17 @@
             font-size: 12px;
         }
 
+        body.light-mode .hold-item {
+            background: #f9f9f9;
+        }
+
         .hold-item:hover {
             border-color: var(--accent-blue);
             background: #1e294b;
+        }
+
+        body.light-mode .hold-item:hover {
+            background: #f0f0f0;
         }
 
         .hold-item-header {
@@ -428,6 +567,11 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .stat-box {
+            background: #f9f9f9;
         }
 
         .stat-label {
@@ -452,6 +596,12 @@
             color: var(--text-muted);
             max-height: 100%;
             overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .shortcuts-info {
+            background: #f9f9f9;
+            border-color: #10b981;
         }
 
         .shortcut {
@@ -491,6 +641,7 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s;
         }
 
         .modal-inner h2 {
@@ -511,7 +662,14 @@
             border-radius: 4px;
             color: var(--text-main);
             font-size: 12px;
+            transition: all 0.3s;
         }
+
+        body.light-mode .modal-inner input {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
         .modal-inner input:focus {
             outline: none;
             border-color: var(--accent-blue);
@@ -545,6 +703,12 @@
             color: var(--terminal-green);
             max-height: 200px;
             overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        body.light-mode #receipt {
+            background: #f9f9f9;
+            color: #00a84f;
         }
 
         /* Bottom Application Dock */
@@ -560,6 +724,11 @@
             align-items: center;
             padding: 0 15px;
             gap: 15px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .desktop-dock {
+            background: rgba(240, 240, 240, 0.9);
         }
 
         .dock-icon {
@@ -619,9 +788,6 @@
             .workspace {
                 grid-template-columns: 1fr;
             }
-            .right-stack {
-                grid-template-rows: auto auto;
-            }
         }
     </style>
 </head>
@@ -637,6 +803,7 @@
         <div class="bar-center">Poket Star POS — Enterprise Console</div>
         <div class="bar-right">
             <span id="live-clock">10:35 AM</span>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
         </div>
     </div>
 
@@ -665,7 +832,7 @@
                         <h1>Sales Terminal Active</h1>
                         <p>East Africa Retail System | Real-time inventory management and transactions</p>
                         <button class="btn" onclick="syncInventory()">Sync Inventory</button>
-                        <button class="btn secondary" onclick="document.getElementById('adminModal').classList.remove('hidden')">Admin</button>
+                        <button class="btn secondary" onclick="showAddProductModal()">Add Product</button>
                     </div>
 
                     <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search (Ctrl+S)</h3>
@@ -706,8 +873,8 @@
                 <!-- PRODUCTS TAB -->
                 <div id="products-tab" class="tab-content hidden">
                     <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Product Management</h2>
-                    <button class="btn" onclick="document.getElementById('adminModal').classList.remove('hidden')">➕ Add New Product</button>
-                    <div id="productList" style="margin-top: 15px; display: grid; gap: 8px;"></div>
+                    <button class="btn" onclick="showAddProductModal()">➕ Add New Product</button>
+                    <div id="productListTab" style="margin-top: 15px; display: grid; gap: 8px;"></div>
                 </div>
 
                 <!-- REPORTS TAB -->
@@ -733,13 +900,27 @@
                             </div>
                         </div>
                         <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 12px;">📊 Export Sales (JSON)</button>
+                        <button class="btn" id="saveAllBtn" style="width: 100%; margin-top: 8px; background: #10b981;">💾 Save All Changes</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- CENTER: Product List Sidebar -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">📦 Product List</div>
+                <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+            </div>
+            <div class="window-body">
+                <div class="product-sidebar" id="productSidebar">
+                    <div style="color: var(--text-muted); text-align: center; padding: 20px;">No products added yet</div>
+                </div>
+            </div>
+        </div>
+
         <!-- RIGHT: Hold Sales & Shortcuts -->
-        <div class="right-stack">
+        <div class="right-stack" style="display: grid; grid-template-rows: 50% 50%; gap: 12px;">
             
             <!-- Window 1: Hold Sales Manager -->
             <div class="window">
@@ -783,8 +964,8 @@
                             <span class="shortcut-key">Ctrl+P</span>
                         </div>
                         <div class="shortcut">
-                            <span>Open Admin</span>
-                            <span class="shortcut-key">Ctrl+A</span>
+                            <span>Add Product</span>
+                            <span class="shortcut-key">Ctrl+N</span>
                         </div>
                         <div class="shortcut">
                             <span>Sync Inventory</span>
@@ -806,28 +987,39 @@
         <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)">💳</div>
         <div class="dock-icon" onclick="switchTab('products')" title="Products">📦</div>
         <div class="dock-icon" onclick="switchTab('reports')" title="Reports">📊</div>
-        <div class="dock-icon" onclick="document.getElementById('adminModal').classList.remove('hidden')" title="Admin (Ctrl+A)">🛠️</div>
+        <div class="dock-icon" onclick="showAddProductModal()" title="Add Product (Ctrl+N)">➕</div>
         <div class="dock-icon" id="holdBadgeIcon" onclick="focusHoldSales()" title="Hold Sales (Ctrl+H)">
             ⏸️
             <span class="dock-badge hidden" id="holdBadge">0</span>
         </div>
     </div>
 
-    <!-- Admin Modal -->
-    <div id="adminModal" class="modal hidden">
+    <!-- Product Modal (Add/Edit) -->
+    <div id="productModal" class="modal hidden">
         <div class="modal-inner">
-            <h2>Admin — Products & Inventory</h2>
+            <h2 id="productModalTitle">Add New Product</h2>
             <form id="productForm">
                 <input id="p_name" placeholder="Product Name" required />
                 <input id="p_barcode" placeholder="Barcode / SKU" />
+                <input id="p_buying_price" placeholder="Buying Price (KES)" type="number" step="0.01" required />
                 <input id="p_price" placeholder="Retail Price incl. VAT (KES)" type="number" step="0.01" required />
                 <input id="p_qty" placeholder="Quantity in Stock" type="number" required />
-                <button type="submit">Save Product</button>
+                <button type="submit" id="productFormSubmitBtn">Save Product</button>
+                <button type="button" onclick="closeProductModal()" class="btn secondary" style="width: 100%;">Cancel</button>
             </form>
+        </div>
+    </div>
 
-            <h3 style="margin-top:16px; color: var(--accent-blue);">Reports</h3>
-            <button type="button" id="exportSalesBtn2" style="width:100%;margin-bottom:8px" class="btn">Export Sales (JSON)</button>
-            <button type="button" id="closeAdmin" style="width:100%;margin-top:8px" class="btn secondary">Close</button>
+    <!-- Prompt Fetcher Modal -->
+    <div id="promptModal" class="modal hidden">
+        <div class="modal-inner">
+            <h2>🔍 Prompt Fetcher</h2>
+            <form id="promptForm">
+                <input id="promptInput" placeholder="Enter prompt or URL" required />
+                <button type="submit">Fetch</button>
+                <button type="button" onclick="closePromptModal()" class="btn secondary" style="width: 100%;">Cancel</button>
+            </form>
+            <div id="promptResult" style="margin-top: 12px; padding: 12px; background: #090d1a; border-radius: 4px; color: var(--terminal-green); font-family: monospace; font-size: 11px; max-height: 300px; overflow-y: auto;" class="hidden"></div>
         </div>
     </div>
 
@@ -844,13 +1036,16 @@
             cart: [],
             selectedPaymentMethod: 'cash',
             currentSaleAmount: 0,
-            currentTab: 'sales'
+            currentTab: 'sales',
+            theme: localStorage.getItem('pos_theme') || 'dark',
+            editingProductId: null
         };
 
         function saveState() {
             localStorage.setItem('pos_products', JSON.stringify(state.products));
             localStorage.setItem('pos_sales', JSON.stringify(state.sales));
             localStorage.setItem('pos_held_sales', JSON.stringify(state.heldSales));
+            localStorage.setItem('pos_theme', state.theme);
         }
 
         function format(n) {
@@ -867,6 +1062,23 @@
             return retailPrice - calculateBasePrice(retailPrice);
         }
 
+        // ===== THEME TOGGLE =====
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            applyTheme();
+            saveState();
+        }
+
+        function applyTheme() {
+            if (state.theme === 'light') {
+                document.body.classList.add('light-mode');
+                document.querySelector('.theme-toggle').textContent = '☀️';
+            } else {
+                document.body.classList.remove('light-mode');
+                document.querySelector('.theme-toggle').textContent = '🌙';
+            }
+        }
+
         // ===== DOM REFERENCES =====
         const productForm = document.getElementById('productForm');
         const barcodeInput = document.getElementById('barcodeInput');
@@ -879,10 +1091,11 @@
         const completeSaleBtn = document.getElementById('completeSaleBtn');
         const holdSaleBtn = document.getElementById('holdSaleBtn');
         const printReceiptBtn = document.getElementById('printReceiptBtn');
-        const adminModal = document.getElementById('adminModal');
-        const closeAdmin = document.getElementById('closeAdmin');
+        const productModal = document.getElementById('productModal');
         const exportSalesBtns = document.querySelectorAll('#exportSalesBtn, #exportSalesBtn2');
         const methodButtons = document.querySelectorAll('[data-payment-method]');
+        const saveAllBtn = document.getElementById('saveAllBtn');
+        const promptModal = document.getElementById('promptModal');
 
         // Update System Clock
         function updateClock() {
@@ -898,6 +1111,9 @@
         setInterval(updateClock, 1000);
         updateClock();
 
+        // Initialize theme
+        applyTheme();
+
         // ===== TAB SWITCHING =====
         function switchTab(tabName) {
             state.currentTab = tabName;
@@ -907,7 +1123,7 @@
             event.target.classList.add('active');
             
             if (tabName === 'reports') updateReports();
-            if (tabName === 'products') renderProductsList();
+            if (tabName === 'products') renderProductsListTab();
             if (tabName === 'sales') document.getElementById('barcodeInput').focus();
         }
 
@@ -926,7 +1142,7 @@
                 baseAmountTotal += baseAmount * it.qty;
                 vatTotal += itemVAT * it.qty;
 
-                row.innerHTML = `<td>${it.name}</td><td><input type="number" min="1" value="${it.qty}" onchange="updateQty(${i}, this.value)" style="width:40px; padding:4px; background:#040712; border:1px solid var(--border-color); color:var(--text-main); border-radius:2px;"></td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
+                row.innerHTML = `<td>${it.name}</td><td><input type="number" min="1" value="${it.qty}" onchange="updateQty(${i}, this.value)" style="width:40px; padding:4px; background:#040712; border:1px solid var(--border-color); border-radius:3px; color:var(--text-main);"></td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
                     <td><button class="removeBtn" onclick="removeFromCart(${i})">Remove</button></td>`;
                 cartTableBody.appendChild(row);
             });
@@ -973,8 +1189,8 @@
             barcodeInput.focus();
         }
 
-        function renderProductsList() {
-            const list = document.getElementById('productList');
+        function renderProductsListTab() {
+            const list = document.getElementById('productListTab');
             list.innerHTML = '';
             if (state.products.length === 0) {
                 list.innerHTML = '<p style="color: var(--text-muted);">No products added yet</p>';
@@ -986,11 +1202,40 @@
                 item.innerHTML = `
                     <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 4px;">${p.name}</div>
                     <div style="color: var(--text-muted); margin-bottom: 6px;">
-                        Barcode: ${p.barcode} | Price: ${format(p.price)} | Stock: ${p.qty}
+                        Barcode: ${p.barcode} | Buy: ${format(p.buyingPrice)} | Sell: ${format(p.price)} | Stock: ${p.qty}
                     </div>
-                    <button class="btn" style="font-size: 11px; padding: 4px 8px;" onclick="quickAddProduct('${p.barcode}')">Quick Add</button>
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px;" onclick="quickAddProduct('${p.barcode}')">Quick Add</button>
+                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px; background: #10b981;" onclick="editProduct(${i})">Edit</button>
+                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px; background: #ef4444;" onclick="deleteProduct(${i})">Delete</button>
+                    </div>
                 `;
                 list.appendChild(item);
+            });
+        }
+
+        function renderProductSidebar() {
+            const sidebar = document.getElementById('productSidebar');
+            sidebar.innerHTML = '';
+            if (state.products.length === 0) {
+                sidebar.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No products</div>';
+                return;
+            }
+            state.products.forEach((p, i) => {
+                const item = document.createElement('div');
+                item.className = 'product-item';
+                item.innerHTML = `
+                    <div class="product-item-name">${p.name}</div>
+                    <div class="product-item-details">
+                        Buy: ${format(p.buyingPrice)} | Sell: ${format(p.price)} | Stock: ${p.qty}
+                    </div>
+                    <div class="product-item-actions">
+                        <button onclick="quickAddProduct('${p.barcode}')">Add</button>
+                        <button class="edit" onclick="editProduct(${i})">Edit</button>
+                        <button class="remove" onclick="deleteProduct(${i})">Delete</button>
+                    </div>
+                `;
+                sidebar.appendChild(item);
             });
         }
 
@@ -999,278 +1244,274 @@
             switchTab('sales');
         }
 
-        addToCartBtn.onclick = () => addToCart(barcodeInput.value.trim());
-        barcodeInput.onkeypress = (e) => { if (e.key === 'Enter') addToCart(barcodeInput.value.trim()); };
+        function showAddProductModal() {
+            state.editingProductId = null;
+            document.getElementById('productModalTitle').textContent = 'Add New Product';
+            document.getElementById('productFormSubmitBtn').textContent = 'Save Product';
+            document.getElementById('p_name').value = '';
+            document.getElementById('p_barcode').value = '';
+            document.getElementById('p_buying_price').value = '';
+            document.getElementById('p_price').value = '';
+            document.getElementById('p_qty').value = '';
+            productModal.classList.remove('hidden');
+        }
 
-        // ===== PAYMENT METHODS =====
-        methodButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                methodButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                state.selectedPaymentMethod = btn.dataset.paymentMethod;
-            });
+        function editProduct(index) {
+            const p = state.products[index];
+            state.editingProductId = index;
+            document.getElementById('productModalTitle').textContent = 'Edit Product';
+            document.getElementById('productFormSubmitBtn').textContent = 'Update Product';
+            document.getElementById('p_name').value = p.name;
+            document.getElementById('p_barcode').value = p.barcode;
+            document.getElementById('p_buying_price').value = p.buyingPrice;
+            document.getElementById('p_price').value = p.price;
+            document.getElementById('p_qty').value = p.qty;
+            productModal.classList.remove('hidden');
+        }
+
+        function deleteProduct(index) {
+            if (confirm('Delete this product?')) {
+                state.products.splice(index, 1);
+                renderProductSidebar();
+                renderProductsListTab();
+                saveState();
+            }
+        }
+
+        function closeProductModal() {
+            productModal.classList.add('hidden');
+        }
+
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('p_name').value;
+            const barcode = document.getElementById('p_barcode').value || generateBarcode();
+            const buyingPrice = parseFloat(document.getElementById('p_buying_price').value);
+            const price = parseFloat(document.getElementById('p_price').value);
+            const qty = parseInt(document.getElementById('p_qty').value, 10);
+
+            if (state.editingProductId !== null) {
+                state.products[state.editingProductId] = { name, barcode, buyingPrice, price, qty };
+            } else {
+                state.products.push({ name, barcode, buyingPrice, price, qty });
+            }
+
+            saveState();
+            renderProductSidebar();
+            renderProductsListTab();
+            closeProductModal();
         });
 
-        // ===== HOLD SALE =====
-        holdSaleBtn.onclick = () => {
-            if (state.cart.length === 0) { alert('Cart is empty'); return; }
-            
-            const held = {
-                id: Date.now(),
-                items: JSON.parse(JSON.stringify(state.cart)),
-                timestamp: new Date().toISOString(),
-                paymentMethod: state.selectedPaymentMethod
-            };
-            
-            state.heldSales.push(held);
-            state.cart = [];
-            state.selectedPaymentMethod = 'cash';
-            methodButtons.forEach(b => b.classList.remove('active'));
-            methodButtons[0].classList.add('active');
-            
-            saveState();
-            renderCart();
-            renderHeldSales();
-            alert(`Sale held! (${state.heldSales.length} held sales)`);
-        };
+        function generateBarcode() {
+            return 'SKU' + Date.now();
+        }
 
-        function renderHeldSales() {
+        // ===== SALES MANAGEMENT =====
+        function recordSale() {
+            if (state.cart.length === 0) { alert('Cart is empty'); return; }
+            const sale = {
+                items: state.cart,
+                subtotal: state.currentSaleAmount,
+                method: state.selectedPaymentMethod,
+                timestamp: new Date().toISOString()
+            };
+            state.sales.push(sale);
+            state.cart = [];
+            renderCart();
+            renderReceipt(sale);
+            saveState();
+            alert('Sale recorded!');
+        }
+
+        function renderReceipt(sale) {
+            const receiptEl = document.getElementById('receipt');
+            let total = 0;
+            let items = '';
+            sale.items.forEach(it => {
+                items += `${it.name} x${it.qty} = ${format(it.retailPrice * it.qty)}\n`;
+                total += it.retailPrice * it.qty;
+            });
+            receiptEl.textContent = `
+=====================================
+           POKET STAR POS
+             RECEIPT
+=====================================
+${new Date().toLocaleString()}
+
+ITEMS:
+${items}
+-------------------------------------
+TOTAL: ${format(total)}
+PAYMENT: ${state.selectedPaymentMethod.toUpperCase()}
+=====================================
+         Thank You!
+            Come Again
+=====================================
+            `;
+            receiptEl.classList.remove('hidden');
+        }
+
+        function holdSale() {
+            if (state.cart.length === 0) { alert('Cart is empty'); return; }
+            const sale = {
+                id: Date.now(),
+                items: state.cart,
+                subtotal: state.currentSaleAmount,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            state.heldSales.push(sale);
+            state.cart = [];
+            renderCart();
+            renderHoldSales();
+            saveState();
+            alert('Sale held!');
+        }
+
+        function renderHoldSales() {
             const list = document.getElementById('holdSalesList');
-            
+            list.innerHTML = '';
             if (state.heldSales.length === 0) {
                 list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>';
-                document.getElementById('holdBadge').classList.add('hidden');
                 return;
             }
-            
-            list.innerHTML = '';
-            const badge = document.getElementById('holdBadge');
-            badge.textContent = state.heldSales.length;
-            badge.classList.remove('hidden');
-            
-            state.heldSales.forEach((held, i) => {
+            state.heldSales.forEach((hs, i) => {
                 const item = document.createElement('div');
                 item.className = 'hold-item';
-                const time = new Date(held.timestamp).toLocaleTimeString();
-                let itemsTotal = 0;
-                let totalAmount = 0;
-                held.items.forEach(it => {
-                    itemsTotal += it.qty;
-                    totalAmount += it.retailPrice * it.qty;
-                });
-                
                 item.innerHTML = `
                     <div class="hold-item-header">
-                        <span>Sale #${held.id}</span>
-                        <span>${format(totalAmount)}</span>
+                        <span>Sale #${hs.id}</span>
+                        <span>${hs.timestamp}</span>
                     </div>
-                    <div class="hold-item-details">
-                        <div>${held.items.length} product(s) | ${itemsTotal} item(s) | ${held.paymentMethod.toUpperCase()}</div>
-                        <div>Held: ${time}</div>
-                    </div>
+                    <div class="hold-item-details">Items: ${hs.items.length} | Total: ${format(hs.subtotal)}</div>
                     <div class="hold-buttons">
-                        <button onclick="retrieveHeldSale(${i})">Retrieve</button>
+                        <button onclick="resumeHeldSale(${i})">Resume</button>
                         <button class="delete" onclick="deleteHeldSale(${i})">Delete</button>
                     </div>
                 `;
                 list.appendChild(item);
             });
+            updateHoldBadge();
         }
 
-        function retrieveHeldSale(idx) {
-            if (state.cart.length > 0) {
-                if (!confirm('Current cart has items. Continue to merge with held sale?')) return;
-            }
-            
-            const held = state.heldSales[idx];
-            state.cart = JSON.parse(JSON.stringify(held.items));
-            state.heldSales.splice(idx, 1);
-            saveState();
+        function resumeHeldSale(idx) {
+            const hs = state.heldSales[idx];
+            state.cart = hs.items;
             renderCart();
-            renderHeldSales();
+            state.heldSales.splice(idx, 1);
+            renderHoldSales();
+            saveState();
             switchTab('sales');
-            alert('Held sale retrieved!');
         }
 
         function deleteHeldSale(idx) {
-            if (!confirm('Delete this held sale?')) return;
-            state.heldSales.splice(idx, 1);
-            saveState();
-            renderHeldSales();
-            alert('Held sale deleted');
+            if (confirm('Delete this held sale?')) {
+                state.heldSales.splice(idx, 1);
+                renderHoldSales();
+                saveState();
+            }
+        }
+
+        function updateHoldBadge() {
+            const badge = document.getElementById('holdBadge');
+            if (state.heldSales.length > 0) {
+                badge.textContent = state.heldSales.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
         }
 
         function focusHoldSales() {
-            switchTab('sales');
+            // Scroll to hold sales window in future versions
+            alert('Held sales: ' + state.heldSales.length);
         }
 
-        // ===== SALE COMPLETION =====
-        completeSaleBtn.onclick = () => {
-            if (state.cart.length === 0) { alert('Cart empty'); return; }
-            
-            let baseAmount = 0;
-            state.cart.forEach(it => {
-                const base = calculateBasePrice(it.retailPrice);
-                baseAmount += base * it.qty;
-            });
-
-            const vat = baseAmount * TAX_RATE;
-            const amountDue = baseAmount + vat;
-
-            let paymentRef = `${state.selectedPaymentMethod.toUpperCase()}-${Date.now()}`;
-
-            const sale = {
-                id: Date.now(),
-                items: state.cart,
-                baseAmount,
-                vat,
-                amountDue,
-                paymentMethod: state.selectedPaymentMethod.toUpperCase(),
-                paymentRef,
-                date: new Date().toISOString()
-            };
-
-            sale.items.forEach(it => {
-                const p = state.products.find(px => px.barcode === it.barcode);
-                if (p) p.qty = Math.max(0, p.qty - it.qty);
-            });
-
-            state.sales.push(sale);
-            state.cart = [];
-            saveState();
-            renderCart();
-            showReceipt(sale);
-            alert('Sale recorded successfully!');
-        };
-
-        // ===== RECEIPT =====
-        function showReceipt(sale) {
-            const receipt = document.getElementById('receipt');
-            receipt.classList.remove('hidden');
-            let items = sale.items.map(i => {
-                const itemRetail = i.retailPrice * i.qty;
-                return `${i.name} x${i.qty} ${format(itemRetail)}`;
-            }).join('\n');
-            
-            receipt.innerHTML = `<pre>╔══════════════════════════════════╗
-║     POKETSTAR POS RECEIPT       ║
-╚══════════════════════════════════╝
-
-Transaction ID: ${sale.id}
-Date: ${new Date(sale.date).toLocaleString('en-KE')}
-Payment: ${sale.paymentMethod}
-Reference: ${sale.paymentRef}
-
-─────────────────────────────────
-${items}
-─────────────────────────────────
-Base Amount:     ${format(sale.baseAmount)}
-VAT (16%):       ${format(sale.vat)}
-AMOUNT DUE:      ${format(sale.amountDue)}
-─────────────────────────────────
-
-Thank you for your purchase!
-Eastern Africa Retail Solutions</pre>`;
-        }
-
-        printReceiptBtn.onclick = () => window.print();
-
-        // ===== REPORTS =====
         function updateReports() {
             let totalSales = 0;
-            let totalItemsSold = 0;
-            
+            let productsSold = 0;
             state.sales.forEach(s => {
-                totalSales += s.amountDue;
-                s.items.forEach(i => {
-                    totalItemsSold += i.qty;
+                s.items.forEach(it => {
+                    totalSales += it.retailPrice * it.qty;
+                    productsSold += it.qty;
                 });
             });
-
             document.getElementById('totalSales').textContent = format(totalSales);
             document.getElementById('totalTransactions').textContent = state.sales.length;
-            document.getElementById('productsSold').textContent = totalItemsSold;
-            document.getElementById('avgSale').textContent = state.sales.length > 0 ? format(totalSales / state.sales.length) : 'KES 0.00';
+            document.getElementById('productsSold').textContent = productsSold;
+            document.getElementById('avgSale').textContent = state.sales.length > 0 ? format(totalSales / state.sales.length) : format(0);
         }
 
-        // ===== ADMIN =====
-        closeAdmin.onclick = () => adminModal.classList.add('hidden');
+        function syncInventory() {
+            alert('Inventory synced!');
+        }
 
-        productForm.onsubmit = e => {
-            e.preventDefault();
-            const name = document.getElementById('p_name').value.trim();
-            const barcode = document.getElementById('p_barcode').value.trim() || String(Date.now());
-            const price = parseFloat(document.getElementById('p_price').value);
-            const qty = parseInt(document.getElementById('p_qty').value, 10);
-            const existing = state.products.find(p => p.barcode === barcode);
-            if (existing) {
-                existing.name = name;
-                existing.price = price;
-                existing.qty += qty;
-            } else {
-                state.products.push({ barcode, name, price, qty });
-            }
-            saveState();
-            productForm.reset();
-            alert('Product saved!');
-            renderProductsList();
-        };
+        // ===== EVENT LISTENERS =====
+        addToCartBtn.addEventListener('click', () => addToCart(barcodeInput.value));
+        barcodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addToCart(barcodeInput.value); });
+        completeSaleBtn.addEventListener('click', recordSale);
+        holdSaleBtn.addEventListener('click', holdSale);
+        printReceiptBtn.addEventListener('click', () => window.print());
+        saveAllBtn.addEventListener('click', () => { saveState(); alert('All changes saved!'); });
 
-        exportSalesBtns.forEach(btn => {
-            btn.onclick = () => {
-                const json = JSON.stringify({ sales: state.sales, products: state.products }, null, 2);
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `poketstar-sales-${Date.now()}.json`;
-                a.click();
-            };
-        });
+        exportSalesBtns.forEach(btn => btn.addEventListener('click', () => {
+            const data = JSON.stringify(state.sales, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sales_' + Date.now() + '.json';
+            a.click();
+        }));
+
+        methodButtons.forEach(btn => btn.addEventListener('click', (e) => {
+            methodButtons.forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            state.selectedPaymentMethod = e.target.dataset.paymentMethod;
+        }));
 
         // ===== KEYBOARD SHORTCUTS =====
         document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-                switchTab('sales');
-                document.getElementById('barcodeInput').focus();
-            }
-            if (e.ctrlKey && e.key === 'h') {
-                e.preventDefault();
-                holdSaleBtn.click();
-            }
-            if (e.key === 'F12') {
-                e.preventDefault();
-                completeSaleBtn.click();
-            }
-            if (e.ctrlKey && e.key === 'p') {
-                e.preventDefault();
-                printReceiptBtn.click();
-            }
-            if (e.ctrlKey && e.key === 'a') {
-                e.preventDefault();
-                adminModal.classList.remove('hidden');
-            }
-            if (e.ctrlKey && e.key === 'i') {
-                e.preventDefault();
-                syncInventory();
-            }
-            if (e.ctrlKey && e.key === 'l') {
-                e.preventDefault();
-                if (confirm('Clear cart?')) {
-                    state.cart = [];
-                    renderCart();
-                }
+            if (e.ctrlKey && e.key === 's') { e.preventDefault(); switchTab('sales'); barcodeInput.focus(); }
+            if (e.key === 'F12') { e.preventDefault(); recordSale(); }
+            if (e.ctrlKey && e.key === 'h') { e.preventDefault(); holdSale(); }
+            if (e.ctrlKey && e.key === 'p') { e.preventDefault(); window.print(); }
+            if (e.ctrlKey && e.key === 'n') { e.preventDefault(); showAddProductModal(); }
+            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); syncInventory(); }
+            if (e.ctrlKey && e.key === 'l') { e.preventDefault(); if (confirm('Clear cart?')) { state.cart = []; renderCart(); } }
+        });
+
+        // ===== PROMPT FETCHER =====
+        function showPromptFetcher() {
+            promptModal.classList.remove('hidden');
+            document.getElementById('promptInput').focus();
+        }
+
+        function closePromptModal() {
+            promptModal.classList.add('hidden');
+            document.getElementById('promptResult').classList.add('hidden');
+        }
+
+        document.getElementById('promptForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('promptInput').value;
+            const resultEl = document.getElementById('promptResult');
+            resultEl.textContent = 'Fetching...';
+            resultEl.classList.remove('hidden');
+
+            try {
+                const response = await fetch(input);
+                const text = await response.text();
+                resultEl.textContent = text;
+            } catch (err) {
+                resultEl.textContent = 'Error: ' + err.message + '\nTry a valid URL or paste prompt content.';
             }
         });
 
-        function syncInventory() {
-            alert('Inventory synced! Products up to date.');
-        }
-
-        // Initialize
+        // ===== INITIALIZE =====
+        renderProductSidebar();
+        renderProductsListTab();
+        renderHoldSales();
         renderCart();
-        renderHeldSales();
     </script>
 
 </body>
