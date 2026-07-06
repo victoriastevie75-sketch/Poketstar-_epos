@@ -1,475 +1,942 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Poketstar POS — Enterprise System</title>
-  <style>
-    /* Root Variables */
-    :root { --accent:#2b7a78; --muted:#666; --bg:#f7f7f8; }
-    
-    /* Base Styles */
-    * { box-sizing: border-box; }
-    body{font-family:Inter,system-ui,Arial;background:var(--bg);margin:0;padding:0}
-    header{background:var(--accent);color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 4px rgba(0,0,0,.1)}
-    h1,h2,h3{margin:0;padding:0}
-    main{display:flex;gap:16px;padding:16px;max-width:1400px;margin:0 auto}
-    
-    /* Sales Section */
-    #sales{flex:1;background:white;padding:12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    #sales h2{margin-bottom:12px}
-    .search-row{display:flex;gap:8px;margin-bottom:8px}
-    .search-row input{flex:1;padding:8px;border:1px solid #ddd;border-radius:4px}
-    .search-row button{padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:4px;cursor:pointer}
-    .search-row button:hover{background:darken(var(--accent),10%)}
-    
-    /* Cart Table */
-    #cartTable{width:100%;border-collapse:collapse;margin:12px 0}
-    #cartTable th, #cartTable td{padding:6px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
-    #cartTable th{background:#f5f5f5;font-weight:600}
-    .removeBtn{padding:4px 8px;background:#dc3545;color:white;border:none;border-radius:3px;cursor:pointer;font-size:12px}
-    .removeBtn:hover{background:#c82333}
-    
-    /* Totals */
-    .totals{margin:12px 0;padding:12px;background:#f5f5f5;border-radius:4px;border-left:4px solid var(--accent)}
-    .totals div{display:flex;justify-content:space-between;padding:4px 0;font-size:14px}
-    .totals .grand{font-weight:700;font-size:16px;color:var(--accent);padding-top:8px;border-top:1px solid #ddd}
-    
-    /* Actions */
-    .actions{margin:12px 0;display:flex;gap:8px;flex-wrap:wrap}
-    .actions input{flex:1;min-width:150px;padding:8px;border:1px solid #ddd;border-radius:4px}
-    .actions button{padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600}
-    .actions button:hover{opacity:0.9}
-    
-    /* Sidebar */
-    #sidebar{width:300px;background:white;padding:12px;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    #sidebar h3{margin-bottom:12px}
-    #productList{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
-    .productCard{padding:8px;background:#f9f9f9;border:1px solid #ddd;border-radius:4px;cursor:pointer;transition:all 0.2s}
-    .productCard:hover{background:var(--bg);border-color:var(--accent)}
-    .productCard strong{display:block;font-size:13px}
-    .productCard div{font-size:12px;color:var(--muted);margin-top:4px}
-    
-    #openAdmin{width:100%;padding:8px;background:var(--accent);color:white;border:none;border-radius:4px;cursor:pointer;font-weight:600;margin-top:8px}
-    #openAdmin:hover{opacity:0.9}
-    
-    /* Modal */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
-    .modal-inner{background:white;padding:20px;border-radius:6px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto}
-    .modal-inner h2{margin-bottom:12px}
-    .modal-inner form{display:flex;flex-direction:column;gap:8px}
-    .modal-inner input{padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px}
-    .modal-inner button{padding:8px;background:var(--accent);color:white;border:none;border-radius:4px;cursor:pointer;margin-top:8px}
-    .modal-inner button:hover{opacity:0.9}
-    .hidden{display:none!important}
-    
-    /* Receipt */
-    #receipt{background:white;padding:16px;border-radius:6px;margin-top:16px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-wrap:break-word;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-    #receipt pre{margin:0}
-    
-    /* Clock */
-    #clock{font-size:13px;opacity:0.9}
-    
-    /* Payment Styles */
-    .payment-methods{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap}
-    .payment-method-btn{padding:8px 16px;border:2px solid #ddd;background:white;border-radius:4px;cursor:pointer;font-size:13px;transition:all 0.2s}
-    .payment-method-btn:hover{border-color:var(--accent);background:var(--bg)}
-    .payment-method-btn.active{border-color:var(--accent);background:var(--accent);color:white}
-    
-    #paymentModal{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:1001;align-items:center;justify-content:center}
-    #paymentModal:not(.hidden){display:flex}
-    #paymentModal.hidden{display:none}
-    
-    .payment-modal-content{background:white;border-radius:6px;padding:20px;max-width:500px;width:90%;box-shadow:0 4px 20px rgba(0,0,0,.15);animation:slideUp 0.3s ease}
-    @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
-    
-    .payment-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;border-bottom:2px solid #eee;padding-bottom:8px}
-    .payment-header h2{margin:0;font-size:18px;color:#333}
-    .close-btn{background:none;border:none;font-size:24px;cursor:pointer;color:#999;padding:0;width:30px;height:30px}
-    .close-btn:hover{color:#333}
-    
-    .payment-amount-display{font-size:24px;font-weight:bold;color:var(--accent);text-align:center;margin:16px 0;padding:12px;background:var(--bg);border-radius:4px}
-    .payment-form{display:none;margin:16px 0}
-    .payment-form:not(.hidden){display:block}
-    .payment-form.hidden{display:none}
-    
-    .form-group{margin-bottom:12px}
-    .form-group label{display:block;margin-bottom:4px;font-weight:600;color:#333;font-size:13px}
-    .form-group input,.form-group select{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:13px;font-family:inherit}
-    .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,122,120,.1)}
-    
-    #mpesaPrompt{background:#d4edda;color:#155724;padding:12px;border-radius:4px;margin:12px 0;text-align:center;border:1px solid #c3e6cb;display:none;font-size:13px}
-    #mpesaPrompt:not(.hidden){display:block}
-    
-    #paymentLoader{text-align:center;padding:16px;display:none}
-    #paymentLoader:not(.hidden){display:block}
-    
-    .spinner{border:4px solid #f3f3f3;border-top:4px solid var(--accent);border-radius:50%;width:40px;height:40px;animation:spin 1s linear infinite;margin:0 auto}
-    @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-    
-    .payment-actions{display:flex;gap:8px;margin-top:16px}
-    .payment-actions button{flex:1;padding:10px;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer}
-    .btn-primary{background:var(--accent);color:white}
-    .btn-primary:hover:not(:disabled){background:darken(var(--accent),10%)}
-    .btn-secondary{background:#6c757d;color:white}
-    .btn-secondary:hover:not(:disabled){background:#545b62}
-    button:disabled{opacity:0.6;cursor:not-allowed}
-    
-    .payment-success{background:#d4edda;color:#155724;padding:12px;border-radius:4px;margin:12px 0;text-align:center;border:1px solid #c3e6cb;font-size:13px}
-    .payment-error{background:#f8d7da;color:#721c24;padding:12px;border-radius:4px;margin:12px 0;text-align:center;border:1px solid #f5c6cb;font-size:13px}
-    
-    /* Responsive */
-    @media (max-width:768px){
-      main{flex-direction:column}
-      #sidebar{width:100%}
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poket Star POS — Enterprise Desktop Environment</title>
+    <style>
+        :root {
+            --bg-color: #060913;
+            --panel-bg: #0d1222;
+            --border-color: #1e294b;
+            --accent-blue: #0084ff;
+            --accent-teal: #2b7a78;
+            --glow-blue: rgba(0, 132, 255, 0.3);
+            --terminal-green: #00ff66;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Desktop Status Bar */
+        .desktop-bar {
+            background: #020617;
+            border-bottom: 1px solid var(--border-color);
+            height: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        .bar-left span, .bar-right span {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .bar-center {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        /* Workspace Layout */
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 60% 40%;
+            gap: 12px;
+            padding: 12px;
+            height: calc(100vh - 75px);
+        }
+
+        /* Window Styling */
+        .window {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: border-color 0.3s;
+        }
+
+        .window:hover, .window:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px var(--glow-blue);
+        }
+
+        .window-header {
+            background: #090d1a;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+
+        .window-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #334155;
+        }
+        .dot.red { background: #ef4444; }
+
+        .window-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* LEFT SIDE: Poket Star POS Console */
+        .pos-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pos-logo {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .pos-logo span { color: var(--accent-blue); }
+
+        .pos-tabs button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .pos-tabs button.active {
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+        }
+        .pos-tabs button:hover {
+            color: var(--accent-blue);
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #09132e 0%, #030712 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .hero-banner h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+        .btn:hover { background: #006cd8; }
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            margin-left: 8px;
+        }
+        .btn.secondary:hover { background: #1e294b; }
+
+        /* Sales Cart Section */
+        .search-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .search-row input {
+            flex: 1;
+            padding: 8px 10px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        .search-row input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .search-row button {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        #cartTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+
+        #cartTable th, #cartTable td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+            color: var(--text-main);
+        }
+
+        #cartTable th {
+            background: #090d1a;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .removeBtn {
+            padding: 4px 8px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background 0.2s;
+        }
+        .removeBtn:hover { background: #dc2626; }
+
+        .totals {
+            margin: 12px 0;
+            padding: 12px;
+            background: #090d1a;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-blue);
+            font-size: 12px;
+        }
+
+        .totals div {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: var(--text-muted);
+        }
+
+        .totals .grand {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent-blue);
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+
+        .payment-method-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .payment-method-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .payment-method-btn.active { border-color: var(--accent-blue); background: var(--accent-blue); color: white; }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .actions input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 10px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        .actions input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .actions button {
+            padding: 8px 14px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* RIGHT SIDE: Vertical Stack */
+        .right-stack {
+            display: grid;
+            grid-template-rows: 35% 30% 35%;
+            gap: 12px;
+        }
+
+        /* Terminal Window */
+        .terminal-body {
+            background: #02040a;
+            font-family: 'Courier New', Courier, monospace;
+            color: var(--terminal-green);
+            font-size: 11px;
+            padding: 10px;
+            line-height: 1.4;
+        }
+
+        .terminal-line { margin-bottom: 3px; }
+
+        /* File Manager Window */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        .file-item:hover { background: #1e294b; }
+
+        .icon-folder {
+            width: 35px;
+            height: 35px;
+            background: var(--accent-blue);
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 6px;
+        }
+        .icon-folder::before {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: 0;
+            width: 15px;
+            height: 4px;
+            background: var(--accent-blue);
+            border-radius: 2px 2px 0 0;
+        }
+
+        .file-name {
+            font-size: 11px;
+            text-align: center;
+            word-break: break-all;
+            color: var(--text-main);
+        }
+
+        /* Messenger Window */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .msg {
+            background: #131c35;
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 85%;
+            font-size: 11px;
+            color: var(--text-main);
+        }
+        .msg.system {
+            background: #1e294b;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .msg-author {
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 2px;
+            font-size: 10px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 6px;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            padding: 6px 10px;
+            font-size: 12px;
+        }
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-inner {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .modal-inner h2 {
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .modal-inner form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-inner input {
+            padding: 8px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+        }
+        .modal-inner input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .modal-inner button {
+            padding: 8px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Receipt */
+        #receipt {
+            background: #090d1a;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: var(--terminal-green);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* Bottom Application Dock */
+        .desktop-dock {
+            background: rgba(9, 13, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            height: 45px;
+            width: max-content;
+            margin: 0 auto 5px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 15px;
+        }
+
+        .dock-icon {
+            width: 28px;
+            height: 28px;
+            background: #1e294b;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        .dock-icon:hover {
+            transform: scale(1.2);
+            background: var(--accent-blue);
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+            .right-stack {
+                grid-template-rows: auto auto auto;
+            }
+        }
+    </style>
 </head>
 <body>
-  <header>
-    <div>
-      <h1 style="margin:0">Poketstar POS — Enterprise</h1>
-      <div style="font-size:12px;opacity:0.8">East Africa Retail System</div>
-    </div>
-    <div id="clock"></div>
-  </header>
 
-  <main>
-    <section id="sales">
-      <h2>Sales Terminal</h2>
-      
-      <div class="search-row">
-        <input id="barcodeInput" placeholder="Scan barcode or type product name" />
-        <button id="addToCartBtn">Add</button>
-      </div>
-
-      <table id="cartTable">
-        <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
-
-      <div class="totals">
-        <div>Subtotal: <span id="subtotal">KES 0.00</span></div>
-        <div>Tax (16%): <span id="tax">KES 0.00</span></div>
-        <div>Discount: <span id="discount">KES 0.00</span></div>
-        <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
-      </div>
-
-      <div class="payment-methods">
-        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
-        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
-        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
-      </div>
-
-      <div class="actions">
-        <input id="paymentAmount" placeholder="Amount tendered (KES)" />
-        <button id="completeSaleBtn">Complete Sale</button>
-        <button id="printReceiptBtn">Print Receipt</button>
-      </div>
-
-      <div id="receipt" class="hidden"></div>
-    </section>
-
-    <aside id="sidebar">
-      <h3>Products</h3>
-      <div id="productList"></div>
-      <button id="openAdmin">Open Admin Panel</button>
-    </aside>
-
-    <div id="adminModal" class="modal hidden">
-      <div class="modal-inner">
-        <h2>Admin — Products & Inventory</h2>
-        <form id="productForm">
-          <input id="p_name" placeholder="Product Name" required />
-          <input id="p_barcode" placeholder="Barcode / SKU" />
-          <input id="p_price" placeholder="Unit price (KES)" type="number" step="0.01" required />
-          <input id="p_qty" placeholder="Quantity in Stock" type="number" required />
-          <button type="submit">Save Product</button>
-        </form>
-
-        <h3 style="margin-top:16px">Reports</h3>
-        <button type="button" id="exportSalesBtn" style="width:100%;margin-bottom:8px">Export Sales (JSON)</button>
-        <button type="button" id="closeAdmin" style="width:100%;background:#6c757d">Close</button>
-      </div>
-    </div>
-
-    <div id="paymentModal" class="modal hidden">
-      <div class="payment-modal-content">
-        <div class="payment-header">
-          <h2>Payment</h2>
-          <button class="close-btn" id="closePayment">&times;</button>
+    <!-- Top Desktop Status Bar -->
+    <div class="desktop-bar">
+        <div class="bar-left">
+            <span><strong>Activities</strong></span>
+            <span>File</span>
+            <span>Edit</span>
         </div>
+        <div class="bar-center">Poket Star POS — Enterprise Console</div>
+        <div class="bar-right">
+            <span id="live-clock">10:35 AM</span>
+        </div>
+    </div>
+
+    <!-- Main Tiled Desktop Workspace -->
+    <div class="workspace">
         
-        <div class="payment-amount-display" id="paymentAmountDisplay">KES 0.00</div>
+        <!-- LEFT: POS Sales Terminal -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">💳 Poket Star POS | Sales Terminal</div>
+                <div class="window-dots"><div class="dot red"></div><div class="dot"></div><div class="dot"></div></div>
+            </div>
+            <div class="window-body">
+                <div class="pos-nav">
+                    <div class="pos-logo">🌟 Poket <span>Star</span></div>
+                    <div class="pos-tabs">
+                        <button class="active">Sales</button>
+                        <button onclick="logTerminal('Switched to System Solutions config panel.')">Products</button>
+                        <button onclick="logTerminal('Fetching live deployment analytics API...')">Reports</button>
+                    </div>
+                </div>
 
-        <div class="payment-form" id="cashForm">
-          <div class="form-group">
-            <label>Amount Tendered (KES)</label>
-            <input type="number" id="cashInput" step="0.01" placeholder="Enter amount" />
-          </div>
-          <div id="changeDisplay" style="display:none;margin:12px 0;padding:12px;background:#e7f3ff;border-radius:4px;border-left:4px solid var(--accent)"></div>
+                <div class="hero-banner">
+                    <h1>Sales Terminal Active</h1>
+                    <p>East Africa Retail System | Real-time inventory management and transactions</p>
+                    <button class="btn" onclick="logTerminal('Inventory sync initiated...')">Sync Inventory</button>
+                    <button class="btn secondary" onclick="logTerminal('Running system diagnostic...')">Diagnostics</button>
+                </div>
+
+                <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search</h3>
+                <div class="search-row">
+                    <input id="barcodeInput" placeholder="Scan barcode or type product name" />
+                    <button id="addToCartBtn">Add</button>
+                </div>
+
+                <h3 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Cart Items</h3>
+                <table id="cartTable">
+                    <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
+                    <tbody></tbody>
+                </table>
+
+                <div class="totals">
+                    <div>Subtotal: <span id="subtotal">KES 0.00</span></div>
+                    <div>Tax (16%): <span id="tax">KES 0.00</span></div>
+                    <div>Discount: <span id="discount">KES 0.00</span></div>
+                    <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
+                </div>
+
+                <div class="payment-methods">
+                    <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
+                    <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
+                    <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+                </div>
+
+                <div class="actions">
+                    <input id="paymentAmount" placeholder="Amount tendered (KES)" />
+                    <button id="completeSaleBtn">Complete Sale</button>
+                    <button id="printReceiptBtn">Print Receipt</button>
+                </div>
+
+                <div id="receipt" class="hidden"></div>
+            </div>
         </div>
 
-        <div class="payment-form hidden" id="mpesaForm">
-          <div class="form-group">
-            <label>Phone Number</label>
-            <input type="tel" id="mpesaPhone" placeholder="+254712345678" />
-          </div>
-          <div id="mpesaPrompt" class="hidden">Enter your M-Pesa PIN on your phone</div>
-        </div>
+        <!-- RIGHT: Developer Workstation Module Stack -->
+        <div class="right-stack">
+            
+            <!-- Window 1: Interactive Terminal -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">💻 Terminal // System Monitor</div>
+                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+                </div>
+                <div class="window-body terminal-body" id="term-body">
+                    <div class="terminal-line">barasa@poketstar-node1:~$ systemctl status poketstar.service</div>
+                    <div class="terminal-line" style="color: #a3e635">• poketstar.service - Poket Star ERP Engine Core</div>
+                    <div class="terminal-line">Active: active (running) since localized boot execution</div>
+                    <div class="terminal-line">Tasks: 42 (limit: 4915) - Memory allocation secure</div>
+                    <div class="terminal-line">barasa@poketstar-node1:~$ _</div>
+                </div>
+            </div>
 
-        <div class="payment-form hidden" id="cardForm">
-          <div class="form-group">
-            <label>Card Number</label>
-            <input type="text" placeholder="1234 5678 9012 3456" />
-          </div>
-          <div class="form-group">
-            <label>Expiry</label>
-            <input type="text" placeholder="MM/YY" />
-          </div>
-          <div class="form-group">
-            <label>CVC</label>
-            <input type="text" placeholder="123" />
-          </div>
-        </div>
+            <!-- Window 2: Virtual File System -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">📂 System Explorer // Root</div>
+                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+                </div>
+                <div class="window-body">
+                    <div class="file-grid">
+                        <div class="file-item" onclick="logTerminal('Navigated into directory: /projects')">
+                            <div class="icon-folder"></div>
+                            <div class="file-name">projects</div>
+                        </div>
+                        <div class="file-item" onclick="logTerminal('Navigated into directory: /poket_src')">
+                            <div class="icon-folder" style="background: #10b981;"></div>
+                            <div class="file-name">poket_src</div>
+                        </div>
+                        <div class="file-item" onclick="logTerminal('Reading operational layout database tables...')">
+                            <div class="icon-folder" style="background: #f59e0b;"></div>
+                            <div class="file-name">db_schemas</div>
+                        </div>
+                        <div class="file-item" onclick="logTerminal('System logs compressed asset: logs.tar.gz')">
+                            <div class="icon-folder" style="background: #64748b;"></div>
+                            <div class="file-name">sys_logs</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div id="paymentLoader" class="hidden">
-          <div class="spinner"></div>
-          <p style="margin-top:8px">Processing payment...</p>
-        </div>
+            <!-- Window 3: Messaging Node -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">💬 Messaging Node // Element</div>
+                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+                </div>
+                <div class="window-body chat-container">
+                    <div class="chat-messages" id="chat-box">
+                        <div class="msg system">
+                            <div class="msg-author">System Node</div>
+                            Welcome to the Poket Star POS Enterprise console environment.
+                        </div>
+                        <div class="msg">
+                            <div class="msg-author">Stephen Barasa</div>
+                            The local ERP architecture deployment testing is online.
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-msg-input" class="chat-input" placeholder="Broadcast message..." onkeydown="if(event.key === 'Enter') sendMockMessage()">
+                        <button class="btn" style="padding: 4px 10px;" onclick="sendMockMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
 
-        <div class="payment-actions">
-          <button class="btn-primary" id="confirmPaymentBtn">Confirm Payment</button>
-          <button class="btn-secondary" id="cancelPaymentBtn">Cancel</button>
         </div>
-      </div>
     </div>
-  </main>
 
-  <script>
-    // ===== STATE MANAGEMENT =====
-    const currency = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' });
-    const state = {
-      products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
-      sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
-      cart: [],
-      selectedPaymentMethod: 'cash',
-      currentSaleAmount: 0
-    };
+    <!-- Bottom App Quick Dock Menu -->
+    <div class="desktop-dock">
+        <div class="dock-icon" onclick="logTerminal('System Home Core Focus restored.')">🏠</div>
+        <div class="dock-icon" onclick="triggerInventorySync()">🔄</div>
+        <div class="dock-icon" onclick="document.getElementById('adminModal').classList.remove('hidden')">🛠️</div>
+        <div class="dock-icon" onclick="logTerminal('Secure internal mail node ping set.')">✉️</div>
+    </div>
 
-    function saveState() {
-      localStorage.setItem('pos_products', JSON.stringify(state.products));
-      localStorage.setItem('pos_sales', JSON.stringify(state.sales));
-    }
+    <!-- Admin Modal -->
+    <div id="adminModal" class="modal hidden">
+        <div class="modal-inner">
+            <h2>Admin — Products & Inventory</h2>
+            <form id="productForm">
+                <input id="p_name" placeholder="Product Name" required />
+                <input id="p_barcode" placeholder="Barcode / SKU" />
+                <input id="p_price" placeholder="Unit price (KES)" type="number" step="0.01" required />
+                <input id="p_qty" placeholder="Quantity in Stock" type="number" required />
+                <button type="submit">Save Product</button>
+            </form>
 
-    function format(n) {
-      return currency.format(n);
-    }
+            <h3 style="margin-top:16px; color: var(--accent-blue);">Reports</h3>
+            <button type="button" id="exportSalesBtn" style="width:100%;margin-bottom:8px" class="btn">Export Sales (JSON)</button>
+            <button type="button" id="closeAdmin" style="width:100%;margin-top:8px" class="btn secondary">Close</button>
+        </div>
+    </div>
 
-    // ===== DOM REFERENCES =====
-    const productList = document.getElementById('productList');
-    const barcodeInput = document.getElementById('barcodeInput');
-    const addToCartBtn = document.getElementById('addToCartBtn');
-    const cartTableBody = document.querySelector('#cartTable tbody');
-    const subtotalEl = document.getElementById('subtotal');
-    const taxEl = document.getElementById('tax');
-    const discountEl = document.getElementById('discount');
-    const grandEl = document.getElementById('grandTotal');
-    const paymentAmount = document.getElementById('paymentAmount');
-    const completeSaleBtn = document.getElementById('completeSaleBtn');
-    const printReceiptBtn = document.getElementById('printReceiptBtn');
-    const openAdmin = document.getElementById('openAdmin');
-    const adminModal = document.getElementById('adminModal');
-    const closeAdmin = document.getElementById('closeAdmin');
-    const productForm = document.getElementById('productForm');
-    const exportSalesBtn = document.getElementById('exportSalesBtn');
-    const clock = document.getElementById('clock');
+    <!-- Interactive Workspace Mechanics Script Engine -->
+    <script>
+        // ===== STATE MANAGEMENT =====
+        const currency = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' });
+        const state = {
+            products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
+            sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
+            cart: [],
+            selectedPaymentMethod: 'cash',
+            currentSaleAmount: 0
+        };
 
-    // Payment elements
-    const paymentModal = document.getElementById('paymentModal');
-    const closePaymentBtn = document.getElementById('closePayment');
-    const cancelPaymentBtn = document.getElementById('cancelPaymentBtn');
-    const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
-    const paymentAmountDisplay = document.getElementById('paymentAmountDisplay');
-    const methodButtons = document.querySelectorAll('[data-payment-method]');
-    const cashForm = document.getElementById('cashForm');
-    const mpesaForm = document.getElementById('mpesaForm');
-    const cardForm = document.getElementById('cardForm');
-    const cashInput = document.getElementById('cashInput');
-    const changeDisplay = document.getElementById('changeDisplay');
-    const mpesaPhone = document.getElementById('mpesaPhone');
-    const mpesaPrompt = document.getElementById('mpesaPrompt');
-    const paymentLoader = document.getElementById('paymentLoader');
-
-    // ===== PRODUCT MANAGEMENT =====
-    function renderProducts() {
-      productList.innerHTML = '';
-      state.products.forEach(p => {
-        const el = document.createElement('div');
-        el.className = 'productCard';
-        el.innerHTML = `<strong>${p.name}</strong><div>${format(p.price)} • ${p.qty} pcs</div>`;
-        el.onclick = () => { addToCart(p.barcode || p.name); };
-        productList.appendChild(el);
-      });
-    }
-
-    function findProductByBarcode(q) {
-      return state.products.find(p => p.barcode === q || p.name.toLowerCase() === q.toLowerCase());
-    }
-
-    function addToCart(query) {
-      const p = findProductByBarcode(query);
-      if (!p) { alert('Product not found. Use admin to add.'); return; }
-      const cartItem = state.cart.find(c => c.barcode === p.barcode);
-      if (cartItem) {
-        if (p.qty <= cartItem.qty) { alert('Not enough stock'); return; }
-        cartItem.qty++;
-      } else {
-        state.cart.push({ barcode: p.barcode, name: p.name, price: p.price, qty: 1 });
-      }
-      renderCart();
-      barcodeInput.value = '';
-    }
-
-    addToCartBtn.onclick = () => addToCart(barcodeInput.value.trim());
-    barcodeInput.onkeypress = (e) => { if (e.key === 'Enter') addToCart(barcodeInput.value.trim()); };
-
-    // ===== CART MANAGEMENT =====
-    function renderCart() {
-      cartTableBody.innerHTML = '';
-      let subtotal = 0;
-      state.cart.forEach((it, i) => {
-        const row = document.createElement('tr');
-        const total = it.price * it.qty;
-        subtotal += total;
-        row.innerHTML = `<td>${it.name}</td><td>${it.qty}</td><td>${format(it.price)}</td><td>${format(total)}</td>
-          <td><button class="removeBtn" data-i="${i}">Remove</button></td>`;
-        cartTableBody.appendChild(row);
-      });
-      const tax = +(subtotal * 0.16).toFixed(2);
-      const discount = 0;
-      const grand = +(subtotal + tax - discount).toFixed(2);
-
-      subtotalEl.textContent = format(subtotal);
-      taxEl.textContent = format(tax);
-      discountEl.textContent = format(discount);
-      grandEl.textContent = format(grand);
-      state.currentSaleAmount = grand;
-
-      document.querySelectorAll('.removeBtn').forEach(btn => btn.onclick = e => {
-        const idx = +e.target.dataset.i;
-        state.cart.splice(idx, 1);
-        renderCart();
-      });
-    }
-
-    // ===== PAYMENT METHODS =====
-    methodButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        methodButtons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.selectedPaymentMethod = btn.dataset.paymentMethod;
-        updatePaymentForm();
-      });
-    });
-
-    function updatePaymentForm() {
-      [cashForm, mpesaForm, cardForm].forEach(f => f?.classList.add('hidden'));
-      if (state.selectedPaymentMethod === 'mpesa') {
-        mpesaForm.classList.remove('hidden');
-      } else if (state.selectedPaymentMethod === 'card') {
-        cardForm.classList.remove('hidden');
-      } else {
-        cashForm.classList.remove('hidden');
-      }
-      changeDisplay.style.display = 'none';
-    }
-
-    // Cash calculation
-    cashInput.addEventListener('input', () => {
-      const tendered = parseFloat(cashInput.value);
-      if (!isNaN(tendered)) {
-        const change = tendered - state.currentSaleAmount;
-        if (change >= 0) {
-          changeDisplay.style.display = 'block';
-          changeDisplay.innerHTML = `<strong>Change: ${format(change)}</strong>`;
-        } else {
-          changeDisplay.style.display = 'block';
-          changeDisplay.innerHTML = `<strong style="color:#d32f2f">Short by: ${format(Math.abs(change))}</strong>`;
+        function saveState() {
+            localStorage.setItem('pos_products', JSON.stringify(state.products));
+            localStorage.setItem('pos_sales', JSON.stringify(state.sales));
         }
-      }
-    });
 
-    // ===== SALE COMPLETION =====
-    completeSaleBtn.onclick = () => {
-      if (state.cart.length === 0) { alert('Cart empty'); return; }
-      paymentAmountDisplay.textContent = format(state.currentSaleAmount);
-      paymentModal.classList.remove('hidden');
-      cashInput.value = '';
-      changeDisplay.style.display = 'none';
-      updatePaymentForm();
-    };
-
-    closePaymentBtn.onclick = cancelPaymentBtn.onclick = () => {
-      paymentModal.classList.add('hidden');
-    };
-
-    confirmPaymentBtn.onclick = () => {
-      const subtotal = state.cart.reduce((s, it) => s + it.price * it.qty, 0);
-      const tax = +(subtotal * 0.16).toFixed(2);
-      const grand = +(subtotal + tax).toFixed(2);
-
-      let paymentRef = '';
-      let paymentMethod = state.selectedPaymentMethod.toUpperCase();
-
-      if (state.selectedPaymentMethod === 'cash') {
-        const tendered = parseFloat(cashInput.value);
-        if (isNaN(tendered) || tendered < grand) {
-          alert('Insufficient payment');
-          return;
+        function format(n) {
+            return currency.format(n);
         }
-        paymentRef = `CASH-${Date.now()}`;
-      } else if (state.selectedPaymentMethod === 'mpesa') {
-        if (!mpesaPhone.value) { alert('Enter phone number'); return; }
-        paymentRef = `MPESA-${Date.now()}`;
-        mpesaPrompt.classList.remove('hidden');
-      } else if (state.selectedPaymentMethod === 'card') {
-        paymentRef = `CARD-${Date.now()}`;
-      }
 
-      const sale = {
-        id: Date.now(),
-        items: state.cart,
-        subtotal,
-        tax,
-        grand,
-        paymentMethod,
-        paymentRef,
-        date: new Date().toISOString()
-      };
+        // ===== DOM REFERENCES =====
+        const productForm = document.getElementById('productForm');
+        const barcodeInput = document.getElementById('barcodeInput');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const cartTableBody = document.querySelector('#cartTable tbody');
+        const subtotalEl = document.getElementById('subtotal');
+        const taxEl = document.getElementById('tax');
+        const discountEl = document.getElementById('discount');
+        const grandEl = document.getElementById('grandTotal');
+        const completeSaleBtn = document.getElementById('completeSaleBtn');
+        const printReceiptBtn = document.getElementById('printReceiptBtn');
+        const adminModal = document.getElementById('adminModal');
+        const closeAdmin = document.getElementById('closeAdmin');
+        const exportSalesBtn = document.getElementById('exportSalesBtn');
+        const methodButtons = document.querySelectorAll('[data-payment-method]');
 
-      sale.items.forEach(it => {
-        const p = state.products.find(px => px.barcode === it.barcode);
-        if (p) p.qty = Math.max(0, p.qty - it.qty);
-      });
+        // Update System Clock
+        function updateClock() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('live-clock').innerText = hours + ':' + minutes + ' ' + ampm;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
 
-      state.sales.push(sale);
-      state.cart = [];
-      saveState();
-      renderProducts();
-      renderCart();
-      paymentModal.classList.add('hidden');
-      showReceipt(sale);
-      alert('Sale recorded successfully!');
-    };
+        // Log to Terminal
+        function logTerminal(message) {
+            const term = document.getElementById('term-body');
+            const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const logLine = document.createElement('div');
+            logLine.className = 'terminal-line';
+            logLine.innerHTML = `<span style="color: #3b82f6">[${timestamp}]</span> barasa@poketstar:~$ ${message}`;
+            term.appendChild(logLine);
+            term.scrollTop = term.scrollHeight;
+        }
 
-    // ===== RECEIPT =====
-    function showReceipt(sale) {
-      const receipt = document.getElementById('receipt');
-      receipt.classList.remove('hidden');
-      let items = sale.items.map(i => `${i.name} x${i.qty} ${format(i.price * i.qty)}`).join('\n');
-      receipt.innerHTML = `<pre>╔══════════════════════════════════╗
-║     POKETSTAR POS RECEIPT      ║
+        // ===== PRODUCT MANAGEMENT =====
+        function renderCart() {
+            cartTableBody.innerHTML = '';
+            let subtotal = 0;
+            state.cart.forEach((it, i) => {
+                const row = document.createElement('tr');
+                const total = it.price * it.qty;
+                subtotal += total;
+                row.innerHTML = `<td>${it.name}</td><td>${it.qty}</td><td>${format(it.price)}</td><td>${format(total)}</td>
+                    <td><button class="removeBtn" data-i="${i}">Remove</button></td>`;
+                cartTableBody.appendChild(row);
+            });
+            const tax = +(subtotal * 0.16).toFixed(2);
+            const discount = 0;
+            const grand = +(subtotal + tax - discount).toFixed(2);
+
+            subtotalEl.textContent = format(subtotal);
+            taxEl.textContent = format(tax);
+            discountEl.textContent = format(discount);
+            grandEl.textContent = format(grand);
+            state.currentSaleAmount = grand;
+
+            document.querySelectorAll('.removeBtn').forEach(btn => btn.onclick = e => {
+                const idx = +e.target.dataset.i;
+                state.cart.splice(idx, 1);
+                renderCart();
+            });
+        }
+
+        function findProductByBarcode(q) {
+            return state.products.find(p => p.barcode === q || p.name.toLowerCase() === q.toLowerCase());
+        }
+
+        function addToCart(query) {
+            const p = findProductByBarcode(query);
+            if (!p) { alert('Product not found. Use admin to add.'); return; }
+            const cartItem = state.cart.find(c => c.barcode === p.barcode);
+            if (cartItem) {
+                if (p.qty <= cartItem.qty) { alert('Not enough stock'); return; }
+                cartItem.qty++;
+            } else {
+                state.cart.push({ barcode: p.barcode, name: p.name, price: p.price, qty: 1 });
+            }
+            renderCart();
+            logTerminal(`Added to cart: ${p.name}`);
+            barcodeInput.value = '';
+        }
+
+        addToCartBtn.onclick = () => addToCart(barcodeInput.value.trim());
+        barcodeInput.onkeypress = (e) => { if (e.key === 'Enter') addToCart(barcodeInput.value.trim()); };
+
+        // ===== PAYMENT METHODS =====
+        methodButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                methodButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                state.selectedPaymentMethod = btn.dataset.paymentMethod;
+                logTerminal(`Payment method switched to: ${btn.dataset.paymentMethod.toUpperCase()}`);
+            });
+        });
+
+        // ===== SALE COMPLETION =====
+        completeSaleBtn.onclick = () => {
+            if (state.cart.length === 0) { alert('Cart empty'); return; }
+            
+            const subtotal = state.cart.reduce((s, it) => s + it.price * it.qty, 0);
+            const tax = +(subtotal * 0.16).toFixed(2);
+            const grand = +(subtotal + tax).toFixed(2);
+
+            let paymentRef = `${state.selectedPaymentMethod.toUpperCase()}-${Date.now()}`;
+
+            const sale = {
+                id: Date.now(),
+                items: state.cart,
+                subtotal,
+                tax,
+                grand,
+                paymentMethod: state.selectedPaymentMethod.toUpperCase(),
+                paymentRef,
+                date: new Date().toISOString()
+            };
+
+            sale.items.forEach(it => {
+                const p = state.products.find(px => px.barcode === it.barcode);
+                if (p) p.qty = Math.max(0, p.qty - it.qty);
+            });
+
+            state.sales.push(sale);
+            state.cart = [];
+            saveState();
+            renderCart();
+            showReceipt(sale);
+            logTerminal(`✔ Sale completed. Transaction ID: ${sale.id}`);
+            alert('Sale recorded successfully!');
+        };
+
+        // ===== RECEIPT =====
+        function showReceipt(sale) {
+            const receipt = document.getElementById('receipt');
+            receipt.classList.remove('hidden');
+            let items = sale.items.map(i => `${i.name} x${i.qty} ${format(i.price * i.qty)}`).join('\n');
+            receipt.innerHTML = `<pre>╔══════════════════════════════════╗
+║     POKETSTAR POS RECEIPT       ║
 ╚══════════════════════════════════╝
 
 Transaction ID: ${sale.id}
@@ -486,53 +953,85 @@ GRAND TOTAL:     ${format(sale.grand)}
 ─────────────────────────────────
 
 Thank you for your purchase!
-Eastern Africa Retail Solutions
-</pre>`;
-    }
+Eastern Africa Retail Solutions</pre>`;
+        }
 
-    printReceiptBtn.onclick = () => window.print();
+        printReceiptBtn.onclick = () => window.print();
 
-    // ===== ADMIN =====
-    openAdmin.onclick = () => adminModal.classList.remove('hidden');
-    closeAdmin.onclick = () => adminModal.classList.add('hidden');
+        // ===== ADMIN =====
+        closeAdmin.onclick = () => adminModal.classList.add('hidden');
 
-    productForm.onsubmit = e => {
-      e.preventDefault();
-      const name = document.getElementById('p_name').value.trim();
-      const barcode = document.getElementById('p_barcode').value.trim() || String(Date.now());
-      const price = parseFloat(document.getElementById('p_price').value);
-      const qty = parseInt(document.getElementById('p_qty').value, 10);
-      const existing = state.products.find(p => p.barcode === barcode);
-      if (existing) {
-        existing.name = name;
-        existing.price = price;
-        existing.qty = qty;
-      } else {
-        state.products.push({ name, barcode, price, qty });
-      }
-      saveState();
-      renderProducts();
-      productForm.reset();
-    };
+        productForm.onsubmit = e => {
+            e.preventDefault();
+            const name = document.getElementById('p_name').value.trim();
+            const barcode = document.getElementById('p_barcode').value.trim() || String(Date.now());
+            const price = parseFloat(document.getElementById('p_price').value);
+            const qty = parseInt(document.getElementById('p_qty').value, 10);
+            const existing = state.products.find(p => p.barcode === barcode);
+            if (existing) {
+                existing.name = name;
+                existing.price = price;
+                existing.qty = qty;
+            } else {
+                state.products.push({ name, barcode, price, qty });
+            }
+            saveState();
+            renderCart();
+            productForm.reset();
+            logTerminal(`Product added: ${name}`);
+        };
 
-    exportSalesBtn.onclick = () => {
-      const data = JSON.stringify(state.sales, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `sales-${Date.now()}.json`;
-      a.click();
-    };
+        exportSalesBtn.onclick = () => {
+            const data = JSON.stringify(state.sales, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales-${Date.now()}.json`;
+            a.click();
+            logTerminal(`Exported sales report: ${state.sales.length} transactions`);
+        };
 
-    // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', () => {
-      renderProducts();
-      renderCart();
-      setInterval(() => {
-        clock.textContent = new Date().toLocaleString('en-KE');
-      }, 1000);
-    });
-  </script>
+        // Messenger
+        function sendMockMessage() {
+            const input = document.getElementById('chat-msg-input');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const chatBox = document.getElementById('chat-box');
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg';
+            userMsg.innerHTML = `<div class="msg-author">Stephen Barasa</div>${text}`;
+            
+            chatBox.appendChild(userMsg);
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            logTerminal(`Broadcasted chat message: "${text}"`);
+        }
+
+        // Inventory Sync Action
+        function triggerInventorySync() {
+            logTerminal("Initiating inventory synchronization sequence...");
+            setTimeout(() => {
+                logTerminal("Syncing product database with cloud servers...");
+            }, 600);
+            setTimeout(() => {
+                logTerminal("✔ Inventory Sync Complete. All products updated.");
+                const chatBox = document.getElementById('chat-box');
+                const updateMsg = document.createElement('div');
+                updateMsg.className = 'msg system';
+                updateMsg.innerHTML = `<div class="msg-author">Platform Engine</div>Inventory sync sequence completed successfully.`;
+                chatBox.appendChild(updateMsg);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 2000);
+        }
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCart();
+            logTerminal("Poket Star POS Enterprise System Initialized");
+            logTerminal("Ready for transactions...");
+        });
+    </script>
 </body>
 </html>
