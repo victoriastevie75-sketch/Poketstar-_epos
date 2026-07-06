@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poket Star POS — Enterprise Desktop Environment</title>
+    <style>
+        :root {
+            --bg-color: #060913;
+            --panel-bg: #0d1222;
+            --border-color: #1e294b;
+            --accent-blue: #0084ff;
+            --accent-teal: #2b7a78;
+            --glow-blue: rgba(0, 132, 255, 0.3);
+            --terminal-green: #00ff66;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body.light-mode {
+            --bg-color: #ffffff;
+            --panel-bg: #f5f5f5;
+            --border-color: #e0e0e0;
+            --accent-blue: #0084ff;
+            --accent-teal: #2b7a78;
+            --glow-blue: rgba(0, 132, 255, 0.2);
+            --terminal-green: #00a84f;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Inter', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* Logo Brand */
+        .brand-logo {
+            position: absolute;
+            top: 8px;
+            left: 15px;
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-blue), #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -2px;
+            z-index: 100;
+        }
+
+        .brand-logo .p {
+            display: inline-block;
+            margin-right: 2px;
+        }
+
+        .brand-logo .star {
+            color: var(--accent-blue);
+            animation: starPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes starPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Top Desktop Status Bar */
+        .desktop-bar {
+            background: #020617;
+            border-bottom: 1px solid var(--border-color);
+            height: 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            padding-left: 120px;
+            font-size: 13px;
+            user-select: none;
+            transition: background-color 0.3s, border-color 0.3s;
+            position: relative;
+        }
+
+        body.light-mode .desktop-bar {
+            background: #f0f0f0;
+        }
+
+        .bar-left span, .bar-right span {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        .bar-center {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .theme-toggle {
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg);
+            color: var(--text-main);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        /* Workspace Layout */
+        .workspace {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 50% 30% 20%;
+            gap: 12px;
+            padding: 12px;
+            height: calc(100vh - 75px);
+        }
+
+        /* Window Styling */
+        .window {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .window:hover, .window:focus-within {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 15px var(--glow-blue);
+        }
+
+        .window-header {
+            background: #090d1a;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.3s;
+        }
+
+        body.light-mode .window-header {
+            background: #e8e8e8;
+        }
+
+        .window-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .window-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #334155;
+        }
+        .dot.red { background: #ef4444; }
+
+        .window-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* LEFT SIDE: Poket Star POS Console */
+        .pos-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .pos-logo {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .pos-logo span { color: var(--accent-blue); }
+
+        .pos-tabs button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+        .pos-tabs button.active {
+            color: var(--accent-blue);
+            border-bottom: 2px solid var(--accent-blue);
+        }
+        .pos-tabs button:hover {
+            color: var(--accent-blue);
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #09132e 0%, #030712 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: background 0.3s;
+        }
+
+        body.light-mode .hero-banner {
+            background: linear-gradient(135deg, #e0e8ff 0%, #f0f0f0 100%);
+        }
+
+        .hero-banner h1 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .hero-banner p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+        .btn:hover { background: #006cd8; }
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            margin-left: 8px;
+            transition: all 0.2s;
+        }
+        .btn.secondary:hover { background: #1e294b; }
+
+        body.light-mode .btn.secondary:hover { background: #e0e0e0; }
+
+        /* Search with Autocomplete */
+        .search-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .search-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-row input {
+            width: 100%;
+            padding: 8px 10px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .search-row input {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
+        .search-row input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-blue);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0, 132, 255, 0.2);
+        }
+
+        .autocomplete-list.active {
+            display: block;
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.2s;
+            font-size: 12px;
+        }
+
+        .autocomplete-item:hover {
+            background: #1e294b;
+        }
+
+        .autocomplete-item-name {
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .autocomplete-item-price {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .search-row button {
+            padding: 8px 16px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        #cartTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 12px;
+        }
+
+        #cartTable th, #cartTable td {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: left;
+            color: var(--text-main);
+            transition: all 0.3s;
+        }
+
+        #cartTable th {
+            background: #090d1a;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        body.light-mode #cartTable th {
+            background: #e8e8e8;
+        }
+
+        .removeBtn {
+            padding: 4px 8px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background 0.2s;
+        }
+        .removeBtn:hover { background: #dc2626; }
+
+        .totals {
+            margin: 12px 0;
+            padding: 12px;
+            background: #090d1a;
+            border-radius: 4px;
+            border-left: 4px solid var(--accent-blue);
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        body.light-mode .totals {
+            background: #e8e8e8;
+        }
+
+        .totals div {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            color: var(--text-muted);
+        }
+
+        .totals .grand {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent-blue);
+            padding-top: 8px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .payment-methods {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+
+        .payment-method-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+        .payment-method-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+        .payment-method-btn.active { border-color: var(--accent-blue); background: var(--accent-blue); color: white; }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .actions input {
+            flex: 1;
+            min-width: 120px;
+            padding: 8px 10px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .actions input {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
+        .actions input:focus { outline: none; border-color: var(--accent-blue); }
+
+        .actions button {
+            padding: 8px 14px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        /* Tab Content */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Product List Sidebar */
+        .product-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .product-item {
+            background: #090d1a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 11px;
+        }
+
+        body.light-mode .product-item {
+            background: #f9f9f9;
+        }
+
+        .product-item:hover {
+            border-color: var(--accent-blue);
+            background: #1e294b;
+        }
+
+        body.light-mode .product-item:hover {
+            background: #f0f0f0;
+        }
+
+        .product-item-name {
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-item-details {
+            color: var(--text-muted);
+            font-size: 10px;
+            margin-bottom: 6px;
+        }
+
+        .product-item-rating {
+            font-size: 10px;
+            color: #fbbf24;
+            margin-bottom: 4px;
+        }
+
+        .product-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .product-item-actions button {
+            flex: 1;
+            padding: 3px 6px;
+            font-size: 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .product-item-actions button.edit {
+            background: #10b981;
+        }
+
+        .product-item-actions button.remove {
+            background: #ef4444;
+        }
+
+        /* Hold Sales Manager */
+        .hold-sales-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 100%;
+            overflow-y: auto;
+        }
+
+        .hold-item {
+            background: #090d1a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        body.light-mode .hold-item {
+            background: #f9f9f9;
+        }
+
+        .hold-item:hover {
+            border-color: var(--accent-blue);
+            background: #1e294b;
+        }
+
+        body.light-mode .hold-item:hover {
+            background: #f0f0f0;
+        }
+
+        .hold-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--accent-blue);
+        }
+
+        .hold-item-details {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .hold-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .hold-buttons button {
+            flex: 1;
+            padding: 4px 8px;
+            font-size: 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .hold-buttons button.delete {
+            background: #ef4444;
+        }
+
+        /* Reports & Analytics */
+        .reports-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .stat-box {
+            background: #090d1a;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .stat-box {
+            background: #f9f9f9;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .shortcuts-info {
+            background: #090d1a;
+            border: 1px solid #10b981;
+            border-radius: 4px;
+            padding: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            max-height: 100%;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .shortcuts-info {
+            background: #f9f9f9;
+            border-color: #10b981;
+        }
+
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .shortcut:last-child {
+            border-bottom: none;
+        }
+
+        .shortcut-key {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-inner {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            transition: all 0.3s;
+        }
+
+        .modal-inner h2 {
+            margin-bottom: 12px;
+            color: var(--accent-blue);
+        }
+
+        .modal-inner form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .modal-inner input, .modal-inner textarea, .modal-inner select {
+            padding: 8px;
+            background: #040712;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-main);
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .modal-inner input,
+        body.light-mode .modal-inner textarea,
+        body.light-mode .modal-inner select {
+            background: #ffffff;
+            border: 1px solid #cccccc;
+        }
+
+        .modal-inner input:focus,
+        .modal-inner textarea:focus,
+        .modal-inner select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .modal-inner button {
+            padding: 8px;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .modal-inner button:hover {
+            background: #006cd8;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Receipt */
+        #receipt {
+            background: #090d1a;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+            font-family: monospace;
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: var(--terminal-green);
+            max-height: 200px;
+            overflow-y: auto;
+            transition: all 0.3s;
+        }
+
+        body.light-mode #receipt {
+            background: #f9f9f9;
+            color: #00a84f;
+        }
+
+        /* Bottom Application Dock */
+        .desktop-dock {
+            background: rgba(9, 13, 26, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            height: 45px;
+            width: max-content;
+            margin: 0 auto 5px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            padding: 0 15px;
+            gap: 15px;
+            transition: all 0.3s;
+        }
+
+        body.light-mode .desktop-dock {
+            background: rgba(240, 240, 240, 0.9);
+        }
+
+        .dock-icon {
+            width: 28px;
+            height: 28px;
+            background: #1e294b;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .dock-icon:hover {
+            transform: scale(1.2);
+            background: var(--accent-blue);
+        }
+
+        .dock-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Brand Logo P★ -->
+    <div class="brand-logo">
+        <span class="p">P</span><span class="star">★</span>
+    </div>
+
+    <!-- Top Desktop Status Bar -->
+    <div class="desktop-bar">
+        <div class="bar-left">
+            <span><strong>Activities</strong></span>
+            <span>File</span>
+            <span>Edit</span>
+        </div>
+        <div class="bar-center">Poket Star POS — Enterprise Console</div>
+        <div class="bar-right">
+            <span id="live-clock">10:35 AM</span>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Tiled Desktop Workspace -->
+    <div class="workspace">
+        
+        <!-- LEFT: POS Sales Terminal -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">💳 Poket Star POS | Sales Terminal</div>
+                <div class="window-dots"><div class="dot red"></div><div class="dot"></div><div class="dot"></div></div>
+            </div>
+            <div class="window-body">
+                <div class="pos-nav">
+                    <div class="pos-logo">🌟 Poket <span>Star</span></div>
+                    <div class="pos-tabs">
+                        <button class="active" onclick="switchTab('sales')">Sales</button>
+                        <button onclick="switchTab('products')">Products</button>
+                        <button onclick="switchTab('reports')">Reports</button>
+                    </div>
+                </div>
+
+                <!-- SALES TAB -->
+                <div id="sales-tab" class="tab-content active">
+                    <div class="hero-banner">
+                        <h1>Sales Terminal Active</h1>
+                        <p>East Africa Retail System | Real-time inventory management and transactions</p>
+                        <button class="btn" onclick="syncInventory()">Sync Inventory</button>
+                        <button class="btn secondary" onclick="showAddProductModal()">Add Product</button>
+                    </div>
+
+                    <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search (Ctrl+S)</h3>
+                    <div class="search-row">
+                        <div class="search-container">
+                            <input id="barcodeInput" placeholder="Scan barcode or type product name" />
+                            <div id="autocompleteList" class="autocomplete-list"></div>
+                        </div>
+                        <button id="addToCartBtn">Add</button>
+                    </div>
+
+                    <h3 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Cart Items</h3>
+                    <table id="cartTable">
+                        <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
+                        <div>VAT (16%): <span id="tax">KES 0.00</span></div>
+                        <div>Discount: <span id="discount">KES 0.00</span></div>
+                        <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
+                    </div>
+
+                    <div class="payment-methods">
+                        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
+                        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
+                        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+                    </div>
+
+                    <div class="actions">
+                        <input id="paymentAmount" placeholder="Amount tendered (KES)" />
+                        <button id="completeSaleBtn">Complete Sale (F12)</button>
+                        <button id="holdSaleBtn">Hold Sale (Ctrl+H)</button>
+                        <button id="printReceiptBtn">Print Receipt</button>
+                    </div>
+
+                    <div id="receipt" class="hidden"></div>
+                </div>
+
+                <!-- PRODUCTS TAB -->
+                <div id="products-tab" class="tab-content hidden">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Product Management</h2>
+                    <button class="btn" onclick="showAddProductModal()">➕ Add New Product</button>
+                    <button class="btn secondary" onclick="showBulkImportModal()" style="margin-left: 8px;">📥 Bulk Import</button>
+                    <div id="productListTab" style="margin-top: 15px; display: grid; gap: 8px;"></div>
+                </div>
+
+                <!-- REPORTS TAB -->
+                <div id="reports-tab" class="tab-content hidden">
+                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Sales Reports</h2>
+                    <div class="reports-container">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Total Sales</div>
+                                <div class="stat-value" id="totalSales">KES 0.00</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Transactions</div>
+                                <div class="stat-value" id="totalTransactions">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Products Sold</div>
+                                <div class="stat-value" id="productsSold">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Avg Sale</div>
+                                <div class="stat-value" id="avgSale">KES 0.00</div>
+                            </div>
+                        </div>
+                        <button class="btn" id="viewDetailedReportsBtn" style="width: 100%; margin-top: 12px;">📋 View All Sales Records</button>
+                        <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 8px;">📊 Export Sales (JSON)</button>
+                        <button class="btn" id="saveAllBtn" style="width: 100%; margin-top: 8px; background: #10b981;">💾 Save All Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Product List Sidebar -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">📦 Product List</div>
+                <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+            </div>
+            <div class="window-body">
+                <div class="product-sidebar" id="productSidebar">
+                    <div style="color: var(--text-muted); text-align: center; padding: 20px;">No products added yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Hold Sales & Shortcuts -->
+        <div class="right-stack" style="display: grid; grid-template-rows: 50% 50%; gap: 12px;">
+            
+            <!-- Window 1: Hold Sales Manager -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">⏸️ Hold Sales Manager</div>
+                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+                </div>
+                <div class="window-body">
+                    <div class="hold-sales-list" id="holdSalesList">
+                        <div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Window 2: Shortcuts & Info -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">⌨️ Keyboard Shortcuts</div>
+                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
+                </div>
+                <div class="window-body">
+                    <div class="shortcuts-info">
+                        <div class="shortcut">
+                            <span>Focus Barcode Input</span>
+                            <span class="shortcut-key">Ctrl+S</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Add to Cart</span>
+                            <span class="shortcut-key">Enter</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Complete Sale</span>
+                            <span class="shortcut-key">F12</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Hold Current Sale</span>
+                            <span class="shortcut-key">Ctrl+H</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Print Receipt</span>
+                            <span class="shortcut-key">Ctrl+P</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Add Product</span>
+                            <span class="shortcut-key">Ctrl+N</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Bulk Import</span>
+                            <span class="shortcut-key">Ctrl+I</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Clear Cart</span>
+                            <span class="shortcut-key">Ctrl+L</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom App Quick Dock Menu -->
+    <div class="desktop-dock">
+        <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)">💳</div>
+        <div class="dock-icon" onclick="switchTab('products')" title="Products">📦</div>
+        <div class="dock-icon" onclick="switchTab('reports')" title="Reports">📊</div>
+        <div class="dock-icon" onclick="showAddProductModal()" title="Add Product (Ctrl+N)">➕</div>
+        <div class="dock-icon" onclick="showBulkImportModal()" title="Bulk Import (Ctrl+I)">📥</div>
+        <div class="dock-icon" id="holdBadgeIcon" onclick="focusHoldSales()" title="Hold Sales (Ctrl+H)">
+            ⏸️
+            <span class="dock-badge hidden" id="holdBadge">0</span>
+        </div>
+    </div>
+
+    <!-- Product Modal (Add/Edit) -->
+    <div id="productModal" class="modal hidden">
+        <div class="modal-inner">
+            <h2 id="productModalTitle">Add New Product</h2>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input id="p_name" placeholder="Product Name" required />
+                <input id="p_barcode" placeholder="Barcode / SKU" />
+                <input id="p_price" placeholder="Unit Price (KES)" type="number" step="0.01" required />
+                <input id="p_qty" placeholder="Stock Quantity" type="number" required />
+                <input id="p_category" placeholder="Category" />
+                <select id="p_rating" title="Product Rating (affects visibility)">
+                    <option value="5">⭐⭐⭐⭐⭐ Premium</option>
+                    <option value="4">⭐⭐⭐⭐ Standard</option>
+                    <option value="3">⭐⭐⭐ Regular</option>
+                    <option value="2">⭐⭐ Limited</option>
+                    <option value="1">⭐ Restricted</option>
+                </select>
+                <textarea id="p_description" placeholder="Description" rows="3"></textarea>
+                <button type="submit">Save Product</button>
+                <button type="button" onclick="closeProductModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div id="bulkImportModal" class="modal hidden">
+        <div class="modal-inner">
+            <h2>Bulk Import Products</h2>
+            <form onsubmit="handleBulkImport(event)">
+                <label for="importFormat" style="font-size: 12px; color: var(--text-muted);">Select Format:</label>
+                <select id="importFormat" required>
+                    <option value="json">JSON</option>
+                    <option value="csv">CSV</option>
+                    <option value="text">Text (Line-by-line)</option>
+                </select>
+                <label for="bulkProductInput" style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Paste your product data:</label>
+                <textarea id="bulkProductInput" placeholder="Paste products here" rows="10" required></textarea>
+                <button type="submit">Import Products</button>
+                <button type="button" onclick="closeBulkImportModal()">Cancel</button>
+            </form>
+            <div style="margin-top: 12px; padding: 10px; background: #090d1a; border-radius: 4px; font-size: 11px; color: var(--text-muted);">
+                <strong>Format examples:</strong><br>
+                <strong>CSV:</strong> name,barcode,price,quantity,rating<br>
+                name1,SKU001,1500,20,5<br><br>
+                <strong>JSON:</strong> [{"name":"Product","price":1500,"quantity":20,"rating":5}]<br><br>
+                <strong>Text:</strong> One product per line: name|price|quantity|rating
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Reports Modal -->
+    <div id="detailedReportsModal" class="modal hidden">
+        <div class="modal-inner">
+            <h2>Detailed Sales Records</h2>
+            <div id="detailedReportsContent" style="overflow-y: auto; max-height: 400px;"></div>
+            <button onclick="printReports()" style="width: 100%; margin-top: 12px; background: #10b981;">🖨️ Print Reports</button>
+            <button onclick="closeDetailedReports()" style="width: 100%; margin-top: 8px;">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let products = JSON.parse(localStorage.getItem('poketstar_products')) || [];
+        let cart = [];
+        let holdSales = JSON.parse(localStorage.getItem('poketstar_hold_sales')) || [];
+        let salesHistory = JSON.parse(localStorage.getItem('poketstar_sales_history')) || [];
+        let currentEditingProductId = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            updateUI();
+            setupEventListeners();
+            startClock();
+        });
+
+        function initializeApp() {
+            loadFromStorage();
+            setupPaymentMethods();
+            setupAutocomplete();
+        }
+
+        function setupEventListeners() {
+            document.getElementById('addToCartBtn').addEventListener('click', addToCart);
+            document.getElementById('completeSaleBtn').addEventListener('click', completeSale);
+            document.getElementById('holdSaleBtn').addEventListener('click', holdSale);
+            document.getElementById('printReceiptBtn').addEventListener('click', printReceipt);
+            document.getElementById('exportSalesBtn').addEventListener('click', exportSales);
+            document.getElementById('saveAllBtn').addEventListener('click', saveAllData);
+            document.getElementById('viewDetailedReportsBtn').addEventListener('click', showDetailedReports);
+            document.getElementById('barcodeInput').addEventListener('keypress', (e) => e.key === 'Enter' && addToCart());
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeyboardShortcuts);
+        }
+
+        function handleKeyboardShortcuts(e) {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 's') { e.preventDefault(); document.getElementById('barcodeInput').focus(); }
+                if (e.key === 'h') { e.preventDefault(); holdSale(); }
+                if (e.key === 'n') { e.preventDefault(); showAddProductModal(); }
+                if (e.key === 'i') { e.preventDefault(); showBulkImportModal(); }
+                if (e.key === 'l') { e.preventDefault(); clearCart(); }
+                if (e.key === 'p') { e.preventDefault(); printReceipt(); }
+            }
+            if (e.key === 'F12') { e.preventDefault(); completeSale(); }
+        }
+
+        function setupAutocomplete() {
+            const input = document.getElementById('barcodeInput');
+            const list = document.getElementById('autocompleteList');
+
+            input.addEventListener('input', function() {
+                const value = this.value.toLowerCase().trim();
+                
+                if (value.length === 0) {
+                    list.classList.remove('active');
+                    return;
+                }
+
+                const filtered = products.filter(p => 
+                    (p.name.toLowerCase().includes(value) || 
+                     p.barcode.toLowerCase().includes(value)) &&
+                    p.rating >= 3 // Only show products with rating 3+
+                );
+
+                if (filtered.length === 0) {
+                    list.classList.remove('active');
+                    return;
+                }
+
+                list.innerHTML = filtered.map(p => `
+                    <div class="autocomplete-item" onclick="selectProduct('${p.id}')">
+                        <div class="autocomplete-item-name">${p.name}</div>
+                        <div class="autocomplete-item-price">KES ${p.price.toFixed(2)} | Stock: ${p.qty} | Rating: ${'⭐'.repeat(p.rating)}</div>
+                    </div>
+                `).join('');
+                
+                list.classList.add('active');
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target !== input) {
+                    list.classList.remove('active');
+                }
+            });
+        }
+
+        function selectProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                document.getElementById('barcodeInput').value = product.barcode || product.id;
+                document.getElementById('autocompleteList').classList.remove('active');
+                addToCart();
+            }
+        }
+
+        function setupPaymentMethods() {
+            document.querySelectorAll('.payment-method-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        function startClock() {
+            function updateClock() {
+                const now = new Date();
+                document.getElementById('live-clock').textContent = now.toLocaleTimeString();
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const icon = document.querySelector('.theme-icon');
+            icon.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+            localStorage.setItem('poketstar_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('poketstar_theme') === 'light') {
+            document.body.classList.add('light-mode');
+            document.querySelector('.theme-icon').textContent = '☀️';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        function showAddProductModal() {
+            currentEditingProductId = null;
+            document.getElementById('productForm').reset();
+            document.getElementById('productModalTitle').textContent = 'Add New Product';
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        function saveProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById('p_name').value;
+            const barcode = document.getElementById('p_barcode').value;
+            const price = parseFloat(document.getElementById('p_price').value);
+            const qty = parseInt(document.getElementById('p_qty').value);
+            const category = document.getElementById('p_category').value;
+            const rating = parseInt(document.getElementById('p_rating').value);
+            const description = document.getElementById('p_description').value;
+
+            if (currentEditingProductId) {
+                const product = products.find(p => p.id === currentEditingProductId);
+                if (product) {
+                    product.name = name;
+                    product.barcode = barcode;
+                    product.price = price;
+                    product.qty = qty;
+                    product.category = category;
+                    product.rating = rating;
+                    product.description = description;
+                }
+            } else {
+                products.push({
+                    id: Date.now().toString(),
+                    name,
+                    barcode,
+                    price,
+                    qty,
+                    category,
+                    rating,
+                    description,
+                    createdAt: new Date().toISOString()
+                });
+            }
+
+            saveAllData();
+            closeProductModal();
+            updateUI();
+        }
+
+        function showBulkImportModal() {
+            document.getElementById('bulkImportModal').classList.remove('hidden');
+        }
+
+        function closeBulkImportModal() {
+            document.getElementById('bulkImportModal').classList.add('hidden');
+            document.getElementById('bulkProductInput').value = '';
+        }
+
+        function handleBulkImport(e) {
+            e.preventDefault();
+            const format = document.getElementById('importFormat').value;
+            const input = document.getElementById('bulkProductInput').value;
+
+            let importedProducts = [];
+
+            try {
+                if (format === 'json') {
+                    importedProducts = JSON.parse(input);
+                } else if (format === 'csv') {
+                    const lines = input.split('\n').filter(l => l.trim());
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    importedProducts = lines.slice(1).map(line => {
+                        const values = line.split(',').map(v => v.trim());
+                        return {
+                            name: values[0],
+                            barcode: values[1] || '',
+                            price: parseFloat(values[2]) || 0,
+                            qty: parseInt(values[3]) || 0,
+                            rating: parseInt(values[4]) || 3
+                        };
+                    });
+                } else if (format === 'text') {
+                    importedProducts = input.split('\n').filter(l => l.trim()).map(line => {
+                        const parts = line.split('|');
+                        return {
+                            name: parts[0].trim(),
+                            barcode: parts[1]?.trim() || '',
+                            price: parseFloat(parts[2]) || 0,
+                            qty: parseInt(parts[3]) || 0,
+                            rating: parseInt(parts[4]) || 3
+                        };
+                    });
+                }
+
+                importedProducts.forEach(p => {
+                    products.push({
+                        id: Date.now().toString() + Math.random(),
+                        name: p.name,
+                        barcode: p.barcode,
+                        price: p.price,
+                        qty: p.qty,
+                        category: p.category || 'Imported',
+                        rating: p.rating || 3,
+                        description: p.description || '',
+                        createdAt: new Date().toISOString()
+                    });
+                });
+
+                saveAllData();
+                updateUI();
+                closeBulkImportModal();
+                alert(`✅ Successfully imported ${importedProducts.length} products!`);
+            } catch (error) {
+                alert('❌ Error importing products: ' + error.message);
+            }
+        }
+
+        function addToCart() {
+            const input = document.getElementById('barcodeInput');
+            const searchTerm = input.value.trim();
+
+            if (!searchTerm) return;
+
+            const product = products.find(p => 
+                p.barcode === searchTerm || p.id === searchTerm || p.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (!product) {
+                alert('Product not found!');
+                return;
+            }
+
+            if (product.rating < 3) {
+                alert('⚠️ This product is restricted (low rating) and cannot be sold.');
+                return;
+            }
+
+            if (product.qty <= 0) {
+                alert('Out of stock!');
+                return;
+            }
+
+            const existingItem = cart.find(item => item.id === product.id);
+            if (existingItem) {
+                existingItem.cartQty++;
+            } else {
+                cart.push({...product, cartQty: 1});
+            }
+
+            input.value = '';
+            updateCartDisplay();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartDisplay();
+        }
+
+        function updateCartQty(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.cartQty += change;
+                if (item.cartQty <= 0) removeFromCart(productId);
+                updateCartDisplay();
+            }
+        }
+
+        function updateCartDisplay() {
+            const tbody = document.querySelector('#cartTable tbody');
+            tbody.innerHTML = cart.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>
+                        <button onclick="updateCartQty('${item.id}', -1)" style="padding: 2px 4px; margin-right: 4px;">-</button>
+                        ${item.cartQty}
+                        <button onclick="updateCartQty('${item.id}', 1)" style="padding: 2px 4px; margin-left: 4px;">+</button>
+                    </td>
+                    <td>KES ${item.price.toFixed(2)}</td>
+                    <td>KES ${(item.price * item.cartQty).toFixed(2)}</td>
+                    <td><button class="removeBtn" onclick="removeFromCart('${item.id}')">Remove</button></td>
+                </tr>
+            `).join('');
+
+            updateTotals();
+        }
+
+        function updateTotals() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQty), 0);
+            const tax = subtotal * 0.16;
+            const discount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+            const grandTotal = subtotal + tax - discount;
+
+            document.getElementById('subtotal').textContent = 'KES ' + subtotal.toFixed(2);
+            document.getElementById('tax').textContent = 'KES ' + tax.toFixed(2);
+            document.getElementById('discount').textContent = 'KES ' + discount.toFixed(2);
+            document.getElementById('grandTotal').textContent = 'KES ' + grandTotal.toFixed(2);
+        }
+
+        function completeSale() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQty), 0);
+            const tax = subtotal * 0.16;
+            const discount = parseFloat(document.getElementById('paymentAmount').value) || 0;
+            const grandTotal = subtotal + tax - discount;
+
+            const sale = {
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                items: cart.map(item => ({name: item.name, qty: item.cartQty, price: item.price})),
+                subtotal,
+                tax,
+                discount,
+                grandTotal,
+                paymentMethod: document.querySelector('.payment-method-btn.active').dataset.paymentMethod
+            };
+
+            salesHistory.push(sale);
+
+            // Update product quantities
+            cart.forEach(item => {
+                const product = products.find(p => p.id === item.id);
+                if (product) product.qty -= item.cartQty;
+            });
+
+            cart = [];
+            document.getElementById('paymentAmount').value = '';
+            saveAllData();
+            updateUI();
+            generateReceipt(sale);
+            alert('✅ Sale completed successfully!');
+        }
+
+        function holdSale() {
+            if (cart.length === 0) {
+                alert('Cart is empty!');
+                return;
+            }
+
+            const holdSale = {
+                id: Date.now().toString(),
+                timestamp: new Date().toISOString(),
+                items: [...cart],
+                subtotal: cart.reduce((sum, item) => sum + (item.price * item.cartQty), 0)
+            };
+
+            holdSales.push(holdSale);
+            cart = [];
+            updateUI();
+            saveAllData();
+            alert('✅ Sale held successfully!');
+        }
+
+        function resumeHoldSale(holdSaleId) {
+            const held = holdSales.find(s => s.id === holdSaleId);
+            if (held) {
+                cart = [...held.items];
+                holdSales = holdSales.filter(s => s.id !== holdSaleId);
+                switchTab('sales');
+                updateUI();
+                saveAllData();
+            }
+        }
+
+        function deleteHoldSale(holdSaleId) {
+            if (confirm('Are you sure you want to delete this held sale?')) {
+                holdSales = holdSales.filter(s => s.id !== holdSaleId);
+                updateUI();
+                saveAllData();
+            }
+        }
+
+        function generateReceipt(sale) {
+            const receipt = document.getElementById('receipt');
+            const itemsText = sale.items.map(item => 
+                `${item.name.padEnd(20)} x${item.qty} = KES ${(item.price * item.qty).toFixed(2)}`
+            ).join('\n');
+
+            receipt.textContent = `
+╔════════════════════════════════╗
+║     POKET STAR P★ RECEIPT      ║
+║  Transaction Receipt           ║
+╚════════════════════════════════╝
+
+Date: ${new Date(sale.timestamp).toLocaleString()}
+Transaction ID: ${sale.id}
+
+─────────────────────────────────
+ITEMS:
+─────────────────────────────────
+${itemsText}
+
+─────────────────────────────────
+Subtotal:        KES ${sale.subtotal.toFixed(2)}
+Tax (16%):       KES ${sale.tax.toFixed(2)}
+Discount:        KES ${sale.discount.toFixed(2)}
+─────────────────────────────────
+TOTAL:           KES ${sale.grandTotal.toFixed(2)}
+Payment Method:  ${sale.paymentMethod.toUpperCase()}
+─────────────────────────────────
+
+Thank you for your purchase!
+Powered by Poket Star P★ POS
+
+╔════════════════════════════════╗
+`;
+            receipt.classList.remove('hidden');
+        }
+
+        function printReceipt() {
+            const receipt = document.getElementById('receipt').textContent;
+            if (!receipt.trim()) {
+                alert('No receipt to print!');
+                return;
+            }
+            window.print();
+        }
+
+        function showDetailedReports() {
+            const container = document.getElementById('detailedReportsContent');
+            
+            const reportsHTML = salesHistory.map(sale => `
+                <div style="background: #090d1a; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; margin-bottom: 8px;">
+                    <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 4px;">
+                        ${new Date(sale.timestamp).toLocaleString()} - ID: ${sale.id}
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 11px; margin-bottom: 4px;">
+                        Items: ${sale.items.map(i => i.name).join(', ')}
+                    </div>
+                    <div style="color: var(--terminal-green); font-weight: 600;">
+                        Total: KES ${sale.grandTotal.toFixed(2)} (${sale.paymentMethod})
+                    </div>
+                    <button onclick="reprinkSale('${sale.id}')" style="margin-top: 6px; padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
+                        🖨️ Reprint
+                    </button>
+                </div>
+            `).join('');
+
+            container.innerHTML = reportsHTML || '<p style="color: var(--text-muted);">No sales records yet</p>';
+            document.getElementById('detailedReportsModal').classList.remove('hidden');
+        }
+
+        function closeDetailedReports() {
+            document.getElementById('detailedReportsModal').classList.add('hidden');
+        }
+
+        function reprinkSale(saleId) {
+            const sale = salesHistory.find(s => s.id === saleId);
+            if (sale) {
+                document.getElementById('receipt').classList.remove('hidden');
+                generateReceipt(sale);
+                setTimeout(() => window.print(), 500);
+            }
+        }
+
+        function printReports() {
+            const reportWindow = window.open('', 'Reports', 'width=800,height=600');
+            const reportHTML = salesHistory.map(sale => `
+                <div style="page-break-after: always; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;">
+                    <h2 style="text-align: center; color: #0084ff;">POKET STAR P★ - SALES REPORT</h2>
+                    <p><strong>Date:</strong> ${new Date(sale.timestamp).toLocaleString()}</p>
+                    <p><strong>Transaction ID:</strong> ${sale.id}</p>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="background: #0084ff; color: white;">
+                            <th style="border: 1px solid #ccc; padding: 8px;">Item</th>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Qty</th>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Price</th>
+                            <th style="border: 1px solid #ccc; padding: 8px;">Total</th>
+                        </tr>
+                        ${sale.items.map(item => `
+                            <tr>
+                                <td style="border: 1px solid #ccc; padding: 8px;">${item.name}</td>
+                                <td style="border: 1px solid #ccc; padding: 8px;">${item.qty}</td>
+                                <td style="border: 1px solid #ccc; padding: 8px;">KES ${item.price.toFixed(2)}</td>
+                                <td style="border: 1px solid #ccc; padding: 8px;">KES ${(item.price * item.qty).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                    <p style="margin-top: 10px; text-align: right;"><strong>Subtotal:</strong> KES ${sale.subtotal.toFixed(2)}</p>
+                    <p style="text-align: right;"><strong>Tax (16%):</strong> KES ${sale.tax.toFixed(2)}</p>
+                    <p style="text-align: right; font-size: 18px; color: #0084ff;"><strong>TOTAL:</strong> KES ${sale.grandTotal.toFixed(2)}</p>
+                    <p style="text-align: right;"><strong>Payment:</strong> ${sale.paymentMethod.toUpperCase()}</p>
+                </div>
+            `).join('');
+
+            reportWindow.document.write(`
+                <html>
+                <head>
+                    <title>Sales Reports - Poket Star P★</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    ${reportHTML}
+                </body>
+                </html>
+            `);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        function exportSales() {
+            const dataStr = JSON.stringify(salesHistory, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `poketstar_sales_${new Date().getTime()}.json`;
+            link.click();
+        }
+
+        function clearCart() {
+            if (confirm('Clear cart?')) {
+                cart = [];
+                updateUI();
+            }
+        }
+
+        function focusHoldSales() {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            alert(`${holdSales.length} held sales. Check the Hold Sales Manager panel.`);
+        }
+
+        function updateUI() {
+            // Update product sidebar
+            const sidebar = document.getElementById('productSidebar');
+            if (products.length === 0) {
+                sidebar.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No products added yet</div>';
+            } else {
+                sidebar.innerHTML = products.map(p => `
+                    <div class="product-item">
+                        <div class="product-item-name">${p.name}</div>
+                        <div class="product-item-details">SKU: ${p.barcode || p.id} | KES ${p.price.toFixed(2)} | Stock: ${p.qty}</div>
+                        <div class="product-item-rating">${'⭐'.repeat(p.rating)}</div>
+                        <div class="product-item-actions">
+                            <button class="edit" onclick="editProduct('${p.id}')">Edit</button>
+                            <button class="remove" onclick="deleteProduct('${p.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Update product list tab
+            const productListTab = document.getElementById('productListTab');
+            productListTab.innerHTML = products.map(p => `
+                <div class="product-item">
+                    <div class="product-item-name">${p.name}</div>
+                    <div class="product-item-details">SKU: ${p.barcode || p.id} | KES ${p.price.toFixed(2)} | Stock: ${p.qty}</div>
+                    <div class="product-item-rating">${'⭐'.repeat(p.rating)}</div>
+                    <div class="product-item-actions">
+                        <button class="edit" onclick="editProduct('${p.id}')">Edit</button>
+                        <button class="remove" onclick="deleteProduct('${p.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update hold sales
+            const holdList = document.getElementById('holdSalesList');
+            if (holdSales.length === 0) {
+                holdList.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>';
+            } else {
+                holdList.innerHTML = holdSales.map(hold => `
+                    <div class="hold-item">
+                        <div class="hold-item-header">
+                            <span>Sale #${hold.id.substring(0, 8)}</span>
+                            <span>KES ${hold.subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="hold-item-details">${hold.items.length} items | ${new Date(hold.timestamp).toLocaleString()}</div>
+                        <div class="hold-buttons">
+                            <button onclick="resumeHoldSale('${hold.id}')">Resume</button>
+                            <button class="delete" onclick="deleteHoldSale('${hold.id}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Update hold badge
+            const badge = document.getElementById('holdBadge');
+            if (holdSales.length > 0) {
+                badge.textContent = holdSales.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            // Update reports
+            const totalSales = salesHistory.reduce((sum, s) => sum + s.grandTotal, 0);
+            const totalTransactions = salesHistory.length;
+            const productsSold = salesHistory.reduce((sum, s) => sum + s.items.reduce((itemSum, item) => itemSum + item.qty, 0), 0);
+            const avgSale = totalTransactions > 0 ? totalSales / totalTransactions : 0;
+
+            document.getElementById('totalSales').textContent = 'KES ' + totalSales.toFixed(2);
+            document.getElementById('totalTransactions').textContent = totalTransactions;
+            document.getElementById('productsSold').textContent = productsSold;
+            document.getElementById('avgSale').textContent = 'KES ' + avgSale.toFixed(2);
+
+            updateCartDisplay();
+        }
+
+        function editProduct(productId) {
+            const product = products.find(p => p.id === productId);
+            if (product) {
+                currentEditingProductId = productId;
+                document.getElementById('p_name').value = product.name;
+                document.getElementById('p_barcode').value = product.barcode;
+                document.getElementById('p_price').value = product.price;
+                document.getElementById('p_qty').value = product.qty;
+                document.getElementById('p_category').value = product.category;
+                document.getElementById('p_rating').value = product.rating;
+                document.getElementById('p_description').value = product.description;
+                document.getElementById('productModalTitle').textContent = 'Edit Product';
+                document.getElementById('productModal').classList.remove('hidden');
+            }
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(p => p.id !== productId);
+                saveAllData();
+                updateUI();
+            }
+        }
+
+        function syncInventory() {
+            alert('✅ Inventory synced successfully!');
+        }
+
+        function saveAllData() {
+            localStorage.setItem('poketstar_products', JSON.stringify(products));
+            localStorage.setItem('poketstar_hold_sales', JSON.stringify(holdSales));
+            localStorage.setItem('poketstar_sales_history', JSON.stringify(salesHistory));
+        }
+
+        function loadFromStorage() {
+            products = JSON.parse(localStorage.getItem('poketstar_products')) || [];
+            holdSales = JSON.parse(localStorage.getItem('poketstar_hold_sales')) || [];
+            salesHistory = JSON.parse(localStorage.getItem('poketstar_sales_history')) || [];
+        }
+    </script>
+
+</body>
+</html>
