@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Poket Star OS - Interactive Desktop Environment Test</title>
     <style>
         :root {
@@ -16,12 +16,7 @@
             --text-muted: #94a3b8;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
             background-color: var(--bg-color);
@@ -33,340 +28,73 @@
         }
 
         /* Top Desktop Status Bar */
-        .desktop-bar {
-            background: #020617;
-            border-bottom: 1px solid var(--border-color);
-            height: 35px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            font-size: 13px;
-            user-select: none;
-        }
-
-        .bar-left span, .bar-right span {
-            margin-right: 15px;
-            cursor: pointer;
-        }
-
-        .bar-center {
-            font-weight: 600;
-            color: var(--accent-blue);
-        }
+        .desktop-bar { background: #020617; border-bottom: 1px solid var(--border-color); height: 35px; display: flex; justify-content: space-between; align-items: center; padding: 0 15px; font-size: 13px; user-select: none; }
+        .bar-left span, .bar-right span { margin-right: 15px; cursor: pointer; }
+        .bar-center { font-weight: 600; color: var(--accent-blue); }
 
         /* Workspace Layout */
-        .workspace {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 60% 40%;
-            gap: 12px;
-            padding: 12px;
-            height: calc(100vh - 75px);
-        }
+        .workspace { flex: 1; display: grid; grid-template-columns: 60% 40%; gap: 12px; padding: 12px; height: calc(100vh - 75px); }
 
         /* Window Styling */
-        .window {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: border-color 0.3s;
-        }
-
-        .window:hover, .window:focus-within {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 15px var(--glow-blue);
-        }
-
-        .window-header {
-            background: #090d1a;
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .window-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .window-dots {
-            display: flex;
-            gap: 6px;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #334155;
-        }
+        .window { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.5); transition: border-color 0.3s; }
+        .window:hover, .window:focus-within { border-color: var(--accent-blue); box-shadow: 0 0 15px var(--glow-blue); }
+        .window-header { background: #090d1a; padding: 10px 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .window-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
+        .window-dots { display: flex; gap: 6px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #334155; }
         .dot.red { background: #ef4444; }
-
-        .window-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
+        .window-body { flex: 1; overflow-y: auto; padding: 15px; }
 
         /* LEFT SIDE: Poket Star ERP Console Widget */
-        .erp-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .erp-logo {
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
+        .erp-nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; }
+        .erp-logo { font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 5px; }
         .erp-logo span { color: var(--accent-blue); }
+        .erp-tabs button { background: transparent; border: none; color: var(--text-muted); padding: 5px 10px; cursor: pointer; font-size: 13px; }
+        .erp-tabs button.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
 
-        .erp-tabs button {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .erp-tabs button.active {
-            color: var(--accent-blue);
-            border-bottom: 2px solid var(--accent-blue);
-        }
-
-        .hero-banner {
-            background: linear-gradient(135deg, #09132e 0%, #030712 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 25px;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .hero-banner h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-
-        .hero-banner p {
-            color: var(--text-muted);
-            font-size: 14px;
-            margin-bottom: 15px;
-            max-width: 80%;
-        }
-
-        .btn {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 13px;
-            transition: background 0.2s;
-        }
+        .hero-banner { background: linear-gradient(135deg, #09132e 0%, #030712 100%); border: 1px solid var(--border-color); border-radius: 6px; padding: 25px; margin-bottom: 15px; position: relative; }
+        .hero-banner h1 { font-size: 24px; margin-bottom: 8px; }
+        .hero-banner p { color: var(--text-muted); font-size: 14px; margin-bottom: 15px; max-width: 80%; }
+        .btn { background: var(--accent-blue); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 13px; transition: background 0.2s; }
         .btn:hover { background: #006cd8; }
-        .btn.secondary {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            margin-left: 8px;
-        }
+        .btn.secondary { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); margin-left: 8px; }
         .btn.secondary:hover { background: #1e294b; }
+        .btn.disabled { opacity: 0.5; cursor: not-allowed; }
 
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-
-        .metric-card {
-            background: #090f21;
-            border: 1px solid var(--border-color);
-            padding: 15px;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        .metric-num {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--accent-blue);
-        }
-
-        .metric-lbl {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
+        .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .metric-card { background: #090f21; border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; text-align: center; }
+        .metric-num { font-size: 20px; font-weight: 700; color: var(--accent-blue); }
+        .metric-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; }
 
         /* RIGHT SIDE: Vertical Stack (Terminal, File Manager, Messenger) */
-        .right-stack {
-            display: grid;
-            grid-template-rows: 35% 30% 35%;
-            gap: 12px;
-        }
+        .right-stack { display: grid; grid-template-rows: 35% 30% 35%; gap: 12px; }
 
         /* Terminal Window */
-        .terminal-body {
-            background: #02040a;
-            font-family: 'Courier New', Courier, monospace;
-            color: var(--terminal-green);
-            font-size: 12px;
-            padding: 10px;
-        }
-
+        .terminal-body { background: #02040a; font-family: 'Courier New', Courier, monospace; color: var(--terminal-green); font-size: 12px; padding: 10px; }
         .terminal-line { margin-bottom: 4px; }
 
         /* File Manager Window */
-        .file-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        .file-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 4px;
-        }
+        .file-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .file-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; padding: 10px; border-radius: 4px; }
         .file-item:hover { background: #1e294b; }
-
-        .icon-folder {
-            width: 35px;
-            height: 35px;
-            background: var(--accent-blue);
-            border-radius: 4px;
-            position: relative;
-            margin-bottom: 6px;
-        }
-        .icon-folder::before {
-            content: '';
-            position: absolute;
-            top: -4px;
-            left: 0;
-            width: 15px;
-            height: 4px;
-            background: var(--accent-blue);
-            border-radius: 2px 2px 0 0;
-        }
-
-        .file-name {
-            font-size: 11px;
-            text-align: center;
-            word-break: break-all;
-        }
+        .icon-folder { width: 35px; height: 35px; background: var(--accent-blue); border-radius: 4px; position: relative; margin-bottom: 6px; }
+        .icon-folder::before { content: ''; position: absolute; top: -4px; left: 0; width: 15px; height: 4px; background: var(--accent-blue); border-radius: 2px 2px 0 0; }
+        .file-name { font-size: 11px; text-align: center; word-break: break-all; }
 
         /* Messenger Window */
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .msg {
-            background: #131c35;
-            padding: 8px 12px;
-            border-radius: 6px;
-            max-width: 85%;
-            font-size: 12px;
-        }
-        .msg.system {
-            background: #1e294b;
-            border-left: 3px solid var(--accent-blue);
-        }
-
-        .msg-author {
-            font-weight: 700;
-            color: var(--accent-blue);
-            margin-bottom: 2px;
-            font-size: 11px;
-        }
-
-        .chat-input-area {
-            display: flex;
-            gap: 6px;
-        }
-
-        .chat-input {
-            flex: 1;
-            background: #040712;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-main);
-            padding: 6px 10px;
-            font-size: 12px;
-        }
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
+        .chat-container { display: flex; flex-direction: column; height: 100%; }
+        .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { background: #131c35; padding: 8px 12px; border-radius: 6px; max-width: 85%; font-size: 12px; }
+        .msg.system { background: #1e294b; border-left: 3px solid var(--accent-blue); }
+        .msg-author { font-weight: 700; color: var(--accent-blue); margin-bottom: 2px; font-size: 11px; }
+        .chat-input-area { display: flex; gap: 6px; }
+        .chat-input { flex: 1; background: #040712; border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); padding: 6px 10px; font-size: 12px; }
+        .chat-input:focus { outline: none; border-color: var(--accent-blue); }
 
         /* Bottom Application Dock */
-        .desktop-dock {
-            background: rgba(9, 13, 26, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            height: 45px;
-            width: max-content;
-            margin: 0 auto 5px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 15px;
-        }
-
-        .dock-icon {
-            width: 28px;
-            height: 28px;
-            background: #1e294b;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: transform 0.2s;
-        }
-        .dock-icon:hover {
-            transform: scale(1.2);
-            background: var(--accent-blue);
-        }
+        .desktop-dock { background: rgba(9, 13, 26, 0.85); backdrop-filter: blur(10px); border: 1px solid var(--border-color); height: 45px; width: max-content; margin: 0 auto 5px; border-radius: 24px; display: flex; align-items: center; padding: 0 15px; gap: 15px; }
+        .dock-icon { width: 28px; height: 28px; background: #1e294b; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; transition: transform 0.2s; }
+        .dock-icon:hover { transform: scale(1.2); background: var(--accent-blue); }
     </style>
 </head>
 <body>
@@ -386,7 +114,6 @@
 
     <!-- Main Tiled Desktop Workspace -->
     <div class="workspace">
-        
         <!-- LEFT: Primary Enterprise ERP Application -->
         <div class="window">
             <div class="window-header">
@@ -406,8 +133,8 @@
                 <div class="hero-banner">
                     <h1>Enterprise software & automation at scale</h1>
                     <p>Experience low-code architecture optimized with declarative configurations and relational database compilation modules.</p>
-                    <button class="btn" onclick="triggerDeploymentSync()">Trigger System Sync</button>
-                    <button class="btn secondary" onclick="logTerminal('Initiating system diagnostic checklist...')">Run Diagnostics</button>
+                    <button id="btn-trigger-sync" data-action="trigger-sync" class="btn" onclick="triggerDeploymentSync()">Trigger System Sync</button>
+                    <button id="btn-run-diag" data-action="run-diagnostics" class="btn secondary" onclick="runDiagnostics()">Run Diagnostics</button>
                 </div>
 
                 <h3 style="font-size: 14px; margin-bottom: 10px; color: var(--text-muted)">Live Cluster Infrastructure Metrics</h3>
@@ -430,7 +157,7 @@
 
         <!-- RIGHT: Developer Workstation Module Stack -->
         <div class="right-stack">
-            
+
             <!-- Window 1: Interactive Alacritty Terminal -->
             <div class="window">
                 <div class="window-header">
@@ -453,7 +180,7 @@
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
                 <div class="window-body">
-                    <div class="file-grid">
+                    <div id="file-grid" class="file-grid">
                         <div class="file-item" onclick="logTerminal('Navigated into directory: /projects')">
                             <div class="icon-folder"></div>
                             <div class="file-name">projects</div>
@@ -493,7 +220,7 @@
                     </div>
                     <div class="chat-input-area">
                         <input type="text" id="chat-msg-input" class="chat-input" placeholder="Broadcast secure network packet message..." onkeydown="if(event.key === 'Enter') sendMockMessage()">
-                        <button class="btn" style="padding: 4px 10px;" onclick="sendMockMessage()">Send</button>
+                        <button id="chat-send-btn" class="btn" style="padding: 4px 10px;" onclick="sendMockMessage()">Send</button>
                     </div>
                 </div>
             </div>
@@ -509,39 +236,66 @@
         <div class="dock-icon" onclick="logTerminal('Secure internal mail node ping set.')">✉️</div>
     </div>
 
+    <!-- Load config features -->
+    <script src="/config/features.js"></script>
+
     <!-- Interactive Workspace Mechanics Script Engine -->
     <script>
-        // Update System Clock dynamically to mimic true environment behavior
+        // Clock (kept separate so we can call once config applied)
         function updateClock() {
             const now = new Date();
             let hours = now.getHours();
             let minutes = now.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12;
-            hours = hours ? hours : 12; 
+            hours = hours ? hours : 12;
             minutes = minutes < 10 ? '0' + minutes : minutes;
             document.getElementById('live-clock').innerText = hours + ':' + minutes + ' ' + ampm;
         }
-        setInterval(updateClock, 1000);
-        updateClock();
 
-        // Feed logs directly to terminal panel window simulation
+        // Terminal logging helper checks feature flag
         function logTerminal(message) {
+            const cfgEnabled = (typeof featureEnabled === 'function') ? featureEnabled('terminalLogging') : true;
+            if (!cfgEnabled) return; // terminal logging disabled
+
             const term = document.getElementById('term-body');
             const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-            
             const logLine = document.createElement('div');
             logLine.className = 'terminal-line';
             logLine.innerHTML = `<span style="color: #3b82f6">[${timestamp}]</span> barasa@poketstar-node1:~$ ${message}`;
-            
             term.appendChild(logLine);
             term.scrollTop = term.scrollHeight;
         }
 
         // Action simulator triggered via ERP interface buttons
-        function triggerDeploymentSync() {
+        async function triggerDeploymentSync() {
+            if (typeof featureEnabled === 'function' && !featureEnabled('deploymentSync')) {
+                logTerminal('Deployment Sync is disabled by configuration.');
+                return;
+            }
+
             logTerminal("Initiating operational cluster system synchronization sequence...");
-            
+
+            // if an API endpoint is configured, try calling it (best-effort)
+            const syncEndpoint = (typeof getConfig === 'function') ? (getConfig()?.api?.syncEndpoint) : null;
+            if (syncEndpoint) {
+                try {
+                    // Use POST with a small JSON payload; this call is optional and non-blocking for UI simulation.
+                    fetch(syncEndpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'sync' }) })
+                      .then(resp => {
+                        if (resp.ok) {
+                          logTerminal('Server-side sync request accepted.');
+                        } else {
+                          logTerminal('Server-side sync failed: ' + resp.status);
+                        }
+                      }).catch(err => {
+                        logTerminal('Remote sync error: ' + err.message);
+                      });
+                } catch (e) {
+                    logTerminal('Remote sync error: ' + e.message);
+                }
+            }
+
             setTimeout(() => {
                 logTerminal("Compiling declarative JSON application structural layout rules...");
             }, 600);
@@ -552,7 +306,7 @@
 
             setTimeout(() => {
                 logTerminal("✔ System Sync Successful. All production cluster partitions verified.");
-                
+
                 // Add automated affirmation message from system monitoring layer to messenger widget
                 const chatBox = document.getElementById('chat-box');
                 const updateMsg = document.createElement('div');
@@ -563,23 +317,60 @@
             }, 2000);
         }
 
+        // Diagnostics action uses config flag and optional endpoint
+        async function runDiagnostics() {
+            if (typeof featureEnabled === 'function' && !featureEnabled('runDiagnostics')) {
+                logTerminal('Diagnostics are disabled by configuration.');
+                return;
+            }
+
+            logTerminal('Initiating system diagnostic checklist...');
+
+            const diagEndpoint = (typeof getConfig === 'function') ? (getConfig()?.api?.diagnosticsEndpoint) : null;
+            if (diagEndpoint) {
+                try {
+                    const r = await fetch(diagEndpoint, { method: 'POST' });
+                    if (r.ok) logTerminal('Remote diagnostics requested.');
+                    else logTerminal('Remote diagnostics failed: ' + r.status);
+                } catch (err) {
+                    logTerminal('Diagnostics endpoint error: ' + err.message);
+                }
+            }
+        }
+
         // Messenger manual text input pipeline
         function sendMockMessage() {
+            if (typeof featureEnabled === 'function' && !featureEnabled('chatBroadcast')) {
+                logTerminal('Chat broadcast disabled by configuration.');
+                return;
+            }
+
             const input = document.getElementById('chat-msg-input');
             const text = input.value.trim();
-            if(!text) return;
+            if (!text) return;
 
             const chatBox = document.getElementById('chat-box');
             const userMsg = document.createElement('div');
             userMsg.className = 'msg';
             userMsg.innerHTML = `<div class="msg-author">Stephen Barasa</div>${text}`;
-            
+
             chatBox.appendChild(userMsg);
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
             logTerminal(`Broadcasted chat message packet: "${text}"`);
         }
+
+        // Initialize: load config then start clock and other behaviors
+        (async function init() {
+            if (typeof loadMainConfig === 'function') {
+                await loadMainConfig('/config/main-config.json');
+            } else {
+                console.warn('Config loader not found; proceeding with defaults.');
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        })();
     </script>
 </body>
 </html>

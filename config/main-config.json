@@ -1,0 +1,22 @@
+{
+  "appName": "Poket Star",
+  "environment": "development",
+  "features": {
+    "deploymentSync": true,
+    "runDiagnostics": true,
+    "chatBroadcast": true,
+    "terminalLogging": true,
+    "fileExplorer": true
+  },
+  "ui": {
+    "metrics": {
+      "showActiveCompanies": true,
+      "showConcurrentUsers": true,
+      "showEndClients": true
+    }
+  },
+  "api": {
+    "syncEndpoint": "/api/sync",
+    "diagnosticsEndpoint": "/api/diagnostics"
+  }
+}
