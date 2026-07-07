@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Poket Star POS System - Enterprise Desktop Environment for retail">
+    <meta name="theme-color" content="#060913">
+    <title>Poket Star POS — Enterprise Desktop Environment</title>
+    <link rel="stylesheet" href="styles-refactored.css">
+</head>
+<body>
+    <!-- Top Desktop Status Bar -->
+    <div class="desktop-bar" role="banner">
+        <div class="bar-left">
+            <span role="menuitem"><strong>Activities</strong></span>
+            <span role="menuitem">File</span>
+            <span role="menuitem">Edit</span>
+        </div>
+        <div class="bar-center">Poket Star POS — Enterprise Console</div>
+        <div class="bar-right">
+            <span id="live-clock" aria-label="Current time">10:35 AM</span>
+            <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode" aria-label="Toggle theme">🌙</button>
+        </div>
+    </div>
+
+    <!-- Main Tiled Desktop Workspace -->
+    <div class="workspace">
+        
+        <!-- LEFT: POS Sales Terminal -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">💳 Poket Star POS | Sales Terminal</div>
+                <div class="window-dots">
+                    <div class="dot red"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div class="window-body">
+                <nav class="pos-nav">
+                    <div class="pos-logo">🌟 Poket <span>Star</span></div>
+                    <div class="pos-tabs" role="tablist">
+                        <button class="pos-tab-btn active" data-tab="sales" role="tab" aria-selected="true">Sales</button>
+                        <button class="pos-tab-btn" data-tab="products" role="tab" aria-selected="false">Products</button>
+                        <button class="pos-tab-btn" data-tab="reports" role="tab" aria-selected="false">Reports</button>
+                    </div>
+                </nav>
+
+                <!-- SALES TAB -->
+                <div id="sales-tab" class="tab-content active" role="tabpanel">
+                    <div class="hero-banner">
+                        <h1>Sales Terminal Active</h1>
+                        <p>East Africa Retail System | Real-time inventory management and transactions</p>
+                        <button class="btn" id="syncInventoryBtn">Sync Inventory</button>
+                        <button class="btn secondary" id="addProductFromSalesBtn">Add Product</button>
+                    </div>
+
+                    <h3 class="section-title">Scan Product or Search (Ctrl+S)</h3>
+                    <div class="search-row">
+                        <input id="barcodeInput" placeholder="Scan barcode or type product name" aria-label="Product search input" />
+                        <button id="addToCartBtn" aria-label="Add product to cart">Add</button>
+                    </div>
+
+                    <h3 class="section-title">Cart Items</h3>
+                    <table id="cartTable" role="table" aria-label="Shopping cart items">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qty</th>
+                                <th>Unit (KES)</th>
+                                <th>Total (KES)</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+
+                    <div class="totals">
+                        <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
+                        <div>VAT (16%): <span id="tax">KES 0.00</span></div>
+                        <div>Discount: <span id="discount">KES 0.00</span></div>
+                        <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
+                    </div>
+
+                    <fieldset class="payment-methods">
+                        <legend>Payment Method</legend>
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment-method" value="cash" checked>
+                            💵 Cash
+                        </label>
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment-method" value="mpesa">
+                            📱 M-Pesa
+                        </label>
+                        <label class="payment-method-label">
+                            <input type="radio" name="payment-method" value="card">
+                            💳 Card
+                        </label>
+                    </fieldset>
+
+                    <div class="actions">
+                        <input id="paymentAmount" type="number" step="0.01" placeholder="Amount tendered (KES)" aria-label="Amount paid by customer" />
+                        <button id="completeSaleBtn" aria-label="Complete sale">Complete Sale (F12)</button>
+                        <button id="holdSaleBtn" aria-label="Hold current sale">Hold Sale (Ctrl+H)</button>
+                        <button id="printReceiptBtn" aria-label="Print receipt">Print Receipt</button>
+                    </div>
+
+                    <!-- Change Calculation Display -->
+                    <div id="changeDisplay" class="change-display hidden">
+                        <div class="change-row">
+                            <span>Amount Tendered:</span>
+                            <span id="tenderedAmount">KES 0.00</span>
+                        </div>
+                        <div class="change-row">
+                            <span>Amount Due:</span>
+                            <span id="dueAmount">KES 0.00</span>
+                        </div>
+                        <div class="change-row grand">
+                            <span>Change:</span>
+                            <span id="changeAmount">KES 0.00</span>
+                        </div>
+                    </div>
+
+                    <div id="receipt" class="receipt hidden"></div>
+                </div>
+
+                <!-- PRODUCTS TAB -->
+                <div id="products-tab" class="tab-content hidden" role="tabpanel">
+                    <h2>Product Management</h2>
+                    <button class="btn" id="addNewProductBtn">➕ Add New Product</button>
+                    <div id="productListTab" class="product-grid"></div>
+                </div>
+
+                <!-- REPORTS TAB -->
+                <div id="reports-tab" class="tab-content hidden" role="tabpanel">
+                    <h2>Sales Reports</h2>
+                    <div class="reports-container">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-label">Total Sales</div>
+                                <div class="stat-value" id="totalSales">KES 0.00</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Transactions</div>
+                                <div class="stat-value" id="totalTransactions">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Products Sold</div>
+                                <div class="stat-value" id="productsSold">0</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-label">Avg Sale</div>
+                                <div class="stat-value" id="avgSale">KES 0.00</div>
+                            </div>
+                        </div>
+                        <button class="btn" id="exportSalesBtn">📊 Export Sales (JSON)</button>
+                        <button class="btn green" id="saveAllBtn">💾 Save All Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Product List Sidebar -->
+        <div class="window">
+            <div class="window-header">
+                <div class="window-title">📦 Product List</div>
+                <div class="window-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+            <div class="window-body">
+                <div class="product-sidebar" id="productSidebar">
+                    <div class="empty-state">No products added yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Hold Sales & Shortcuts -->
+        <div class="right-stack">
+            
+            <!-- Hold Sales Manager -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">⏸️ Hold Sales Manager</div>
+                    <div class="window-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="hold-sales-list" id="holdSalesList">
+                        <div class="empty-state">No held sales</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shortcuts & Info -->
+            <div class="window">
+                <div class="window-header">
+                    <div class="window-title">⌨️ Keyboard Shortcuts</div>
+                    <div class="window-dots">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="shortcuts-info">
+                        <div class="shortcut">
+                            <span>Focus Barcode Input</span>
+                            <span class="shortcut-key">Ctrl+S</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Add to Cart</span>
+                            <span class="shortcut-key">Enter</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Complete Sale</span>
+                            <span class="shortcut-key">F12</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Hold Current Sale</span>
+                            <span class="shortcut-key">Ctrl+H</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Print Receipt</span>
+                            <span class="shortcut-key">Ctrl+P</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Add Product</span>
+                            <span class="shortcut-key">Ctrl+N</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Sync Inventory</span>
+                            <span class="shortcut-key">Ctrl+I</span>
+                        </div>
+                        <div class="shortcut">
+                            <span>Clear Cart</span>
+                            <span class="shortcut-key">Ctrl+L</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bottom App Quick Dock Menu -->
+    <div class="desktop-dock">
+        <button class="dock-icon" id="dockSales" title="Sales (Ctrl+S)" aria-label="Sales tab">💳</button>
+        <button class="dock-icon" id="dockProducts" title="Products" aria-label="Products tab">📦</button>
+        <button class="dock-icon" id="dockReports" title="Reports" aria-label="Reports tab">📊</button>
+        <button class="dock-icon" id="dockAdd" title="Add Product (Ctrl+N)" aria-label="Add product">➕</button>
+        <button class="dock-icon" id="dockHold" title="Hold Sales (Ctrl+H)" aria-label="Hold sales">
+            ⏸️
+            <span class="dock-badge hidden" id="holdBadge">0</span>
+        </button>
+    </div>
+
+    <!-- Product Modal (Add/Edit) -->
+    <div id="productModal" class="modal hidden" role="dialog" aria-labelledby="productModalTitle">
+        <div class="modal-inner">
+            <h2 id="productModalTitle">Add New Product</h2>
+            <form id="productForm">
+                <input id="productName" type="text" placeholder="Product Name" required aria-label="Product name" />
+                <input id="productBarcode" type="text" placeholder="Barcode / SKU" aria-label="Product barcode" />
+                <input id="productPrice" type="number" placeholder="Unit Price (KES)" step="0.01" required aria-label="Product price" />
+                <input id="productQty" type="number" placeholder="Quantity" required aria-label="Product quantity" />
+                <input id="productCategory" type="text" placeholder="Category" aria-label="Product category" />
+                <button type="submit" class="btn">Save Product</button>
+                <button type="button" class="btn secondary" id="closeProductModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script -->
+    <script src="app-refactored.js" defer></script>
+</body>
+</html>
