@@ -21,6 +21,8 @@
     .modal-inner { background: #fff; padding: 16px; border-radius: 6px; }
     .modal.hidden { display: none; }
     #receipt { white-space: pre-wrap; font-family: monospace; border: 1px solid #ccc; padding: 12px; margin-top: 12px; }
+    .error-message { color: #ef4444; font-weight: 700; margin-top: 8px; }
+    .success-message { color: #10b981; font-weight: 700; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -51,6 +53,12 @@
         <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
       </div>
 
+      <div class="payment-methods">
+        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
+        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
+        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+      </div>
+
       <div class="actions">
         <input id="paymentAmount" placeholder="Amount tendered (KES)" />
         <label style="display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="printReceiptChk" /> Print receipt</label>
@@ -60,6 +68,7 @@
 
       <div id="receipt" class="hidden"></div>
       <div id="changeBox" style="margin-top:8px; font-weight:700;"></div>
+      <div id="paymentMessage" class="error-message" aria-live="polite"></div>
     </section>
 
     <aside id="sidebar">
@@ -103,6 +112,9 @@
     let sales = JSON.parse(localStorage.getItem('ps_sales') || '[]');
     let currentCart = [];
 
+    // Selected payment method
+    let selectedPaymentMethod = 'cash';
+
     // Elements
     const barcodeInput = $('barcodeInput');
     const suggestions = $('suggestions');
@@ -118,6 +130,7 @@
     const printReceiptChk = $('printReceiptChk');
     const changeBox = $('changeBox');
     const receiptEl = $('receipt');
+    const paymentMessageEl = $('paymentMessage');
 
     // Admin modal elements
     const adminModal = $('adminModal');
@@ -134,6 +147,15 @@
 
     // Clock
     setInterval(()=>{ $('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
+
+    // Payment method buttons handling
+    document.querySelectorAll('.payment-method-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedPaymentMethod = btn.dataset.paymentMethod || 'cash';
+      });
+    });
 
     // Renderers
     function renderProducts() {
@@ -154,7 +176,7 @@
       cartTableBody.innerHTML = '';
       currentCart.forEach((item, i)=>{
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.name}</td><td><input type="number" min="1" value="${item.qty}" data-index="${i}" style="width:60px" /></td><td>${formatKES(item.price)}</td><td>${formatKES(item.price*item.qty)}</td><td><button data-remove="${i}">Remove</button></td>`;
+        tr.innerHTML = `<td>${item.name}</td><td><input type="number" min="1" value="${item.qty}" data-index="${i}" style="width:60px" /></td><td>${formatKES(item.price)}</td><td>${formatKES(item.price * item.qty)}</td><td><button data-remove="${i}">Remove</button></td>`;
         cartTableBody.appendChild(tr);
       });
 
@@ -175,7 +197,7 @@
       const subtotal = currentCart.reduce((s,i)=>s + i.price*i.qty, 0);
       const tax = subtotal * TAX_RATE;
       const discount = 0; // placeholder for future
-      const grand = subtotal + tax - discount;
+      const grand = Math.round((subtotal + tax - discount) * 100) / 100;
       subtotalEl.textContent = formatKES(subtotal);
       taxEl.textContent = formatKES(tax);
       discountEl.textContent = formatKES(discount);
@@ -247,7 +269,9 @@
       const matches = products.filter(p=> p.name && p.name.toLowerCase().includes(q.toLowerCase()));
       if (matches.length === 1) { addProductToCart(matches[0]); barcodeInput.value = ''; suggestions.classList.add('hidden'); return; }
       if (matches.length > 1) { suggestions.classList.remove('hidden'); return; }
-      alert('Product not found — add it in Admin');
+      // show inline message instead of alert
+      paymentMessageEl.textContent = 'Product not found — add it in Admin';
+      setTimeout(()=>{ if (paymentMessageEl.textContent === 'Product not found — add it in Admin') paymentMessageEl.textContent = ''; }, 3000);
     }
 
     function addProductToCart(prod) {
@@ -259,13 +283,35 @@
     // Complete sale
     completeSaleBtn.addEventListener('click', ()=>{
       const totals = updateTotals();
-      const tendered = parseFloat(paymentAmount.value) || 0;
-      if (tendered < totals.grand) { alert('Insufficient payment amount'); return; }
-      const change = tendered - totals.grand;
-      changeBox.textContent = 'Change: ' + formatKES(change);
+      const tendered = Math.round((parseFloat(paymentAmount.value) || 0) * 100) / 100;
+      if (tendered < totals.grand) {
+        const short = Math.round((totals.grand - tendered) * 100) / 100;
+        paymentMessageEl.className = 'error-message';
+        paymentMessageEl.textContent = `Short by ${formatKES(short)}`;
+        changeBox.textContent = '';
+        return;
+      }
 
-      // record sale
-      const sale = { id: Date.now(), items: currentCart, totals, tendered, change, created_at: new Date().toISOString() };
+      const change = Math.round((tendered - totals.grand) * 100) / 100;
+      changeBox.textContent = 'Change: ' + formatKES(change);
+      paymentMessageEl.className = 'success-message';
+      paymentMessageEl.textContent = 'Payment accepted';
+
+      // record sale (store payment details under sale.payment)
+      const sale = {
+        id: Date.now().toString(),
+        items: currentCart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+        totals,
+        payment: {
+          method: (selectedPaymentMethod || 'cash').toUpperCase(),
+          tendered,
+          change,
+          reference: `${selectedPaymentMethod ? selectedPaymentMethod.toUpperCase() : 'CASH'}-${Date.now()}`,
+          status: 'SUCCESS'
+        },
+        created_at: new Date().toISOString()
+      };
+
       sales.push(sale); localStorage.setItem('ps_sales', JSON.stringify(sales));
 
       // reduce inventory quantities if SKU linked
@@ -289,11 +335,14 @@
       currentCart = [];
       saveCartAndRender();
       paymentAmount.value = '';
+
+      // clear success message after a short delay
+      setTimeout(()=>{ if (paymentMessageEl.textContent === 'Payment accepted') paymentMessageEl.textContent = ''; changeBox.textContent = ''; receiptEl.classList.add('hidden'); }, 6000);
     });
 
     // Print button to print current receipt area
     printReceiptBtn.addEventListener('click', ()=>{
-      if (receiptEl.classList.contains('hidden')) { alert('No receipt available. Complete a sale first.'); return; }
+      if (receiptEl.classList.contains('hidden')) { paymentMessageEl.className = 'error-message'; paymentMessageEl.textContent = 'No receipt available. Complete a sale first.'; setTimeout(()=>{ if (paymentMessageEl.textContent === 'No receipt available. Complete a sale first.') paymentMessageEl.textContent = ''; }, 3000); return; }
       printReceipt(receiptEl.textContent);
     });
 
@@ -304,11 +353,13 @@
       lines.push('------------------------------');
       sale.items.forEach(it=> lines.push(`${it.name} x${it.qty} @${Number(it.price).toFixed(2)} = ${Number(it.price*it.qty).toFixed(2)}`));
       lines.push('------------------------------');
-      lines.push('Subtotal: ' + Number(sale.totals.subtotal).toFixed(2));
-      lines.push('Tax: ' + Number(sale.totals.tax).toFixed(2));
-      lines.push('Total: ' + Number(sale.totals.grand).toFixed(2));
-      lines.push('Tendered: ' + Number(sale.tendered).toFixed(2));
-      lines.push('Change: ' + Number(sale.change).toFixed(2));
+      lines.push('Subtotal: ' + formatKES(sale.totals.subtotal));
+      lines.push('Tax: ' + formatKES(sale.totals.tax));
+      lines.push('Total: ' + formatKES(sale.totals.grand));
+      lines.push('Payment Method: ' + (sale.payment.method || 'CASH'));
+      lines.push('Tendered: ' + formatKES(sale.payment.tendered));
+      lines.push('Change: ' + formatKES(sale.payment.change));
+      lines.push('Reference: ' + (sale.payment.reference || ''));
       lines.push('Thank you for your business!');
       return lines.join('\n');
     }
@@ -333,6 +384,14 @@
     // init
     function init() {
       renderProducts(); renderCart();
+
+      // Hide keyboard shortcuts window (UI) by removing it if present — the right panel in this demo has no effect when hidden
+      const shortcutsWindow = document.querySelector('.shortcuts-info');
+      if (shortcutsWindow) {
+        // hide its parent window if exists
+        const win = shortcutsWindow.closest('.window');
+        if (win) win.classList.add('hidden');
+      }
     }
 
     init();
