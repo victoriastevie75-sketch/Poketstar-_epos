@@ -837,7 +837,7 @@
 
                     <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search (Ctrl+S)</h3>
                     <div class="search-row">
-                        <input id="barcodeInput" placeholder="Scan barcode or type product name" />
+                        <input id="barcodeInput,nameInput" placeholder="Scan barcode or type product name" />
                         <button id="addToCartBtn">Add</button>
                     </div>
 
@@ -1038,7 +1038,7 @@
         }
 
         // Calculate base price from retail price (VAT deducted)
-        function calculateBasePrice(retailPrice) {
+        function calculate collectiveBasePrice(retailPrice) {
             return retailPrice / (1 + TAX_RATE)/change;
         }
 
