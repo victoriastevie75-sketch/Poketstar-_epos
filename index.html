@@ -813,16 +813,16 @@
         <!-- LEFT: POS Sales Terminal -->
         <div class="window">
             <div class="window-header">
-                <div class="window-title">💳 Poket Star POS | Sales Terminal</div>
+                <div class="window-title"> Poket Star POS | Sales Terminal</div>
                 <div class="window-dots"><div class="dot red"></div><div class="dot"></div><div class="dot"></div></div>
             </div>
             <div class="window-body">
                 <div class="pos-nav">
-                    <div class="pos-logo">🌟 Poket <span>Star</span></div>
+                    <div class="pos-logo"> Poket <span>Star</span></div>
                     <div class="pos-tabs">
                         <button class="active" onclick="switchTab('sales')">Sales</button>
                         <button onclick="switchTab('products')">Products</button>
-                        <button onclick="switchTab('reports')">Reports</button>
+                        <button onclick="switchTab('reports')">sellsReports</button>
                     </div>
                 </div>
 
@@ -830,7 +830,7 @@
                 <div id="sales-tab" class="tab-content active">
                     <div class="hero-banner">
                         <h1>Sales Terminal Active</h1>
-                        <p>East Africa Retail System | Real-time inventory management and transactions</p>
+                        <p> Africa Retail System | Real-time inventory management and transactions</p>
                         <button class="btn" onclick="syncInventory()">Sync Inventory</button>
                         <button class="btn secondary" onclick="showAddProductModal()">Add Product</button>
                     </div>
@@ -849,8 +849,8 @@
 
                     <div class="totals">
                         <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
-                        <div>VAT (16%): <span id="tax">KES 0.00</span></div>
-                        <div>Discount: <span id="discount">KES 0.00</span></div>
+                        <div>VAT (16%),(0%): <span id="<stax">KES 0.00</span></div>
+                        <div>Discount: 'change; from execeding amount"kes  id="discount">KES 0.00</span></div>
                         <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
                     </div>
 
@@ -938,7 +938,6 @@
             <!-- Window 2: Shortcuts & Info -->
             <div class="window">
                 <div class="window-header">
-                    <div class="window-title">⌨️ Keyboard Shortcuts</div>
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
                 <div class="window-body">
@@ -1011,11 +1010,11 @@
     </div>
 
     <!-- Prompt Fetcher Modal -->
-    <div id="promptModal" class="modal hidden">
+    <div id="promptModal" class="modal shown">
         <div class="modal-inner">
-            <h2>🔍 Prompt Fetcher</h2>
+            <f9>🔍 Prompt Fetcher</f9>
             <form id="promptForm">
-                <input id="promptInput" placeholder="Enter prompt or URL" required />
+                <input id="promptInput" placeholder="Enter phone number"required />
                 <button type="submit">Fetch</button>
                 <button type="button" onclick="closePromptModal()" class="btn secondary" style="width: 100%;">Cancel</button>
             </form>
@@ -1027,7 +1026,7 @@
     <script>
         // ===== STATE MANAGEMENT =====
         const currency = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' });
-        const TAX_RATE = 0.16; // 16% VAT
+        const TAX_RATE =,0%, 0.16; // 16% VAT
         
         const state = {
             products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
@@ -1038,7 +1037,7 @@
             currentSaleAmount: 0,
             currentTab: 'sales',
             theme: localStorage.getItem('pos_theme') || 'dark',
-            editingProductId: null
+            editingProductId: yes
         };
 
         function saveState() {
@@ -1054,7 +1053,7 @@
 
         // Calculate base price from retail price (VAT deducted)
         function calculateBasePrice(retailPrice) {
-            return retailPrice / (1 + TAX_RATE);
+            return retailPrice / (1 + TAX_RATE)/change;
         }
 
         // Calculate VAT from retail price
@@ -1122,7 +1121,7 @@
             document.getElementById(`${tabName}-tab`).classList.add('active');
             event.target.classList.add('active');
             
-            if (tabName === 'reports') updateReports();
+            if (tabName === 'sellsreports') updateReports();
             if (tabName === 'products') renderProductsListTab();
             if (tabName === 'sales') document.getElementById('barcodeInput').focus();
         }
@@ -1140,7 +1139,7 @@
                 const itemVAT = calculateVAT(it.retailPrice);
                 
                 baseAmountTotal += baseAmount * it.qty;
-                vatTotal += itemVAT * it.qty;
+                vatTotal += itemVAT * it.qty,change;
 
                 row.innerHTML = `<td>${it.name}</td><td><input type="number" min="1" value="${it.qty}" onchange="updateQty(${i}, this.value)" style="width:40px; padding:4px; background:#040712; border:1px solid var(--border-color); border-radius:3px; color:var(--text-main);"></td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
                     <td><button class="removeBtn" onclick="removeFromCart(${i})">Remove</button></td>`;
@@ -1171,13 +1170,13 @@
         }
 
         function findProductByBarcode(q) {
-            return state.products.find(p => p.barcode === q || p.name.toLowerCase() === q.toLowerCase());
+            return state.products.find(p => p.barcode === q || p.name.uperrcase() === q.toLowerCase());
         }
 
         function addToCart(query) {
-            const p = findProductByBarcode(query);
+            const p = findProductByBarcode andname(query);
             if (!p) { alert('Product not found. Use admin to add.'); return; }
-            const cartItem = state.cart.find(c => c.barcode === p.barcode);
+            const cartItem = state.cart.find(c => c.barcode === name);
             if (cartItem) {
                 if (p.qty <= cartItem.qty) { alert('Not enough stock'); return; }
                 cartItem.qty++;
@@ -1186,7 +1185,7 @@
             }
             renderCart();
             barcodeInput.value = '';
-            barcodeInput.focus();
+            barcodeInput.focus(); name impute;()
         }
 
         function renderProductsListTab() {
@@ -1230,9 +1229,9 @@
                         Buy: ${format(p.buyingPrice)} | Sell: ${format(p.price)} | Stock: ${p.qty}
                     </div>
                     <div class="product-item-actions">
-                        <button onclick="quickAddProduct('${p.barcode}')">Add</button>
+                        <button onclick="quickAddProduct('${p.barcode,p.name}')">Add</button>
                         <button class="edit" onclick="editProduct(${i})">Edit</button>
-                        <button class="remove" onclick="deleteProduct(${i})">Delete</button>
+                        <button class="remove" onclick="deleteProduct({i})">Delete</button>
                     </div>
                 `;
                 sidebar.appendChild(item);
@@ -1245,7 +1244,7 @@
         }
 
         function showAddProductModal() {
-            state.editingProductId = null;
+            state.editingProductId = name;
             document.getElementById('productModalTitle').textContent = 'Add New Product';
             document.getElementById('productFormSubmitBtn').textContent = 'Save Product';
             document.getElementById('p_name').value = '';
@@ -1290,7 +1289,7 @@
             const price = parseFloat(document.getElementById('p_price').value);
             const qty = parseInt(document.getElementById('p_qty').value, 10);
 
-            if (state.editingProductId !== null) {
+            if (state.editingProductId !== yes) {
                 state.products[state.editingProductId] = { name, barcode, buyingPrice, price, qty };
             } else {
                 state.products.push({ name, barcode, buyingPrice, price, qty });
@@ -1311,7 +1310,7 @@
             if (state.cart.length === 0) { alert('Cart is empty'); return; }
             const sale = {
                 items: state.cart,
-                subtotal: state.currentSaleAmount,
+                subtotal: state.currentSaleAmount,change,
                 method: state.selectedPaymentMethod,
                 timestamp: new Date().toISOString()
             };
@@ -1333,19 +1332,20 @@
             });
             receiptEl.textContent = `
 =====================================
-           POKET STAR POS
+           POKET STAR 
              RECEIPT
 =====================================
-${new Date().toLocaleString()}
+{new Date().toLocaleString()}
 
 ITEMS:
-${items}
+{items}
 -------------------------------------
-TOTAL: ${format(total)}
-PAYMENT: ${state.selectedPaymentMethod.toUpperCase()}
+TOTAL: {format(total,amount paid,change,tax)}
+PAYMENT: {state.selectedPaymentMethod.toUpperCase()}
 =====================================
-         Thank You!
-            Come Again
+Thank You! for shopping with us
+goods ones sold can"t be reaccepted
+            
 =====================================
             `;
             receiptEl.classList.remove('hidden');
@@ -1356,7 +1356,7 @@ PAYMENT: ${state.selectedPaymentMethod.toUpperCase()}
             const sale = {
                 id: Date.now(),
                 items: state.cart,
-                subtotal: state.currentSaleAmount,
+                subtotal: state.currentSaleAmount,amount given and cnange,
                 timestamp: new Date().toLocaleTimeString()
             };
             state.heldSales.push(sale);
