@@ -1,1504 +1,400 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poket Star POS — Enterprise Desktop Environment</title>
-    <style>
-        :root {
-            --bg-color: #060913;
-            --panel-bg: #0d1222;
-            --border-color: #1e294b;
-            --accent-blue: #0084ff;
-            --accent-teal: #2b7a78;
-            --glow-blue: rgba(0, 132, 255, 0.3);
-            --terminal-green: #00ff66;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        body.light-mode {
-            --bg-color: #ffffff;
-            --panel-bg: #f5f5f5;
-            --border-color: #e0e0e0;
-            --accent-blue: #0084ff;
-            --accent-teal: #2b7a78;
-            --glow-blue: rgba(0, 132, 255, 0.2);
-            --terminal-green: #00a84f;
-            --text-main: #1a1a1a;
-            --text-muted: #666666;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', 'Inter', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* Top Desktop Status Bar */
-        .desktop-bar {
-            background: #020617;
-            border-bottom: 1px solid var(--border-color);
-            height: 35px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-            font-size: 13px;
-            user-select: none;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        body.light-mode .desktop-bar {
-            background: #f0f0f0;
-        }
-
-        .bar-left span, .bar-right span {
-            margin-right: 15px;
-            cursor: pointer;
-        }
-
-        .bar-center {
-            font-weight: 600;
-            color: var(--accent-blue);
-        }
-
-        .theme-toggle {
-            cursor: pointer;
-            font-size: 18px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background: var(--panel-bg);
-            color: var(--text-main);
-            transition: all 0.3s;
-        }
-
-        .theme-toggle:hover {
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        /* Workspace Layout */
-        .workspace {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 50% 30% 20%;
-            gap: 12px;
-            padding: 12px;
-            height: calc(100vh - 75px);
-        }
-
-        /* Window Styling */
-        .window {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-
-        .window:hover, .window:focus-within {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 15px var(--glow-blue);
-        }
-
-        .window-header {
-            background: #090d1a;
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            transition: background-color 0.3s;
-        }
-
-        body.light-mode .window-header {
-            background: #e8e8e8;
-        }
-
-        .window-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .window-dots {
-            display: flex;
-            gap: 6px;
-        }
-
-        .dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #334155;
-        }
-        .dot.red { background: #ef4444; }
-
-        .window-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
-
-        /* LEFT SIDE: Poket Star POS Console */
-        .pos-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
-        .pos-logo {
-            font-weight: 700;
-            font-size: 16px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .pos-logo span { color: var(--accent-blue); }
-
-        .pos-tabs button {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 5px 10px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: color 0.2s;
-        }
-        .pos-tabs button.active {
-            color: var(--accent-blue);
-            border-bottom: 2px solid var(--accent-blue);
-        }
-        .pos-tabs button:hover {
-            color: var(--accent-blue);
-        }
-
-        .hero-banner {
-            background: linear-gradient(135deg, #09132e 0%, #030712 100%);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: background 0.3s;
-        }
-
-        body.light-mode .hero-banner {
-            background: linear-gradient(135deg, #e0e8ff 0%, #f0f0f0 100%);
-        }
-
-        .hero-banner h1 {
-            font-size: 20px;
-            margin-bottom: 8px;
-            color: var(--text-main);
-        }
-
-        .hero-banner p {
-            color: var(--text-muted);
-            font-size: 13px;
-            margin-bottom: 12px;
-        }
-
-        .btn {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-            transition: background 0.2s;
-            display: inline-block;
-        }
-        .btn:hover { background: #006cd8; }
-        .btn.secondary {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            margin-left: 8px;
-            transition: all 0.2s;
-        }
-        .btn.secondary:hover { background: #1e294b; }
-
-        body.light-mode .btn.secondary:hover { background: #e0e0e0; }
-
-        /* Sales Cart Section */
-        .search-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .search-row input {
-            flex: 1;
-            padding: 8px 10px;
-            background: #040712;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-main);
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .search-row input {
-            background: #ffffff;
-            border: 1px solid #cccccc;
-        }
-
-        .search-row input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .search-row button {
-            padding: 8px 16px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        #cartTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 12px 0;
-            font-size: 12px;
-        }
-
-        #cartTable th, #cartTable td {
-            padding: 8px;
-            border-bottom: 1px solid var(--border-color);
-            text-align: left;
-            color: var(--text-main);
-            transition: all 0.3s;
-        }
-
-        #cartTable th {
-            background: #090d1a;
-            font-weight: 600;
-            color: var(--text-muted);
-            font-size: 11px;
-            text-transform: uppercase;
-        }
-
-        body.light-mode #cartTable th {
-            background: #e8e8e8;
-        }
-
-        .removeBtn {
-            padding: 4px 8px;
-            background: #ef4444;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 11px;
-            transition: background 0.2s;
-        }
-        .removeBtn:hover { background: #dc2626; }
-
-        .totals {
-            margin: 12px 0;
-            padding: 12px;
-            background: #090d1a;
-            border-radius: 4px;
-            border-left: 4px solid var(--accent-blue);
-            font-size: 12px;
-            transition: background 0.3s;
-        }
-
-        body.light-mode .totals {
-            background: #e8e8e8;
-        }
-
-        .totals div {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            color: var(--text-muted);
-        }
-
-        .totals .grand {
-            font-weight: 700;
-            font-size: 14px;
-            color: var(--accent-blue);
-            padding-top: 8px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .payment-methods {
-            display: flex;
-            gap: 8px;
-            margin: 12px 0;
-            flex-wrap: wrap;
-        }
-
-        .payment-method-btn {
-            padding: 6px 12px;
-            border: 1px solid var(--border-color);
-            background: transparent;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            color: var(--text-muted);
-            transition: all 0.2s;
-        }
-        .payment-method-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
-        .payment-method-btn.active { border-color: var(--accent-blue); background: var(--accent-blue); color: white; }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin: 12px 0;
-        }
-
-        .actions input {
-            flex: 1;
-            min-width: 120px;
-            padding: 8px 10px;
-            background: #040712;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-main);
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .actions input {
-            background: #ffffff;
-            border: 1px solid #cccccc;
-        }
-
-        .actions input:focus { outline: none; border-color: var(--accent-blue); }
-
-        .actions button {
-            padding: 8px 14px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        /* Tab Content */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Product List Sidebar */
-        .product-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-        }
-
-        .product-item {
-            background: #090d1a;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 11px;
-        }
-
-        body.light-mode .product-item {
-            background: #f9f9f9;
-        }
-
-        .product-item:hover {
-            border-color: var(--accent-blue);
-            background: #1e294b;
-        }
-
-        body.light-mode .product-item:hover {
-            background: #f0f0f0;
-        }
-
-        .product-item-name {
-            color: var(--accent-blue);
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .product-item-details {
-            color: var(--text-muted);
-            font-size: 10px;
-            margin-bottom: 6px;
-        }
-
-        .product-item-actions {
-            display: flex;
-            gap: 4px;
-        }
-
-        .product-item-actions button {
-            flex: 1;
-            padding: 3px 6px;
-            font-size: 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .product-item-actions button.edit {
-            background: #10b981;
-        }
-
-        .product-item-actions button.remove {
-            background: #ef4444;
-        }
-
-        /* Hold Sales Manager */
-        .hold-sales-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            max-height: 100%;
-            overflow-y: auto;
-        }
-
-        .hold-item {
-            background: #090d1a;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 12px;
-        }
-
-        body.light-mode .hold-item {
-            background: #f9f9f9;
-        }
-
-        .hold-item:hover {
-            border-color: var(--accent-blue);
-            background: #1e294b;
-        }
-
-        body.light-mode .hold-item:hover {
-            background: #f0f0f0;
-        }
-
-        .hold-item-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-weight: 600;
-            color: var(--accent-blue);
-        }
-
-        .hold-item-details {
-            color: var(--text-muted);
-            font-size: 11px;
-        }
-
-        .hold-buttons {
-            display: flex;
-            gap: 6px;
-            margin-top: 6px;
-        }
-
-        .hold-buttons button {
-            flex: 1;
-            padding: 4px 8px;
-            font-size: 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            background: var(--accent-blue);
-            color: white;
-        }
-
-        .hold-buttons button.delete {
-            background: #ef4444;
-        }
-
-        /* Reports & Analytics */
-        .reports-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-        }
-
-        .stat-box {
-            background: #090d1a;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 12px;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .stat-box {
-            background: #f9f9f9;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--accent-blue);
-        }
-
-        .shortcuts-info {
-            background: #090d1a;
-            border: 1px solid #10b981;
-            border-radius: 4px;
-            padding: 10px;
-            font-size: 11px;
-            color: var(--text-muted);
-            max-height: 100%;
-            overflow-y: auto;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .shortcuts-info {
-            background: #f9f9f9;
-            border-color: #10b981;
-        }
-
-        .shortcut {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .shortcut:last-child {
-            border-bottom: none;
-        }
-
-        .shortcut-key {
-            color: #10b981;
-            font-weight: 600;
-        }
-
-        /* Modal */
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-inner {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 6px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-            transition: all 0.3s;
-        }
-
-        .modal-inner h2 {
-            margin-bottom: 12px;
-            color: var(--accent-blue);
-        }
-
-        .modal-inner form {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .modal-inner input {
-            padding: 8px;
-            background: #040712;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            color: var(--text-main);
-            font-size: 12px;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .modal-inner input {
-            background: #ffffff;
-            border: 1px solid #cccccc;
-        }
-
-        .modal-inner input:focus {
-            outline: none;
-            border-color: var(--accent-blue);
-        }
-
-        .modal-inner button {
-            padding: 8px;
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 8px;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .hidden { display: none !important; }
-
-        /* Receipt */
-        #receipt {
-            background: #090d1a;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            margin-top: 12px;
-            font-family: monospace;
-            font-size: 11px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            color: var(--terminal-green);
-            max-height: 200px;
-            overflow-y: auto;
-            transition: all 0.3s;
-        }
-
-        body.light-mode #receipt {
-            background: #f9f9f9;
-            color: #00a84f;
-        }
-
-        /* Bottom Application Dock */
-        .desktop-dock {
-            background: rgba(9, 13, 26, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            height: 45px;
-            width: max-content;
-            margin: 0 auto 5px;
-            border-radius: 24px;
-            display: flex;
-            align-items: center;
-            padding: 0 15px;
-            gap: 15px;
-            transition: all 0.3s;
-        }
-
-        body.light-mode .desktop-dock {
-            background: rgba(240, 240, 240, 0.9);
-        }
-
-        .dock-icon {
-            width: 28px;
-            height: 28px;
-            background: #1e294b;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            transition: transform 0.2s;
-            position: relative;
-        }
-        .dock-icon:hover {
-            transform: scale(1.2);
-            background: var(--accent-blue);
-        }
-
-        .dock-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            width: 16px;
-            height: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .workspace {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Poketstar POS (Demo)</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* Small styles for suggestion dropdown and modal */
+    .suggestions {
+      position: absolute;
+      background: white;
+      border: 1px solid #ccc;
+      max-height: 200px;
+      overflow-y: auto;
+      width: calc(100% - 100px);
+      z-index: 50;
+    }
+    .suggestion-item { padding: 8px; cursor: pointer; }
+    .suggestion-item:hover { background: #f0f0f0; }
+    .modal-inner { background: #fff; padding: 16px; border-radius: 6px; }
+    .modal.hidden { display: none; }
+    #receipt { white-space: pre-wrap; font-family: monospace; border: 1px solid #ccc; padding: 12px; margin-top: 12px; }
+    .error-message { color: #ef4444; font-weight: 700; margin-top: 8px; }
+    .success-message { color: #10b981; font-weight: 700; margin-top: 8px; }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>Poketstar POS — Demo</h1>
+    <div id="clock"></div>
+  </header>
 
-    <!-- Top Desktop Status Bar -->
-    <div class="desktop-bar">
-        <div class="bar-left">
-            <span><strong>Activities</strong></span>
-            <span>File</span>
-            <span>Edit</span>
-        </div>
-        <div class="bar-center">Poket Star POS — Enterprise Console</div>
-        <div class="bar-right">
-            <span id="live-clock">10:35 AM</span>
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">🌙</button>
-        </div>
+  <main>
+    <section id="sales">
+      <h2>Sales</h2>
+
+      <div style="position:relative;" class="search-row">
+        <input id="barcodeInput" placeholder="Scan barcode or type product name" autocomplete="off" />
+        <div id="suggestions" class="suggestions hidden"></div>
+        <button id="addToCartBtn">Add</button>
+      </div>
+
+      <table id="cartTable">
+        <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="totals">
+        <div>Subtotal: <span id="subtotal">KES 0.00</span></div>
+        <div>Tax (16%): <span id="tax">KES 0.00</span></div>
+        <div>Discount: <span id="discount">KES 0.00</span></div>
+        <div class="grand">Grand Total: <span id="grandTotal">KES 0.00</span></div>
+      </div>
+
+      <div class="payment-methods">
+        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
+        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
+        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+      </div>
+
+      <div class="actions">
+        <input id="paymentAmount" placeholder="Amount tendered (KES)" />
+        <label style="display:inline-flex; align-items:center; gap:6px;"><input type="checkbox" id="printReceiptChk" /> Print receipt</label>
+        <button id="completeSaleBtn">Complete Sale</button>
+        <button id="printReceiptBtn">Print Receipt</button>
+      </div>
+
+      <div id="receipt" class="hidden"></div>
+      <div id="changeBox" style="margin-top:8px; font-weight:700;"></div>
+      <div id="paymentMessage" class="error-message" aria-live="polite"></div>
+    </section>
+
+    <aside id="sidebar">
+      <h3>Products</h3>
+      <div id="productList"></div>
+      <button id="openAdmin">Open Admin</button>
+    </aside>
+
+    <div id="adminModal" class="modal hidden">
+      <div class="modal-inner">
+        <h2>Admin — Products & Inventory</h2>
+        <form id="productForm">
+          <input id="p_name" placeholder="Name" required />
+          <input id="p_barcode" placeholder="Barcode / SKU" />
+          <input id="p_price" placeholder="Unit price (KES)" type="number" step="0.01" required />
+          <input id="p_qty" placeholder="Quantity" type="number" required />
+          <input id="p_category" placeholder="Category (e.g. Beverages)" />
+          <button type="submit">Save Product</button>
+        </form>
+
+        <h3>Reports</h3>
+        <button id="exportSalesBtn">Export Sales (JSON)</button>
+        <button id="closeAdmin">Close</button>
+      </div>
     </div>
 
-    <!-- Main Tiled Desktop Workspace -->
-    <div class="workspace">
-        
-        <!-- LEFT: POS Sales Terminal -->
-        <div class="window">
-            <div class="window-header">
-                <div class="window-title"> Poket Star POS | Sales Terminal</div>
-                <div class="window-dots"><div class="dot red"></div><div class="dot"></div><div class="dot"></div></div>
-            </div>
-            <div class="window-body">
-                <div class="pos-nav">
-                    <div class="pos-logo"> Poket <span>Star</span></div>
-                    <div class="pos-tabs">
-                        <button class="active" onclick="switchTab('sales')">Sales</button>
-                        <button onclick="switchTab('products')">Products</button>
-                        <button onclick="switchTab('reports')">sellsReports</button>
-                    </div>
-                </div>
+    <div id="receiptPrintArea" style="display:none;"></div>
 
-                <!-- SALES TAB -->
-                <div id="sales-tab" class="tab-content active">
-                    <div class="hero-banner">
-                        <h1>Sales Terminal Active</h1>
-                        <p> Africa Retail System | Real-time inventory management and transactions</p>
-                        <button class="btn" onclick="syncInventory()">Sync Inventory</button>
-                        <button class="btn secondary" onclick="showAddProductModal()">Add Product</button>
-                    </div>
+  </main>
 
-                    <h3 style="font-size: 12px; margin-bottom: 10px; color: var(--text-muted); text-transform: uppercase;">Scan Product or Search (Ctrl+S)</h3>
-                    <div class="search-row">
-                        <input id="barcodeInput,nameInput" placeholder="Scan barcode or type product name" />
-                        <button id="addToCartBtn">Add</button>
-                    </div>
+  <script>
+    // Simple POS app with: money calculation (change), autocomplete suggestions, print option, categories, and persistence
+    const TAX_RATE = 0.16;
 
-                    <h3 style="font-size: 12px; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase;">Cart Items</h3>
-                    <table id="cartTable">
-                        <thead><tr><th>Item</th><th>Qty</th><th>Unit (KES)</th><th>Total (KES)</th><th></th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+    // Utilities
+    const $ = (id) => document.getElementById(id);
+    function formatKES(n) { return 'KES ' + Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
 
-                    <div class="totals">
-                        <div>Base Amount: <span id="subtotal">KES 0.00</span></div>
-                        <div>VAT (16%),(0%): <span id="<stax">KES 0.00</span></div>
-                        <div>Discount: 'change; from execeding amount"kes  id="discount">KES 0.00</span></div>
-                        <div class="grand">Amount Due: <span id="grandTotal">KES 0.00</span></div>
-                    </div>
+    // Data stores (localStorage)
+    let products = JSON.parse(localStorage.getItem('ps_products') || '[]');
+    let sales = JSON.parse(localStorage.getItem('ps_sales') || '[]');
+    let currentCart = [];
 
-                    <div class="payment-methods">
-                        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
-                        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
-                        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
-                    </div>
+    // Selected payment method
+    let selectedPaymentMethod = 'cash';
 
-                    <div class="actions">
-                        <input id="paymentAmount" placeholder="Amount tendered (KES)" />
-                        <button id="completeSaleBtn">Complete Sale (F12)</button>
-                        <button id="holdSaleBtn">Hold Sale (Ctrl+H)</button>
-                        <button id="printReceiptBtn">Print Receipt</button>
-                    </div>
+    // Elements
+    const barcodeInput = $('barcodeInput');
+    const suggestions = $('suggestions');
+    const addToCartBtn = $('addToCartBtn');
+    const cartTableBody = document.querySelector('#cartTable tbody');
+    const subtotalEl = $('subtotal');
+    const taxEl = $('tax');
+    const discountEl = $('discount');
+    const grandTotalEl = $('grandTotal');
+    const paymentAmount = $('paymentAmount');
+    const completeSaleBtn = $('completeSaleBtn');
+    const printReceiptBtn = $('printReceiptBtn');
+    const printReceiptChk = $('printReceiptChk');
+    const changeBox = $('changeBox');
+    const receiptEl = $('receipt');
+    const paymentMessageEl = $('paymentMessage');
 
-                    <div id="receipt" class="hidden"></div>
-                </div>
+    // Admin modal elements
+    const adminModal = $('adminModal');
+    const openAdmin = $('openAdmin');
+    const closeAdmin = $('closeAdmin');
+    const productForm = $('productForm');
+    const p_name = $('p_name');
+    const p_barcode = $('p_barcode');
+    const p_price = $('p_price');
+    const p_qty = $('p_qty');
+    const p_category = $('p_category');
+    const productList = $('productList');
+    const exportSalesBtn = $('exportSalesBtn');
 
-                <!-- PRODUCTS TAB -->
-                <div id="products-tab" class="tab-content hidden">
-                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Product Management</h2>
-                    <button class="btn" onclick="showAddProductModal()">➕ Add New Product</button>
-                    <div id="productListTab" style="margin-top: 15px; display: grid; gap: 8px;"></div>
-                </div>
+    // Clock
+    setInterval(()=>{ $('clock').textContent = new Date().toLocaleTimeString(); }, 1000);
 
-                <!-- REPORTS TAB -->
-                <div id="reports-tab" class="tab-content hidden">
-                    <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Sales Reports</h2>
-                    <div class="reports-container">
-                        <div class="stats-grid">
-                            <div class="stat-box">
-                                <div class="stat-label">Total Sales</div>
-                                <div class="stat-value" id="totalSales">KES 0.00</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Transactions</div>
-                                <div class="stat-value" id="totalTransactions">0</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Products Sold</div>
-                                <div class="stat-value" id="productsSold">0</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-label">Avg Sale</div>
-                                <div class="stat-value" id="avgSale">KES 0.00</div>
-                            </div>
-                        </div>
-                        <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 12px;">📊 Export Sales (JSON)</button>
-                        <button class="btn" id="saveAllBtn" style="width: 100%; margin-top: 8px; background: #10b981;">💾 Save All Changes</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    // Payment method buttons handling
+    document.querySelectorAll('.payment-method-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.payment-method-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedPaymentMethod = btn.dataset.paymentMethod || 'cash';
+      });
+    });
 
-        <!-- CENTER: Product List Sidebar -->
-        <div class="window">
-            <div class="window-header">
-                <div class="window-title">📦 Product List</div>
-                <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
-            </div>
-            <div class="window-body">
-                <div class="product-sidebar" id="productSidebar">
-                    <div style="color: var(--text-muted); text-align: center; padding: 20px;">No products added yet</div>
-                </div>
-            </div>
-        </div>
+    // Renderers
+    function renderProducts() {
+      productList.innerHTML = '';
+      if (!products.length) { productList.innerHTML = '<div style="color:#666">No products added</div>'; return; }
+      products.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.style.border = '1px solid #ddd';
+        div.style.padding = '8px';
+        div.style.marginBottom = '6px';
+        div.innerHTML = `<strong>${p.name}</strong> <span style="float:right">${formatKES(p.price)}</span><br/><small>SKU: ${p.barcode || '-'} | Qty: ${p.qty} | Cat: ${p.category || '-'}</small>`;
+        div.addEventListener('click', ()=>{ addProductToCart(p); });
+        productList.appendChild(div);
+      });
+    }
 
-        <!-- RIGHT: Hold Sales & Shortcuts -->
-        <div class="right-stack" style="display: grid; grid-template-rows: 50% 50%; gap: 12px;">
-            
-            <!-- Window 1: Hold Sales Manager -->
-            <div class="window">
-                <div class="window-header">
-                    <div class="window-title">⏸️ Hold Sales Manager</div>
-                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
-                </div>
-                <div class="window-body">
-                    <div class="hold-sales-list" id="holdSalesList">
-                        <div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>
-                    </div>
-                </div>
-            </div>
+    function renderCart() {
+      cartTableBody.innerHTML = '';
+      currentCart.forEach((item, i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${item.name}</td><td><input type="number" min="1" value="${item.qty}" data-index="${i}" style="width:60px" /></td><td>${formatKES(item.price)}</td><td>${formatKES(item.price*item.qty)}</td><td><button class="removeBtn" data-remove="${i}">Remove</button></td>`;
+        cartTableBody.appendChild(tr);
+      });
 
-            <!-- Window 2: Shortcuts & Info -->
-            <div class="window">
-                <div class="window-header">
-                    <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
-                </div>
-                <div class="window-body">
-                    <div class="shortcuts-info">
-                        <div class="shortcut">
-                            <span>Focus Barcode Input</span>
-                            <span class="shortcut-key">Ctrl+S</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Add to Cart</span>
-                            <span class="shortcut-key">Enter</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Complete Sale</span>
-                            <span class="shortcut-key">F12</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Hold Current Sale</span>
-                            <span class="shortcut-key">Ctrl+H</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Print Receipt</span>
-                            <span class="shortcut-key">Ctrl+P</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Add Product</span>
-                            <span class="shortcut-key">Ctrl+N</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Sync Inventory</span>
-                            <span class="shortcut-key">Ctrl+I</span>
-                        </div>
-                        <div class="shortcut">
-                            <span>Clear Cart</span>
-                            <span class="shortcut-key">Ctrl+L</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Bottom App Quick Dock Menu -->
-    <div class="desktop-dock">
-        <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)">💳</div>
-        <div class="dock-icon" onclick="switchTab('products')" title="Products">📦</div>
-        <div class="dock-icon" onclick="switchTab('reports')" title="Reports">📊</div>
-        <div class="dock-icon" onclick="showAddProductModal()" title="Add Product (Ctrl+N)">➕</div>
-        <div class="dock-icon" id="holdBadgeIcon" onclick="focusHoldSales()" title="Hold Sales (Ctrl+H)">
-            ⏸️
-            <span class="dock-badge hidden" id="holdBadge">0</span>
-        </div>
-    </div>
-
-    <!-- Product Modal (Add/Edit) -->
-    <div id="productModal" class="modal hidden">
-        <div class="modal-inner">
-            <h2 id="productModalTitle">Add New Product</h2>
-            <form id="productForm">
-                <input id="p_name" placeholder="Product Name" required />
-                <input id="p_barcode" placeholder="Barcode / SKU" />
-                <input id="p_buying_price" placeholder="Buying Price (KES)" type="number" step="0.01" required />
-                <input id="p_price" placeholder="Retail Price incl. VAT (KES)" type="number" step="0.01" required />
-                <input id="p_qty" placeholder="Quantity in Stock" type="number" required />
-                <button type="submit" id="productFormSubmitBtn">Save Product</button>
-                <button type="button" onclick="closeProductModal()" class="btn secondary" style="width: 100%;">Cancel</button>
-            </form>
-        </div>
-    </div>
-    <!-- Interactive Workspace Mechanics Script Engine -->
-    <script>
-        // ===== STATE MANAGEMENT =====
-        const currency = new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' });
-        const TAX_RATE =,0%, 0.16; // 16% VAT
-        
-        const state = {
-            products: JSON.parse(localStorage.getItem('pos_products') || '[]'),
-            sales: JSON.parse(localStorage.getItem('pos_sales') || '[]'),
-            heldSales: JSON.parse(localStorage.getItem('pos_held_sales') || '[]'),
-            cart: [],
-            selectedPaymentMethod: 'cash',
-            currentSaleAmount: 0,
-            currentTab: 'sales',
-            theme: localStorage.getItem('pos_theme') || 'dark',
-            editingProductId: yes
-        };
-
-        function saveState() {
-            localStorage.setItem('pos_products', JSON.stringify(state.products));
-            localStorage.setItem('pos_sales', JSON.stringify(state.sales));
-            localStorage.setItem('pos_held_sales', JSON.stringify(state.heldSales));
-            localStorage.setItem('pos_theme', state.theme);
-        }
-
-        function format(n) {
-            return currency.format(n);
-        }
-
-        // Calculate base price from retail price (VAT deducted)
-        function calculate collectiveBasePrice(retailPrice) {
-            return retailPrice / (1 + TAX_RATE)/change;
-        }
-
-        // Calculate VAT from retail price
-        function calculateVAT(retailPrice) {
-            return retailPrice - calculateBasePrice(retailPrice);
-        }
-
-        // ===== THEME TOGGLE =====
-        function toggleTheme() {
-            state.theme = state.theme === 'dark' ? 'light' : 'dark';
-            applyTheme();
-            saveState();
-        }
-
-        function applyTheme() {
-            if (state.theme === 'light') {
-                document.body.classList.add('light-mode');
-                document.querySelector('.theme-toggle').textContent = '☀️';
-            } else {
-                document.body.classList.remove('light-mode');
-                document.querySelector('.theme-toggle').textContent = '🌙';
-            }
-        }
-
-        // ===== DOM REFERENCES =====
-        const productForm = document.getElementById('productForm');
-        const barcodeInput = document.getElementById('barcodeInput');
-        const addToCartBtn = document.getElementById('addToCartBtn');
-        const cartTableBody = document.querySelector('#cartTable tbody');
-        const subtotalEl = document.getElementById('subtotal');
-        const taxEl = document.getElementById('tax');
-        const discountEl = document.getElementById('discount');
-        const grandEl = document.getElementById('grandTotal');
-        const completeSaleBtn = document.getElementById('completeSaleBtn');
-        const holdSaleBtn = document.getElementById('holdSaleBtn');
-        const printReceiptBtn = document.getElementById('printReceiptBtn');
-        const productModal = document.getElementById('productModal');
-        const exportSalesBtns = document.querySelectorAll('#exportSalesBtn, #exportSalesBtn2');
-        const methodButtons = document.querySelectorAll('[data-payment-method]');
-        const saveAllBtn = document.getElementById('saveAllBtn');
-        const promptModal = document.getElementById('promptModal');
-
-        // Update System Clock
-        function updateClock() {
-            const now = new Date();
-            let hours = now.getHours();
-            let minutes = now.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            minutes = minutes < 10 ? '0' + minutes : minutes;
-            document.getElementById('live-clock').innerText = hours + ':' + minutes + ' ' + ampm;
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
-
-        // Initialize theme
-        applyTheme();
-
-        // ===== TAB SWITCHING =====
-        function switchTab(tabName) {
-            state.currentTab = tabName;
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.pos-tabs button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`${tabName}-tab`).classList.add('active');
-            event.target.classList.add('active');
-            
-            if (tabName === 'sellsreports') updateReports();
-            if (tabName === 'products') renderProductsListTab();
-            if (tabName === 'sales') document.getElementById('barcodeInput').focus();
-        }
-
-        // ===== PRODUCT MANAGEMENT =====
-        function renderCart() {
-            cartTableBody.innerHTML = '';
-            let baseAmountTotal = 0;
-            let vatTotal = 0;
-
-            state.cart.forEach((it, i) => {
-                const row = document.createElement('tr');
-                const totalRetail = it.retailPrice * it.qty;
-                const baseAmount = calculateBasePrice(it.retailPrice);
-                const itemVAT = calculateVAT(it.retailPrice);
-                
-                baseAmountTotal += baseAmount * it.qty;
-                vatTotal += itemVAT * it.qty,change;
-
-                row.innerHTML = `<td>${it.name}</td><td><input type="number" min="1" value="${it.qty}" onchange="updateQty(${i}, this.value)" style="width:40px; padding:4px; background:#040712; border:1px solid var(--border-color); border-radius:3px; color:var(--text-main);"></td><td>${format(it.retailPrice)}</td><td>${format(totalRetail)}</td>
-                    <td><button class="removeBtn" onclick="removeFromCart(${i})">Remove</button></td>`;
-                cartTableBody.appendChild(row);
-            });
-
-            const discount = 0;
-            const amountDue = baseAmountTotal + vatTotal - discount;
-
-            subtotalEl.textContent = format(baseAmountTotal);
-            taxEl.textContent = format(vatTotal);
-            discountEl.textContent = format(discount);
-            grandEl.textContent = format(amountDue);
-            state.currentSaleAmount = amountDue;
-        }
-
-        function updateQty(idx, newQty) {
-            const qty = parseInt(newQty, 10);
-            if (qty > 0) {
-                state.cart[idx].qty = qty;
-                renderCart();
-            }
-        }
-
-        function removeFromCart(idx) {
-            state.cart.splice(idx, 1);
-            renderCart();
-        }
-
-        function findProductByBarcode(q) {
-            return state.products.find(p => p.barcode === q || p.name.uperrcase() === q.toLowerCase());
-        }
-
-        function addToCart(query) {
-            const p = findProductByBarcode andname(query);
-            if (!p) { alert('Product not found. Use admin to add.'); return; }
-            const cartItem = state.cart.find(c => c.barcode === name);
-            if (cartItem) {
-                if (p.qty <= cartItem.qty) { alert('Not enough stock'); return; }
-                cartItem.qty++;
-            } else {
-                state.cart.push({ barcode: p.barcode, name: p.name, retailPrice: p.price, qty: 1 });
-            }
-            renderCart();
-            barcodeInput.value = '';
-            barcodeInput.focus(); name impute;()
-        }
-
-        function renderProductsListTab() {
-            const list = document.getElementById('productListTab');
-            list.innerHTML = '';
-            if (state.products.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted);">No products added yet</p>';
-                return;
-            }
-            state.products.forEach((p, i) => {
-                const item = document.createElement('div');
-                item.style.cssText = 'background: #090d1a; border: 1px solid var(--border-color); border-radius: 4px; padding: 10px; font-size: 12px;';
-                item.innerHTML = `
-                    <div style="color: var(--accent-blue); font-weight: 600; margin-bottom: 4px;">${p.name}</div>
-                    <div style="color: var(--text-muted); margin-bottom: 6px;">
-                        Barcode: ${p.barcode} | Buy: ${format(p.buyingPrice)} | Sell: ${format(p.price)} | Stock: ${p.qty}
-                    </div>
-                    <div style="display: flex; gap: 6px;">
-                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px;" onclick="quickAddProduct('${p.barcode}')">Quick Add</button>
-                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px; background: #10b981;" onclick="editProduct(${i})">Edit</button>
-                        <button class="btn" style="flex: 1; font-size: 11px; padding: 4px 8px; background: #ef4444;" onclick="deleteProduct(${i})">Delete</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-        }
-
-        function renderProductSidebar() {
-            const sidebar = document.getElementById('productSidebar');
-            sidebar.innerHTML = '';
-            if (state.products.length === 0) {
-                sidebar.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No products</div>';
-                return;
-            }
-            state.products.forEach((p, i) => {
-                const item = document.createElement('div');
-                item.className = 'product-item';
-                item.innerHTML = `
-                    <div class="product-item-name">${p.name}</div>
-                    <div class="product-item-details">
-                        Buy: ${format(p.buyingPrice)} | Sell: ${format(p.price)} | Stock: ${p.qty}
-                    </div>
-                    <div class="product-item-actions">
-                        <button onclick="quickAddProduct('${p.barcode,p.name}')">Add</button>
-                        <button class="edit" onclick="editProduct(${i})">Edit</button>
-                        <button class="remove" onclick="deleteProduct({i})">Delete</button>
-                    </div>
-                `;
-                sidebar.appendChild(item);
-            });
-        }
-
-        function quickAddProduct(barcode) {
-            addToCart(barcode);
-            switchTab('sales');
-        }
-
-        function showAddProductModal() {
-            state.editingProductId = name;
-            document.getElementById('productModalTitle').textContent = 'Add New Product';
-            document.getElementById('productFormSubmitBtn').textContent = 'Save Product';
-            document.getElementById('p_name').value = '';
-            document.getElementById('p_barcode').value = '';
-            document.getElementById('p_buying_price').value = '';
-            document.getElementById('p_price').value = '';
-            document.getElementById('p_qty').value = '';
-            productModal.classList.remove('hidden');
-        }
-
-        function editProduct(index) {
-            const p = state.products[index];
-            state.editingProductId = index;
-            document.getElementById('productModalTitle').textContent = 'Edit Product';
-            document.getElementById('productFormSubmitBtn').textContent = 'Update Product';
-            document.getElementById('p_name').value = p.name;
-            document.getElementById('p_barcode').value = p.barcode;
-            document.getElementById('p_buying_price').value = p.buyingPrice;
-            document.getElementById('p_price').value = p.price;
-            document.getElementById('p_qty').value = p.qty;
-            productModal.classList.remove('hidden');
-        }
-
-        function deleteProduct(index) {
-            if (confirm('Delete this product?')) {
-                state.products.splice(index, 1);
-                renderProductSidebar();
-                renderProductsListTab();
-                saveState();
-            }
-        }
-
-        function closeProductModal() {
-            productModal.classList.add('hidden');
-        }
-
-        productForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const name = document.getElementById('p_name').value;
-            const barcode = document.getElementById('p_barcode').value || generateBarcode();
-            const buyingPrice = parseFloat(document.getElementById('p_buying_price').value);
-            const price = parseFloat(document.getElementById('p_price').value);
-            const qty = parseInt(document.getElementById('p_qty').value, 10);
-
-            if (state.editingProductId !== yes) {
-                state.products[state.editingProductId] = { name, barcode, buyingPrice, price, qty };
-            } else {
-                state.products.push({ name, barcode, buyingPrice, price, qty });
-            }
-
-            saveState();
-            renderProductSidebar();
-            renderProductsListTab();
-            closeProductModal();
+      // Add event listeners for qty changes / remove
+      cartTableBody.querySelectorAll('input[type=number]').forEach(inp=>{
+        inp.addEventListener('change', (e)=>{
+          const idx = +e.target.dataset.index; const v = Math.max(1, Number(e.target.value) || 1); currentCart[idx].qty = v; saveCartAndRender();
         });
+      });
+      cartTableBody.querySelectorAll('button[data-remove]').forEach(b=>{
+        b.addEventListener('click', ()=>{ const idx = +b.dataset.remove; currentCart.splice(idx,1); saveCartAndRender(); });
+      });
 
-        function generateBarcode() {
-            return 'SKU' + Date.now();
-        }
+      updateTotals();
+    }
 
-        // ===== SALES MANAGEMENT =====
-        function recordSale() {
-            if (state.cart.length === 0) { alert('Cart is empty'); return; }
-            const sale = {
-                items: state.cart,
-                subtotal: state.currentSaleAmount,change,
-                method: state.selectedPaymentMethod,
-                timestamp: new Date().toISOString()
-            };
-            state.sales.push(sale);
-            state.cart = [];
-            renderCart();
-            renderReceipt(sale);
-            saveState();
-            alert('Sale recorded!');
-        }
+    function updateTotals() {
+      const subtotal = currentCart.reduce((s,i)=>s + i.price*i.qty, 0);
+      const tax = subtotal * TAX_RATE;
+      const discount = 0; // placeholder for future
+      const grand = Math.round((subtotal + tax - discount) * 100) / 100;
+      subtotalEl.textContent = formatKES(subtotal);
+      taxEl.textContent = formatKES(tax);
+      discountEl.textContent = formatKES(discount);
+      grandTotalEl.textContent = formatKES(grand);
+      return {subtotal, tax, discount, grand};
+    }
 
-        function renderReceipt(sale) {
-            const receiptEl = document.getElementById('receipt');
-            let total = 0;
-            let items = '';
-            sale.items.forEach(it => {
-                items += `${it.name} x${it.qty} = ${format(it.retailPrice * it.qty)}\n`;
-                total += it.retailPrice * it.qty;
-            });
-            receiptEl.textContent = `
-=====================================
-           POKET STAR 
-             RECEIPT
-=====================================
-{new Date().toLocaleString()}
+    function saveCartAndRender() {
+      renderCart();
+    }
 
-ITEMS:
-{items}
--------------------------------------
-TOTAL: {format(total,amount paid,change,tax)}
-PAYMENT: {state.selectedPaymentMethod.toUpperCase()}
-=====================================
-Thank You! for shopping with us
-goods ones sold can"t be reaccepted
-            
-=====================================
-            `;
-            receiptEl.classList.remove('hidden');
-        }
+    // Product add / admin
+    openAdmin.addEventListener('click', ()=>{ adminModal.classList.remove('hidden'); });
+    closeAdmin.addEventListener('click', ()=>{ adminModal.classList.add('hidden'); });
 
-        function holdSale() {
-            if (state.cart.length === 0) { alert('Cart is empty'); return; }
-            const sale = {
-                id: Date.now(),
-                items: state.cart,
-                subtotal: state.currentSaleAmount,amount given and cnange,
-                timestamp: new Date().toLocaleTimeString()
-            };
-            state.heldSales.push(sale);
-            state.cart = [];
-            renderCart();
-            renderHoldSales();
-            saveState();
-            alert('Sale held!');
-        }
+    productForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const prod = {
+        id: Date.now().toString(),
+        name: p_name.value.trim(),
+        barcode: p_barcode.value.trim(),
+        price: parseFloat(p_price.value) || 0,
+        qty: parseInt(p_qty.value) || 0,
+        category: p_category.value.trim() || 'Uncategorized'
+      };
+      // If barcode exists, update existing
+      const existing = products.findIndex(x=> x.barcode && x.barcode === prod.barcode);
+      if (existing >= 0) { products[existing] = {...products[existing], ...prod}; }
+      else products.push(prod);
+      localStorage.setItem('ps_products', JSON.stringify(products));
+      renderProducts();
+      productForm.reset();
+      adminModal.classList.add('hidden');
+    });
 
-        function renderHoldSales() {
-            const list = document.getElementById('holdSalesList');
-            list.innerHTML = '';
-            if (state.heldSales.length === 0) {
-                list.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px;">No held sales</div>';
-                return;
-            }
-            state.heldSales.forEach((hs, i) => {
-                const item = document.createElement('div');
-                item.className = 'hold-item';
-                item.innerHTML = `
-                    <div class="hold-item-header">
-                        <span>Sale #${hs.id}</span>
-                        <span>${hs.timestamp}</span>
-                    </div>
-                    <div class="hold-item-details">Items: ${hs.items.length} | Total: ${format(hs.subtotal)}</div>
-                    <div class="hold-buttons">
-                        <button onclick="resumeHeldSale(${i})">Resume</button>
-                        <button class="delete" onclick="deleteHeldSale(${i})">Delete</button>
-                    </div>
-                `;
-                list.appendChild(item);
-            });
-            updateHoldBadge();
-        }
+    // Suggestion/autocomplete
+    barcodeInput.addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) { suggestions.classList.add('hidden'); return; }
+      const matches = products.filter(p => (p.name && p.name.toLowerCase().includes(q)) || (p.barcode && p.barcode.includes(q)) );
+      if (!matches.length) { suggestions.classList.add('hidden'); return; }
+      suggestions.innerHTML = matches.map(m=>`<div class="suggestion-item" data-id="${m.id}">${m.name} — ${m.category || 'Uncat'} — ${m.barcode || ''} — ${formatKES(m.price)}</div>`).join('');
+      suggestions.classList.remove('hidden');
 
-        function resumeHeldSale(idx) {
-            const hs = state.heldSales[idx];
-            state.cart = hs.items;
-            renderCart();
-            state.heldSales.splice(idx, 1);
-            renderHoldSales();
-            saveState();
-            switchTab('sales');
-        }
-
-        function deleteHeldSale(idx) {
-            if (confirm('Delete this held sale?')) {
-                state.heldSales.splice(idx, 1);
-                renderHoldSales();
-                saveState();
-            }
-        }
-
-        function updateHoldBadge() {
-            const badge = document.getElementById('holdBadge');
-            if (state.heldSales.length > 0) {
-                badge.textContent = state.heldSales.length;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        function focusHoldSales() {
-            // Scroll to hold sales window in future versions
-            alert('Held sales: ' + state.heldSales.length);
-        }
-
-        function updateReports() {
-            let totalSales = 0;
-            let productsSold = 0;
-            state.sales.forEach(s => {
-                s.items.forEach(it => {
-                    totalSales += it.retailPrice * it.qty;
-                    productsSold += it.qty;
-                });
-            });
-            document.getElementById('totalSales').textContent = format(totalSales);
-            document.getElementById('totalTransactions').textContent = state.sales.length;
-            document.getElementById('productsSold').textContent = productsSold;
-            document.getElementById('avgSale').textContent = state.sales.length > 0 ? format(totalSales / state.sales.length) : format(0);
-        }
-
-        function syncInventory() {
-            alert('Inventory synced!');
-        }
-
-        // ===== EVENT LISTENERS =====
-        addToCartBtn.addEventListener('click', () => addToCart(barcodeInput.value));
-        barcodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addToCart(barcodeInput.value); });
-        completeSaleBtn.addEventListener('click', recordSale);
-        holdSaleBtn.addEventListener('click', holdSale);
-        printReceiptBtn.addEventListener('click', () => window.print());
-        saveAllBtn.addEventListener('click', () => { saveState(); alert('All changes saved!'); });
-
-        exportSalesBtns.forEach(btn => btn.addEventListener('click', () => {
-            const data = JSON.stringify(state.sales, null, 2);
-            const blob = new Blob([data], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'sales_' + Date.now() + '.json';
-            a.click();
-        }));
-
-        methodButtons.forEach(btn => btn.addEventListener('click', (e) => {
-            methodButtons.forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            state.selectedPaymentMethod = e.target.dataset.paymentMethod;
-        }));
-
-        // ===== KEYBOARD SHORTCUTS =====
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 's') { e.preventDefault(); switchTab('sales'); barcodeInput.focus(); }
-            if (e.key === 'F12') { e.preventDefault(); recordSale(); }
-            if (e.ctrlKey && e.key === 'h') { e.preventDefault(); holdSale(); }
-            if (e.ctrlKey && e.key === 'p') { e.preventDefault(); window.print(); }
-            if (e.ctrlKey && e.key === 'n') { e.preventDefault(); showAddProductModal(); }
-            if (e.ctrlKey && e.key === 'i') { e.preventDefault(); syncInventory(); }
-            if (e.ctrlKey && e.key === 'l') { e.preventDefault(); if (confirm('Clear cart?')) { state.cart = []; renderCart(); } }
+      suggestions.querySelectorAll('.suggestion-item').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const id = el.dataset.id; const p = products.find(pp=>pp.id===id); if (p) addProductToCart(p); suggestions.classList.add('hidden'); barcodeInput.value = ''; barcodeInput.focus();
         });
+      });
+    });
 
-        // ===== PROMPT FETCHER =====
-        function showPromptFetcher() {
-            promptModal.classList.remove('hidden');
-            document.getElementById('promptInput').focus();
-        }
+    // Hide suggestions on outside click
+    document.addEventListener('click', (e)=>{ if (!e.target.closest('.search-row')) suggestions.classList.add('hidden'); });
 
-        function closePromptModal() {
-            promptModal.classList.add('hidden');
-            document.getElementById('promptResult').classList.add('hidden');
-        }
+    // Add to cart logic
+    addToCartBtn.addEventListener('click', ()=>{ handleAddFromInput(); });
+    barcodeInput.addEventListener('keydown', (e)=>{ if (e.key === 'Enter') { e.preventDefault(); handleAddFromInput(); } });
 
-        document.getElementById('promptForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = document.getElementById('promptInput').value;
-            const resultEl = document.getElementById('promptResult');
-            resultEl.textContent = 'Fetching...';
-            resultEl.classList.remove('hidden');
+    function handleAddFromInput() {
+      const q = barcodeInput.value.trim(); if (!q) return;
+      // try exact barcode match first
+      let p = products.find(x=> x.barcode && x.barcode === q);
+      if (!p) {
+        // try exact name
+        p = products.find(x=> x.name && x.name.toLowerCase() === q.toLowerCase());
+      }
+      if (p) { addProductToCart(p); barcodeInput.value = ''; return; }
+      // if multiple matches, show suggestion (already covered by input listener)
+      const matches = products.filter(p=> p.name && p.name.toLowerCase().includes(q.toLowerCase()));
+      if (matches.length === 1) { addProductToCart(matches[0]); barcodeInput.value = ''; suggestions.classList.add('hidden'); return; }
+      if (matches.length > 1) { suggestions.classList.remove('hidden'); return; }
+      // show inline message instead of alert
+      paymentMessageEl.textContent = 'Product not found — add it in Admin';
+      setTimeout(()=>{ if (paymentMessageEl.textContent === 'Product not found — add it in Admin') paymentMessageEl.textContent = ''; }, 3000);
+    }
 
-            try {
-                const response = await fetch(input);
-                const text = await response.text();
-                resultEl.textContent = text;
-            } catch (err) {
-                resultEl.textContent = 'Error: ' + err.message + '\nTry a valid URL or paste prompt content.';
-            }
-        });
+    function addProductToCart(prod) {
+      const existing = currentCart.find(x=> x.id === prod.id);
+      if (existing) existing.qty += 1; else currentCart.push({ id: prod.id, name: prod.name, price: prod.price, qty: 1 });
+      saveCartAndRender();
+    }
 
-        // ===== INITIALIZE =====
-        renderProductSidebar();
-        renderProductsListTab();
-        renderHoldSales();
-        renderCart();
-    </script>
+    // Complete sale
+    completeSaleBtn.addEventListener('click', ()=>{
+      const totals = updateTotals();
+      const tendered = Math.round((parseFloat(paymentAmount.value) || 0) * 100) / 100;
+      if (tendered < totals.grand) {
+        const short = Math.round((totals.grand - tendered) * 100) / 100;
+        paymentMessageEl.className = 'error-message';
+        paymentMessageEl.textContent = `Short by ${formatKES(short)}`;
+        changeBox.textContent = '';
+        return;
+      }
 
+      const change = Math.round((tendered - totals.grand) * 100) / 100;
+      changeBox.textContent = 'Change: ' + formatKES(change);
+      paymentMessageEl.className = 'success-message';
+      paymentMessageEl.textContent = 'Payment accepted';
+
+      // record sale (store payment details under sale.payment)
+      const sale = {
+        id: Date.now().toString(),
+        items: currentCart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+        totals,
+        payment: {
+          method: (selectedPaymentMethod || 'cash').toUpperCase(),
+          tendered,
+          change,
+          reference: `${selectedPaymentMethod ? selectedPaymentMethod.toUpperCase() : 'CASH'}-${Date.now()}`,
+          status: 'SUCCESS'
+        },
+        created_at: new Date().toISOString()
+      };
+
+      sales.push(sale); localStorage.setItem('ps_sales', JSON.stringify(sales));
+
+      // reduce inventory quantities if SKU linked
+      sale.items.forEach(it=>{
+        const prod = products.find(p=> p.id === it.id);
+        if (prod && typeof prod.qty === 'number') prod.qty = Math.max(0, prod.qty - it.qty);
+      });
+      localStorage.setItem('ps_products', JSON.stringify(products));
+      renderProducts();
+
+      // prepare receipt
+      const receiptText = generateReceiptText(sale);
+      receiptEl.classList.remove('hidden'); receiptEl.textContent = receiptText;
+
+      // print if checked
+      if (printReceiptChk.checked) {
+        printReceipt(receiptText);
+      }
+
+      // clear cart
+      currentCart = [];
+      saveCartAndRender();
+      paymentAmount.value = '';
+
+      // clear success message after a short delay
+      setTimeout(()=>{ if (paymentMessageEl.textContent === 'Payment accepted') paymentMessageEl.textContent = ''; changeBox.textContent = ''; receiptEl.classList.add('hidden'); }, 6000);
+    });
+
+    // Print button to print current receipt area
+    printReceiptBtn.addEventListener('click', ()=>{
+      if (receiptEl.classList.contains('hidden')) { paymentMessageEl.className = 'error-message'; paymentMessageEl.textContent = 'No receipt available. Complete a sale first.'; setTimeout(()=>{ paymentMessageEl.textContent = ''; }, 3000); return; }
+      printReceipt(receiptEl.textContent);
+    });
+
+    function generateReceiptText(sale) {
+      let lines = [];
+      lines.push('POKETSTAR POS');
+      lines.push('Date: ' + new Date(sale.created_at).toLocaleString());
+      lines.push('------------------------------');
+      sale.items.forEach(it=> lines.push(`${it.name} x${it.qty} @${Number(it.price).toFixed(2)} = ${Number(it.price*it.qty).toFixed(2)}`));
+      lines.push('------------------------------');
+      lines.push('Subtotal: ' + formatKES(sale.totals.subtotal));
+      lines.push('Tax: ' + formatKES(sale.totals.tax));
+      lines.push('Total: ' + formatKES(sale.totals.grand));
+      lines.push('Payment Method: ' + (sale.payment.method || 'CASH'));
+      lines.push('Tendered: ' + formatKES(sale.payment.tendered));
+      lines.push('Change: ' + formatKES(sale.payment.change));
+      lines.push('Reference: ' + (sale.payment.reference || ''));
+      lines.push('Thank you for your business!');
+      return lines.join('\n');
+    }
+
+    function printReceipt(content) {
+      const w = window.open('', '_blank');
+      w.document.write('<pre>' + content.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</pre>');
+      w.document.close();
+      w.focus();
+      w.print();
+      setTimeout(()=>w.close(), 500);
+    }
+
+    // Export sales
+    exportSalesBtn.addEventListener('click', ()=>{
+      const data = JSON.stringify(sales, null, 2);
+      const blob = new Blob([data], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'sales-'+Date.now()+'.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // init
+    function init() {
+      renderProducts(); renderCart();
+
+      // Hide keyboard shortcuts window (UI) by removing it if present — the right panel in this demo has no effect when hidden
+      const shortcutsWindow = document.querySelector('.shortcuts-info');
+      if (shortcutsWindow) {
+        // hide its parent window if exists
+        const win = shortcutsWindow.closest('.window');
+        if (win) win.classList.add('hidden');
+      }
+    }
+
+    init();
+  </script>
 </body>
 </html>
