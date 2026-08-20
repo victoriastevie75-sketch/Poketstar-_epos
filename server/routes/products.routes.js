@@ -9,7 +9,53 @@ const productService = require('../services/product.service');
 const { verifyToken, requirePermission } = require('../middleware/auth.middleware');
 
 // In-memory product storage (replace with database in production)
-let products = [];
+let products = [
+  {
+    id: 'PRD-001',
+    name: 'Espresso Coffee',
+    sku: 'SKU-ESP-01',
+    barcode: '600123456789',
+    price: 250,
+    cost: 100,
+    quantity: 50,
+    category: 'Beverages',
+    description: 'Rich dark roast espresso',
+    reorderLevel: 10,
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'PRD-002',
+    name: 'Butter Croissant',
+    sku: 'SKU-CRO-01',
+    barcode: '600987654321',
+    price: 180,
+    cost: 70,
+    quantity: 30,
+    category: 'Pastry',
+    description: 'Freshly baked butter croissant',
+    reorderLevel: 5,
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'PRD-003',
+    name: 'Fresh Passion Juice',
+    sku: 'SKU-JUC-01',
+    barcode: '600555444333',
+    price: 200,
+    cost: 80,
+    quantity: 40,
+    category: 'Beverages',
+    description: 'Fresh natural passion fruit juice',
+    reorderLevel: 8,
+    active: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 let adjustmentHistory = [];
 
 /**

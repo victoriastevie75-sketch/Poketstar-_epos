@@ -14,23 +14,26 @@ const paymentUtils = require('../utils/payment.utils');
  */
 
 /**
- * POST /api/payments/mpesa/initiate
+ * POST /api/payments/mpesa/initiate & POST /api/payments/stk-push
  * Initiate M-Pesa STK Push (prompt user for PIN)
- * Body: { phoneNumber, amount, accountRef, description }
+ * Body: { phoneNumber | phone, amount, accountRef, description }
  */
-router.post('/mpesa/initiate', async (req, res) => {
+const handleMpesaSTKPush = async (req, res) => {
   try {
-    const { phoneNumber, amount, accountRef, description } = req.body;
+    const phoneNumber = req.body.phoneNumber || req.body.phone;
+    const amount = req.body.amount;
+    const accountRef = req.body.accountRef || `TXN-${Date.now()}`;
+    const description = req.body.description || 'POS Sale';
 
-    if (!phoneNumber || !amount || !accountRef) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!phoneNumber || !amount) {
+      return res.status(400).json({ error: 'Missing phone number or amount' });
     }
 
     const result = await mpesaService.initiateSTKPush(
       phoneNumber,
       amount,
       accountRef,
-      description || 'POS Sale'
+      description
     );
 
     if (result.success) {
@@ -38,6 +41,7 @@ router.post('/mpesa/initiate', async (req, res) => {
         success: true,
         checkoutRequestId: result.checkoutRequestId,
         message: result.customerMessage,
+        formattedPhone: result.formattedPhone
       });
     } else {
       res.status(400).json({
@@ -49,7 +53,10 @@ router.post('/mpesa/initiate', async (req, res) => {
     console.error('M-Pesa initiate error:', error);
     res.status(500).json({ error: 'Failed to initiate M-Pesa payment' });
   }
-});
+};
+
+router.post('/mpesa/initiate', handleMpesaSTKPush);
+router.post('/stk-push', handleMpesaSTKPush);
 
 /**
  * POST /api/payments/mpesa/query

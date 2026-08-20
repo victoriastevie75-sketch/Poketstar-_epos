@@ -1,0 +1,8 @@
+{
+  "name": "Poket Star POS",
+  "description": "Enterprise Desktop & Web Point of Sale System",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "short_name": "PoketStar POS",
+  "name": "Poket Star POS — Enterprise Desktop & Retail EPOS",
+  "icons": [
+    {
+      "src": "/src/assets/images/pocket_star_gold_silver_official_1785328099213.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0b0d14",
+  "theme_color": "#dfb15b",
+  "display": "standalone",
+  "orientation": "any",
+  "description": "Enterprise Retail POS System with Admin User Approval and Offline Sync"
+}

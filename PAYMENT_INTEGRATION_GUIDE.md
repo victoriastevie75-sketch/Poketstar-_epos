@@ -17,7 +17,7 @@ This guide provides instructions for implementing M-Pesa and card payment integr
 
 ### Prerequisites
 
-- Safaricom M-Pesa Business Till Number
+- Safaricom M-Pesa Business pay bill,222111 Number;20481
 - Daraja API credentials (Consumer Key, Consumer Secret, Passkey)
 - [Daraja Developer Account](https://developer.safaricom.co.ke/)
 
