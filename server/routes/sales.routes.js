@@ -1,228 +1,241 @@
-/**
- * Sales Management Routes
- * API endpoints for sales transactions and reporting
- */
-
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
-const salesService = require('../services/sales.service');
-const { verifyToken, requirePermission } = require('../middleware/auth.middleware');
-
-// In-memory sales storage (replace with database in production)
-let sales = [];
-let refunds = [];
 
 /**
- * POST /api/sales
- * Record a new sale
+ * Sales Routes
+ * Handles sales transactions, invoices, and reporting
  */
-router.post('/', verifyToken, requirePermission('process_sales'), (req, res) => {
-  try {
-    const { items, subtotal, tax, discount = 0, payment } = req.body;
 
-    if (!items || !subtotal || tax === undefined) {
-      return res.status(400).json({ error: 'Items, subtotal, and tax are required' });
+function getSalesFilePath() {
+  const candidates = [
+    path.join(__dirname, '../../sales.json'),
+    path.join(process.cwd(), 'sales.json'),
+    path.join(__dirname, '../../web/sales.json')
+  ];
+  
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
     }
+  }
+  
+  return path.join(process.cwd(), 'sales.json');
+}
 
-    const newSale = salesService.createSale(
-      items,
-      subtotal,
-      tax,
-      discount,
-      {
-        ...payment,
-        userId: req.user.id,
-      }
-    );
+function loadSales() {
+  try {
+    const salesPath = getSalesFilePath();
+    if (fs.existsSync(salesPath)) {
+      const data = fs.readFileSync(salesPath, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error('Error loading sales:', err.message);
+  }
+  return [];
+}
 
-    sales.push(newSale);
+function saveSales(sales) {
+  try {
+    const salesPath = getSalesFilePath();
+    fs.writeFileSync(salesPath, JSON.stringify(sales, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error saving sales:', err.message);
+    return false;
+  }
+}
 
+router.get('/', (req, res) => {
+  const sales = loadSales();
+  res.json({
+    status: 'success',
+    count: sales.length,
+    sales
+  });
+});
+
+router.get('/summary', (req, res) => {
+  const sales = loadSales();
+  
+  const totalSales = sales.reduce((sum, sale) => sum + (sale.totals?.grand || 0), 0);
+  const totalTransactions = sales.length;
+  const totalTax = sales.reduce((sum, sale) => sum + (sale.totals?.tax || 0), 0);
+  
+  res.json({
+    status: 'success',
+    summary: {
+      totalSales,
+      totalTransactions,
+      totalTax,
+      averageTransaction: totalTransactions > 0 ? totalSales / totalTransactions : 0
+    }
+  });
+});
+
+router.get('/daily', (req, res) => {
+  const sales = loadSales();
+  const today = new Date().toDateString();
+  
+  const dailySales = sales.filter(sale => {
+    const saleDate = new Date(sale.created_at).toDateString();
+    return saleDate === today;
+  });
+  
+  const totalDaily = dailySales.reduce((sum, sale) => sum + (sale.totals?.grand || 0), 0);
+  
+  res.json({
+    status: 'success',
+    date: today,
+    transactions: dailySales.length,
+    total: totalDaily,
+    sales: dailySales
+  });
+});
+
+router.get('/:id', (req, res) => {
+  const sales = loadSales();
+  const sale = sales.find(s => s.id === req.params.id);
+  
+  if (!sale) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Sale not found'
+    });
+  }
+
+  res.json({
+    status: 'success',
+    sale
+  });
+});
+
+router.post('/', (req, res) => {
+  const { items, totals, payment } = req.body;
+  
+  if (!items || !totals || !payment) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Items, totals, and payment information are required'
+    });
+  }
+
+  const sales = loadSales();
+  
+  const newSale = {
+    id: `SALE-${Date.now()}`,
+    items,
+    totals,
+    payment: {
+      ...payment,
+      processedAt: new Date().toISOString()
+    },
+    created_at: new Date().toISOString(),
+    status: 'COMPLETED'
+  };
+
+  sales.push(newSale);
+  
+  if (saveSales(sales)) {
     res.status(201).json({
-      success: true,
-      sale: newSale,
+      status: 'success',
+      message: 'Sale recorded successfully',
+      sale: newSale
     });
-  } catch (error) {
-    console.error('Create sale error:', error);
-    res.status(400).json({ error: error.message });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to record sale'
+    });
   }
 });
 
-/**
- * GET /api/sales
- * List all sales with optional filtering
- */
-router.get('/', verifyToken, requirePermission('view_sales'), (req, res) => {
-  try {
-    const { startDate, endDate, paymentMethod, limit = 100, offset = 0 } = req.query;
+router.post('/refund/:id', (req, res) => {
+  const sales = loadSales();
+  const index = sales.findIndex(s => s.id === req.params.id);
+  
+  if (index === -1) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Sale not found'
+    });
+  }
 
-    let filtered = [...sales];
+  const sale = sales[index];
+  
+  if (sale.status === 'REFUNDED') {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Sale already refunded'
+    });
+  }
 
-    // Date filtering
-    if (startDate && endDate) {
-      filtered = filtered.filter(s => {
-        const saleDate = new Date(s.createdAt);
-        return saleDate >= new Date(startDate) && saleDate <= new Date(endDate);
-      });
-    }
-
-    // Payment method filtering
-    if (paymentMethod) {
-      filtered = filtered.filter(s => s.payment.method === paymentMethod.toUpperCase());
-    }
-
-    // Sort by date descending
-    filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-    // Pagination
-    const paginated = filtered.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
-
+  sale.status = 'REFUNDED';
+  sale.refundedAt = new Date().toISOString();
+  
+  if (saveSales(sales)) {
     res.json({
-      sales: paginated,
-      total: filtered.length,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      status: 'success',
+      message: 'Sale refunded successfully',
+      sale
     });
-  } catch (error) {
-    console.error('List sales error:', error);
-    res.status(500).json({ error: 'Failed to list sales' });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to process refund'
+    });
   }
 });
 
-/**
- * GET /api/sales/:saleId
- * Get specific sale details
- */
-router.get('/:saleId', verifyToken, requirePermission('view_sales'), (req, res) => {
-  try {
-    const { saleId } = req.params;
-    const sale = sales.find(s => s.id === saleId);
-
-    if (!sale) {
-      return res.status(404).json({ error: 'Sale not found' });
+router.get('/report/daily', (req, res) => {
+  const sales = loadSales();
+  
+  // Group by date
+  const byDate = {};
+  sales.forEach(sale => {
+    const date = new Date(sale.created_at).toDateString();
+    if (!byDate[date]) {
+      byDate[date] = {
+        date,
+        transactions: 0,
+        total: 0,
+        tax: 0
+      };
     }
+    byDate[date].transactions++;
+    byDate[date].total += sale.totals?.grand || 0;
+    byDate[date].tax += sale.totals?.tax || 0;
+  });
 
-    res.json(sale);
-  } catch (error) {
-    console.error('Get sale error:', error);
-    res.status(500).json({ error: 'Failed to get sale' });
-  }
+  res.json({
+    status: 'success',
+    report: Object.values(byDate)
+  });
 });
 
-/**
- * POST /api/sales/:saleId/refund
- * Process refund for a sale
- */
-router.post('/:saleId/refund', verifyToken, requirePermission('process_refunds'), (req, res) => {
-  try {
-    const { saleId } = req.params;
-    const { amount, reason } = req.body;
-
-    const sale = sales.find(s => s.id === saleId);
-
-    if (!sale) {
-      return res.status(404).json({ error: 'Sale not found' });
+router.get('/report/payment-methods', (req, res) => {
+  const sales = loadSales();
+  
+  const byMethod = {};
+  sales.forEach(sale => {
+    const method = sale.payment?.method || 'UNKNOWN';
+    if (!byMethod[method]) {
+      byMethod[method] = {
+        method,
+        count: 0,
+        total: 0
+      };
     }
+    byMethod[method].count++;
+    byMethod[method].total += sale.totals?.grand || 0;
+  });
 
-    const refund = salesService.createRefund(sale, amount, reason);
-    refunds.push(refund);
-
-    res.status(201).json({
-      success: true,
-      refund,
-    });
-  } catch (error) {
-    console.error('Create refund error:', error);
-    res.status(400).json({ error: error.message });
-  }
-});
-
-/**
- * GET /api/sales/summary/date-range
- * Get sales summary for date range
- */
-router.get('/summary/date-range', verifyToken, requirePermission('view_reports'), (req, res) => {
-  try {
-    const { startDate, endDate } = req.query;
-
-    if (!startDate || !endDate) {
-      return res.status(400).json({ error: 'Start and end dates required' });
-    }
-
-    const summary = salesService.getSalesSummary(sales, startDate, endDate);
-
-    res.json(summary);
-  } catch (error) {
-    console.error('Get summary error:', error);
-    res.status(500).json({ error: 'Failed to get sales summary' });
-  }
-});
-
-/**
- * GET /api/sales/reports/top-products
- * Get top selling products
- */
-router.get('/reports/top-products', verifyToken, requirePermission('view_reports'), (req, res) => {
-  try {
-    const { limit = 10 } = req.query;
-    const topProducts = salesService.getTopProducts(sales, parseInt(limit));
-
-    res.json({
-      topProducts,
-      total: topProducts.length,
-    });
-  } catch (error) {
-    console.error('Get top products error:', error);
-    res.status(500).json({ error: 'Failed to get top products' });
-  }
-});
-
-/**
- * GET /api/sales/reports/daily-trend
- * Get daily sales trend
- */
-router.get('/reports/daily-trend', verifyToken, requirePermission('view_reports'), (req, res) => {
-  try {
-    const { days = 30 } = req.query;
-    const trend = salesService.getDailyTrend(sales, parseInt(days));
-
-    res.json({
-      trend,
-      period: parseInt(days),
-    });
-  } catch (error) {
-    console.error('Get daily trend error:', error);
-    res.status(500).json({ error: 'Failed to get daily trend' });
-  }
-});
-
-/**
- * GET /api/sales/reports/summary
- * Get overall sales statistics
- */
-router.get('/reports/summary', verifyToken, requirePermission('view_reports'), (req, res) => {
-  try {
-    const totalSales = sales.reduce((sum, s) => sum + s.total, 0);
-    const completedSales = sales.filter(s => s.payment.status === 'SUCCESS');
-    const failedSales = sales.filter(s => s.payment.status === 'FAILED');
-    const pendingSales = sales.filter(s => s.payment.status === 'PENDING');
-
-    const paymentMethods = salesService.groupByPaymentMethod(completedSales);
-
-    res.json({
-      summary: {
-        totalTransactions: sales.length,
-        completedTransactions: completedSales.length,
-        failedTransactions: failedSales.length,
-        pendingTransactions: pendingSales.length,
-        totalRevenue: totalSales,
-        averageTransactionValue: sales.length > 0 ? totalSales / sales.length : 0,
-        paymentMethods,
-      },
-    });
-  } catch (error) {
-    console.error('Get summary error:', error);
-    res.status(500).json({ error: 'Failed to get sales summary' });
-  }
+  res.json({
+    status: 'success',
+    report: Object.values(byMethod)
+  });
 });
 
 module.exports = router;

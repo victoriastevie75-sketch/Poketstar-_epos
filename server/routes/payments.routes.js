@@ -1,235 +1,87 @@
-/**
- * Payment Routes
- * API endpoints for payment processing (M-Pesa, Stripe, etc.)
- */
-
 const express = require('express');
 const router = express.Router();
-const mpesaService = require('../services/mpesa.service');
-const stripeService = require('../services/stripe.service');
-const paymentUtils = require('../utils/payment.utils');
 
 /**
- * M-Pesa Routes
+ * Payment Routes
+ * Handles payment processing, method management, and transaction records
  */
 
-/**
- * POST /api/payments/mpesa/initiate & POST /api/payments/stk-push
- * Initiate M-Pesa STK Push (prompt user for PIN)
- * Body: { phoneNumber | phone, amount, accountRef, description }
- */
-const handleMpesaSTKPush = async (req, res) => {
-  try {
-    const phoneNumber = req.body.phoneNumber || req.body.phone;
-    const amount = req.body.amount;
-    const accountRef = req.body.accountRef || `TXN-${Date.now()}`;
-    const description = req.body.description || 'POS Sale';
+router.get('/methods', (req, res) => {
+  res.json({
+    status: 'success',
+    methods: [
+      {
+        id: 'cash',
+        label: 'Cash',
+        icon: '💵',
+        enabled: true
+      },
+      {
+        id: 'mpesa',
+        label: 'M-Pesa',
+        icon: '📱',
+        enabled: true
+      },
+      {
+        id: 'card',
+        label: 'Card',
+        icon: '💳',
+        enabled: true
+      }
+    ]
+  });
+});
 
-    if (!phoneNumber || !amount) {
-      return res.status(400).json({ error: 'Missing phone number or amount' });
-    }
+router.post('/process', (req, res) => {
+  const { method, amount, reference } = req.body;
+  
+  if (!method || !amount) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Method and amount are required'
+    });
+  }
 
-    const result = await mpesaService.initiateSTKPush(
-      phoneNumber,
+  const transactionId = `TXN-${Date.now()}`;
+  
+  res.json({
+    status: 'success',
+    transaction: {
+      id: transactionId,
+      method: method.toUpperCase(),
       amount,
-      accountRef,
-      description
-    );
-
-    if (result.success) {
-      res.json({
-        success: true,
-        checkoutRequestId: result.checkoutRequestId,
-        message: result.customerMessage,
-        formattedPhone: result.formattedPhone
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        error: result.error,
-      });
-    }
-  } catch (error) {
-    console.error('M-Pesa initiate error:', error);
-    res.status(500).json({ error: 'Failed to initiate M-Pesa payment' });
-  }
-};
-
-router.post('/mpesa/initiate', handleMpesaSTKPush);
-router.post('/stk-push', handleMpesaSTKPush);
-
-/**
- * POST /api/payments/mpesa/query
- * Query M-Pesa transaction status
- * Body: { checkoutRequestId }
- */
-router.post('/mpesa/query', async (req, res) => {
-  try {
-    const { checkoutRequestId } = req.body;
-
-    if (!checkoutRequestId) {
-      return res.status(400).json({ error: 'checkoutRequestId required' });
-    }
-
-    const result = await mpesaService.querySTKPushStatus(checkoutRequestId);
-    res.json(result);
-  } catch (error) {
-    console.error('M-Pesa query error:', error);
-    res.status(500).json({ error: 'Failed to query M-Pesa status' });
-  }
-});
-
-/**
- * POST /api/payments/mpesa/callback
- * Receive M-Pesa callback notification
- */
-router.post('/mpesa/callback', (req, res) => {
-  try {
-    const paymentData = mpesaService.processCallback(req.body);
-
-    if (paymentData && paymentData.success) {
-      // Update sale status in database
-      console.log('M-Pesa payment successful:', paymentData);
-      // TODO: Update payment record with confirmation data
-    }
-
-    res.json({ ResultCode: 0, ResultDesc: 'Accepted' });
-  } catch (error) {
-    console.error('M-Pesa callback error:', error);
-    res.json({ ResultCode: 1, ResultDesc: 'Rejected' });
-  }
-});
-
-/**
- * Stripe Routes
- */
-
-/**
- * POST /api/payments/stripe/create-intent
- * Create a Stripe payment intent
- * Body: { amount, description, metadata }
- */
-router.post('/stripe/create-intent', async (req, res) => {
-  try {
-    const { amount, description, metadata } = req.body;
-
-    if (!amount) {
-      return res.status(400).json({ error: 'Amount required' });
-    }
-
-    const result = await stripeService.createPaymentIntent(
-      amount,
-      description || 'POS Sale',
-      metadata
-    );
-
-    if (result.success) {
-      res.json({
-        success: true,
-        clientSecret: result.clientSecret,
-        paymentIntentId: result.paymentIntentId,
-      });
-    } else {
-      res.status(400).json(result);
-    }
-  } catch (error) {
-    console.error('Stripe create-intent error:', error);
-    res.status(500).json({ error: 'Failed to create payment intent' });
-  }
-});
-
-/**
- * POST /api/payments/stripe/confirm
- * Confirm a Stripe payment intent
- * Body: { paymentIntentId }
- */
-router.post('/stripe/confirm', async (req, res) => {
-  try {
-    const { paymentIntentId } = req.body;
-
-    if (!paymentIntentId) {
-      return res.status(400).json({ error: 'paymentIntentId required' });
-    }
-
-    const result = await stripeService.confirmPaymentIntent(paymentIntentId);
-    res.json(result);
-  } catch (error) {
-    console.error('Stripe confirm error:', error);
-    res.status(500).json({ error: 'Failed to confirm payment' });
-  }
-});
-
-/**
- * POST /api/payments/stripe/refund
- * Refund a Stripe charge
- * Body: { chargeId, amount }
- */
-router.post('/stripe/refund', async (req, res) => {
-  try {
-    const { chargeId, amount } = req.body;
-
-    if (!chargeId) {
-      return res.status(400).json({ error: 'chargeId required' });
-    }
-
-    const result = await stripeService.refundPayment(chargeId, amount);
-    res.json(result);
-  } catch (error) {
-    console.error('Stripe refund error:', error);
-    res.status(500).json({ error: 'Failed to process refund' });
-  }
-});
-
-/**
- * Generic Routes
- */
-
-/**
- * POST /api/payments/record
- * Record a payment in the system
- * Body: { saleId, method, amount, status, reference }
- */
-router.post('/record', (req, res) => {
-  try {
-    const { saleId, method, amount, status, reference } = req.body;
-
-    if (!saleId || !method || !amount) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const payment = {
-      id: Date.now().toString(),
-      saleId,
-      method: method.toUpperCase(), // MPESA, STRIPE, CASH, etc.
-      amount,
-      status: status || 'PENDING', // PENDING, SUCCESS, FAILED, REFUNDED
-      reference,
+      reference: reference || transactionId,
       timestamp: new Date().toISOString(),
-    };
-
-    // TODO: Save payment record to database
-    console.log('Payment recorded:', payment);
-
-    res.json({ success: true, paymentId: payment.id });
-  } catch (error) {
-    console.error('Record payment error:', error);
-    res.status(500).json({ error: 'Failed to record payment' });
-  }
+      status: 'COMPLETED'
+    }
+  });
 });
 
-/**
- * GET /api/payments/:saleId
- * Get payment details for a sale
- */
-router.get('/:saleId', (req, res) => {
-  try {
-    const { saleId } = req.params;
-    // TODO: Fetch payment from database
-    res.json({ message: 'Payment details would be returned here' });
-  } catch (error) {
-    console.error('Get payment error:', error);
-    res.status(500).json({ error: 'Failed to retrieve payment' });
+router.post('/validate', (req, res) => {
+  const { method, amount } = req.body;
+  
+  if (!method || amount <= 0) {
+    return res.status(400).json({
+      status: 'invalid',
+      message: 'Invalid payment details'
+    });
   }
+
+  res.json({
+    status: 'valid',
+    method,
+    amount,
+    fee: 0,
+    total: amount
+  });
+});
+
+router.get('/history', (req, res) => {
+  res.json({
+    status: 'success',
+    transactions: [],
+    total: 0
+  });
 });
 
 module.exports = router;

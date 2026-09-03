@@ -1,311 +1,223 @@
-/**
- * Product Management Routes
- * API endpoints for product CRUD and inventory operations
- */
-
 const express = require('express');
-const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const productService = require('../services/product.service');
-const { verifyToken, requirePermission } = require('../middleware/auth.middleware');
+const router = express.Router();
 
-// In-memory product storage initialized from products.json
-let products = [];
-try {
-  const localPath = path.join(process.cwd(), 'products.json');
-  const bundlePath = path.join(__dirname, '../../products.json');
-  const jsonPath = fs.existsSync(localPath) ? localPath : bundlePath;
-  if (fs.existsSync(jsonPath)) {
-    const rawData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-    products = rawData.map((p, idx) => ({
-      id: `PRD-${String(idx + 1).padStart(4, '0')}`,
-      name: p.name,
-      sku: p.barcode ? (p.barcode.startsWith('SKU-') ? p.barcode : `SKU-${p.barcode.slice(-6)}`) : `SKU-${idx + 1}`,
-      barcode: p.barcode || `600${String(idx + 1).padStart(9, '0')}`,
-      price: Number(p.price) || 0,
-      cost: Number(p.buyingPrice) || Math.round(Number(p.price) * 0.7),
-      quantity: p.qty !== undefined ? Number(p.qty) : 50,
-      category: p.category || 'General',
-      taxRate: p.taxRate !== undefined ? Number(p.taxRate) : 16,
-      description: `${p.name} - Official inventory item`,
-      reorderLevel: 10,
-      active: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
-  }
-} catch (e) {
-  console.warn('Could not load products.json, using fallback:', e.message);
-}
+/**
+ * Products Routes
+ * Handles product catalog, inventory, and item management
+ */
 
-if (products.length === 0) {
-  products = [
-    {
-      id: 'PRD-0001',
-      name: 'Espresso Coffee',
-      sku: 'SKU-ESP-01',
-      barcode: '600123456789',
-      price: 250,
-      cost: 100,
-      quantity: 50,
-      category: 'Beverages',
-      taxRate: 16,
-      description: 'Rich dark roast espresso',
-      reorderLevel: 10,
-      active: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
+function getProductsPath() {
+  const candidates = [
+    path.join(__dirname, '../../products.json'),
+    path.join(process.cwd(), 'products.json'),
+    path.join(__dirname, '../../web/products.json')
   ];
+  
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  
+  return path.join(process.cwd(), 'products.json');
 }
-let adjustmentHistory = [];
 
-/**
- * POST /api/products
- * Create new product
- */
-router.post(
-  '/',
-  verifyToken,
-  requirePermission('manage_products'),
-  (req, res) => {
-    try {
-      const newProduct = productService.createProduct(req.body);
-      products.push(newProduct);
-
-      res.status(201).json({
-        success: true,
-        product: newProduct,
-      });
-    } catch (error) {
-      console.error('Create product error:', error);
-      res.status(400).json({ error: error.message });
+function loadProducts() {
+  try {
+    const productsPath = getProductsPath();
+    if (fs.existsSync(productsPath)) {
+      const data = fs.readFileSync(productsPath, 'utf8');
+      return JSON.parse(data);
     }
+  } catch (err) {
+    console.error('Error loading products:', err.message);
   }
-);
+  return [];
+}
 
-/**
- * GET /api/products
- * List all products with optional filtering
- */
+function saveProducts(products) {
+  try {
+    const productsPath = getProductsPath();
+    fs.writeFileSync(productsPath, JSON.stringify(products, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error saving products:', err.message);
+    return false;
+  }
+}
+
 router.get('/', (req, res) => {
-  try {
-    const { category, search, lowStock } = req.query;
+  const products = loadProducts();
+  res.json({
+    status: 'success',
+    count: products.length,
+    products
+  });
+});
 
-    let filtered = products.filter(p => p.active);
-
-    if (category) {
-      filtered = productService.getByCategory(filtered, category);
-    }
-
-    if (search) {
-      filtered = productService.searchProducts(filtered, search);
-    }
-
-    if (lowStock === 'true') {
-      filtered = productService.getLowStockProducts(filtered);
-    }
-
-    // Support both direct array expectations and object wrapper
-    res.json({
-      success: true,
-      products: filtered,
-      total: filtered.length,
-      inventoryValue: productService.getInventoryValue(filtered),
+router.get('/search', (req, res) => {
+  const { q } = req.query;
+  
+  if (!q) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Search query required'
     });
-  } catch (error) {
-    console.error('List products error:', error);
-    res.status(500).json({ error: 'Failed to list products' });
+  }
+
+  const products = loadProducts();
+  const query = q.toLowerCase();
+  const results = products.filter(p =>
+    (p.name && p.name.toLowerCase().includes(query)) ||
+    (p.barcode && p.barcode.includes(query)) ||
+    (p.category && p.category.toLowerCase().includes(query))
+  );
+
+  res.json({
+    status: 'success',
+    query: q,
+    count: results.length,
+    products: results
+  });
+});
+
+router.get('/categories', (req, res) => {
+  const products = loadProducts();
+  const categories = [...new Set(products.map(p => p.category).filter(Boolean))];
+  
+  res.json({
+    status: 'success',
+    categories
+  });
+});
+
+router.get('/:id', (req, res) => {
+  const products = loadProducts();
+  const product = products.find(p => p.id === req.params.id);
+  
+  if (!product) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Product not found'
+    });
+  }
+
+  res.json({
+    status: 'success',
+    product
+  });
+});
+
+router.post('/', (req, res) => {
+  const { name, barcode, price, qty, category } = req.body;
+  
+  if (!name || !price) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Name and price are required'
+    });
+  }
+
+  const products = loadProducts();
+  
+  // Check if barcode already exists
+  if (barcode && products.find(p => p.barcode === barcode)) {
+    return res.status(409).json({
+      status: 'error',
+      message: 'Product with this barcode already exists'
+    });
+  }
+
+  const newProduct = {
+    id: Date.now().toString(),
+    name,
+    barcode: barcode || '',
+    price: parseFloat(price),
+    qty: parseInt(qty) || 0,
+    category: category || 'Uncategorized',
+    createdAt: new Date().toISOString()
+  };
+
+  products.push(newProduct);
+  
+  if (saveProducts(products)) {
+    res.status(201).json({
+      status: 'success',
+      message: 'Product created',
+      product: newProduct
+    });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to save product'
+    });
   }
 });
 
-/**
- * GET /api/products/:productId
- * Get specific product details
- */
-router.get('/:productId', verifyToken, (req, res) => {
-  try {
-    const { productId } = req.params;
-    const product = products.find(p => p.id === productId);
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    res.json({
-      product,
-      profitMargin: productService.getProfitMargin(product),
-      isLowStock: productService.isLowStock(product),
+router.put('/:id', (req, res) => {
+  const { name, barcode, price, qty, category } = req.body;
+  const products = loadProducts();
+  
+  const index = products.findIndex(p => p.id === req.params.id);
+  if (index === -1) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Product not found'
     });
-  } catch (error) {
-    console.error('Get product error:', error);
-    res.status(500).json({ error: 'Failed to get product' });
+  }
+
+  const updated = {
+    ...products[index],
+    ...(name && { name }),
+    ...(barcode && { barcode }),
+    ...(price && { price: parseFloat(price) }),
+    ...(qty !== undefined && { qty: parseInt(qty) }),
+    ...(category && { category }),
+    updatedAt: new Date().toISOString()
+  };
+
+  products[index] = updated;
+  
+  if (saveProducts(products)) {
+    res.json({
+      status: 'success',
+      message: 'Product updated',
+      product: updated
+    });
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update product'
+    });
   }
 });
 
-/**
- * PUT /api/products/:productId
- * Update product details
- */
-router.put(
-  '/:productId',
-  verifyToken,
-  requirePermission('manage_products'),
-  (req, res) => {
-    try {
-      const { productId } = req.params;
-      const product = products.find(p => p.id === productId);
-
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      const updated = productService.updateProduct(product, req.body);
-
-      res.json({
-        success: true,
-        product: updated,
-      });
-    } catch (error) {
-      console.error('Update product error:', error);
-      res.status(400).json({ error: error.message });
-    }
-  }
-);
-
-/**
- * DELETE /api/products/:productId
- * Deactivate product (soft delete)
- */
-router.delete(
-  '/:productId',
-  verifyToken,
-  requirePermission('manage_products'),
-  (req, res) => {
-    try {
-      const { productId } = req.params;
-      const product = products.find(p => p.id === productId);
-
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      product.active = false;
-      product.updatedAt = new Date().toISOString();
-
-      res.json({ success: true, message: 'Product deactivated' });
-    } catch (error) {
-      console.error('Delete product error:', error);
-      res.status(500).json({ error: 'Failed to delete product' });
-    }
-  }
-);
-
-/**
- * POST /api/products/:productId/adjust-quantity
- * Adjust product quantity (stock take, returns, etc.)
- */
-router.post(
-  '/:productId/adjust-quantity',
-  verifyToken,
-  requirePermission('manage_products'),
-  (req, res) => {
-    try {
-      const { productId } = req.params;
-      const { quantity, reason } = req.body;
-
-      if (quantity === undefined) {
-        return res.status(400).json({ error: 'Quantity required' });
-      }
-
-      const product = products.find(p => p.id === productId);
-
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      const adjustment = productService.adjustQuantity(
-        product,
-        parseInt(quantity),
-        reason || 'manual'
-      );
-
-      adjustmentHistory.push(adjustment);
-
-      res.json({
-        success: true,
-        adjustment,
-        product,
-      });
-    } catch (error) {
-      console.error('Adjust quantity error:', error);
-      res.status(400).json({ error: error.message });
-    }
-  }
-);
-
-/**
- * GET /api/products/low-stock
- * Get all low stock products
- */
-router.get('/inventory/low-stock', verifyToken, (req, res) => {
-  try {
-    const lowStockProducts = productService.getLowStockProducts(products);
-
-    res.json({
-      lowStockProducts,
-      total: lowStockProducts.length,
+router.delete('/:id', (req, res) => {
+  const products = loadProducts();
+  const index = products.findIndex(p => p.id === req.params.id);
+  
+  if (index === -1) {
+    return res.status(404).json({
+      status: 'error',
+      message: 'Product not found'
     });
-  } catch (error) {
-    console.error('Get low stock error:', error);
-    res.status(500).json({ error: 'Failed to get low stock products' });
   }
-});
 
-/**
- * GET /api/products/categories
- * Get all product categories
- */
-router.get('/inventory/categories', verifyToken, (req, res) => {
-  try {
-    const categories = [...new Set(products.map(p => p.category))];
-
+  const deleted = products.splice(index, 1)[0];
+  
+  if (saveProducts(products)) {
     res.json({
-      categories: categories.sort(),
-      total: categories.length,
+      status: 'success',
+      message: 'Product deleted',
+      product: deleted
     });
-  } catch (error) {
-    console.error('Get categories error:', error);
-    res.status(500).json({ error: 'Failed to get categories' });
-  }
-});
-
-/**
- * GET /api/products/statistics/inventory
- * Get inventory statistics
- */
-router.get('/statistics/inventory', verifyToken, (req, res) => {
-  try {
-    const activeProducts = products.filter(p => p.active);
-    const lowStockCount = productService.getLowStockProducts(activeProducts).length;
-    const totalValue = productService.getInventoryValue(activeProducts);
-    const avgPrice = activeProducts.length > 0 ? totalValue / activeProducts.length : 0;
-    const totalQuantity = activeProducts.reduce((sum, p) => sum + p.quantity, 0);
-
-    res.json({
-      statistics: {
-        totalProducts: activeProducts.length,
-        totalQuantity,
-        totalValue,
-        averagePrice: avgPrice,
-        lowStockCount,
-        outOfStockCount: activeProducts.filter(p => p.quantity === 0).length,
-      },
+  } else {
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete product'
     });
-  } catch (error) {
-    console.error('Get statistics error:', error);
-    res.status(500).json({ error: 'Failed to get statistics' });
   }
 });
 
