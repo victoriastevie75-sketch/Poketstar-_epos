@@ -62,16 +62,38 @@ getIndexHtml();
 app.use(express.static(path.join(__dirname), { maxAge: '1h' }));
 app.use('/web', express.static(path.join(__dirname, 'web'), { maxAge: '1h' }));
 
-// Mount API routes
-const authRoutes = require('./server/routes/auth.routes');
-const paymentsRoutes = require('./server/routes/payments.routes');
-const productsRoutes = require('./server/routes/products.routes');
-const salesRoutes = require('./server/routes/sales.routes');
+// Mount API routes with error handling
+try {
+  const authRoutes = require('./server/routes/auth.routes');
+  app.use('/api/auth', authRoutes);
+  console.log('[Server] ✓ Auth routes loaded');
+} catch (e) {
+  console.warn('[Server] ⚠ Auth routes not available:', e.message);
+}
 
-app.use('/api/auth', authRoutes);
-app.use('/api/payments', paymentsRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/sales', salesRoutes);
+try {
+  const paymentsRoutes = require('./server/routes/payments.routes');
+  app.use('/api/payments', paymentsRoutes);
+  console.log('[Server] ✓ Payments routes loaded');
+} catch (e) {
+  console.warn('[Server] ⚠ Payments routes not available:', e.message);
+}
+
+try {
+  const productsRoutes = require('./server/routes/products.routes');
+  app.use('/api/products', productsRoutes);
+  console.log('[Server] ✓ Products routes loaded');
+} catch (e) {
+  console.warn('[Server] ⚠ Products routes not available:', e.message);
+}
+
+try {
+  const salesRoutes = require('./server/routes/sales.routes');
+  app.use('/api/sales', salesRoutes);
+  console.log('[Server] ✓ Sales routes loaded');
+} catch (e) {
+  console.warn('[Server] ⚠ Sales routes not available:', e.message);
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -202,9 +224,12 @@ module.exports = app;
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n╔══════════════════════════════════╗`);
+    console.log(`
+╔══════════════════════════════════╗`);
     console.log(`║  Poketstar POS Server Running    ║`);
     console.log(`╚══════════════════════════════════╝`);
-    console.log(`\n🚀 Listening on http://0.0.0.0:${PORT}\n`);
+    console.log(`
+🚀 Listening on http://0.0.0.0:${PORT}
+`);
   });
 }
