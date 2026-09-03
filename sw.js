@@ -1,20 +1,33 @@
 // Poket Star EPOS — Progressive Web App Service Worker
-// Enables 100% Offline Access for Retail Sales, Inventory & User Session Persistence
+// Enables 100% Offline Access for Retail Sales, Inventory & All 1,629 Products
 
-const CACHE_NAME = 'poketstar-pos-v1.0';
+const CACHE_NAME = 'poketstar-pos-v2.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
+  '/products.json',
+  '/src/offline-products.js',
+  '/manifest.json',
   '/src/assets/images/pocket_star_gold_silver_official_1785328099213.jpg',
-  '/manifest.json'
+  '/src/assets/images/pocket_star_p1_1785328099213.jpg',
+  '/src/assets/images/pocket_star_p2_1785328099213.jpg',
+  '/src/assets/images/pocket_star_p3_1785328099213.jpg',
+  '/src/assets/images/pocket_star_p4_1785328099213.jpg',
+  '/src/assets/images/pocket_star_p5_1785328099213.jpg'
 ];
 
-// Install Event - Cache Core Assets
+// Install Event - Cache Core Assets & Full 1,629 Offline Master Catalog
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching Poket Star EPOS app shell for offline access...');
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      console.log('[SW] Caching Poket Star EPOS app shell and 1,629 offline products...');
+      for (const asset of ASSETS_TO_CACHE) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          console.warn('[SW] Could not precache asset:', asset, e);
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
@@ -35,16 +48,47 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Cache First with Network Fallback for static assets, Network First for API
+// Fetch Event - Cache First with Network Fallback for static assets, Offline Catalog for API
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Skip non-GET requests (or handle offline sync queue client-side)
+  // Skip non-GET requests
   if (event.request.method !== 'GET') {
     return;
   }
 
-  // API calls: Network first, fallback to cached or offline JSON response
+  // Handle Products API endpoint offline fallback
+  if (requestUrl.pathname === '/api/products' || requestUrl.pathname.startsWith('/api/products?')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then(c => c.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedJson = await caches.match('/products.json');
+          if (cachedJson) {
+            const raw = await cachedJson.json();
+            return new Response(
+              JSON.stringify({ success: true, products: raw, total: raw.length, offline: true }),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          const cachedApi = await caches.match(event.request);
+          if (cachedApi) return cachedApi;
+          return new Response(
+            JSON.stringify({ success: true, products: [], offline: true, message: 'Offline local state active' }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        })
+    );
+    return;
+  }
+
+  // Generic API calls: Network first, fallback to offline JSON response
   if (requestUrl.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(event.request)
@@ -58,11 +102,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static Assets: Cache first, update in background
+  // Static Assets & Web App Shell: Cache first, background refresh
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch fresh copy in background to update cache
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
@@ -80,7 +123,7 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         // Fallback to offline page shell
-        if (event.request.headers.get('accept').includes('text/html')) {
+        if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
           return caches.match('/index.html');
         }
       });

@@ -1,0 +1,5 @@
+{
+  "main": "/app/applet/.cache_binaries/bundle.js",
+  "output": "/app/applet/.cache_binaries/sea-prep.blob",
+  "disableExperimentalSEAWarning": true
+}

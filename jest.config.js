@@ -1,4 +1,4 @@
-# Jest Configuration for Unit Tests
+// Jest Configuration for Unit Tests
 module.exports = {
   testEnvironment: 'node',
   coveragePathIgnorePatterns: ['/node_modules/'],

@@ -1,0 +1,40 @@
+#define IDR_INDEX_HTML 101
+#define IDR_PRODUCTS_JSON 102
+#define IDI_APP_ICON 1
+#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
+#define RT_MANIFEST 24
+
+IDI_APP_ICON ICON "src_native/app.ico"
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "src_native/app.manifest"
+
+IDR_INDEX_HTML RCDATA "index.html"
+IDR_PRODUCTS_JSON RCDATA "products.json"
+
+1 VERSIONINFO
+FILEVERSION 2,4,0,0
+PRODUCTVERSION 2,4,0,0
+FILEFLAGSMASK 0x3fL
+FILEFLAGS 0x0L
+FILEOS 0x40004L
+FILETYPE 0x1L
+FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName", "Poket Star POS"
+            VALUE "FileDescription", "Poket Star POS Standalone Terminal"
+            VALUE "FileVersion", "2.4.0.0"
+            VALUE "InternalName", "PoketStar-POS"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Poket Star POS"
+            VALUE "OriginalFilename", "PoketStar-POS.exe"
+            VALUE "ProductName", "Poket Star POS"
+            VALUE "ProductVersion", "2.4.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

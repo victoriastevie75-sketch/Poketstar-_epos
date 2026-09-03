@@ -5,57 +5,60 @@
 
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const productService = require('../services/product.service');
 const { verifyToken, requirePermission } = require('../middleware/auth.middleware');
 
-// In-memory product storage (replace with database in production)
-let products = [
-  {
-    id: 'PRD-001',
-    name: 'Espresso Coffee',
-    sku: 'SKU-ESP-01',
-    barcode: '600123456789',
-    price: 250,
-    cost: 100,
-    quantity: 50,
-    category: 'Beverages',
-    description: 'Rich dark roast espresso',
-    reorderLevel: 10,
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'PRD-002',
-    name: 'Butter Croissant',
-    sku: 'SKU-CRO-01',
-    barcode: '600987654321',
-    price: 180,
-    cost: 70,
-    quantity: 30,
-    category: 'Pastry',
-    description: 'Freshly baked butter croissant',
-    reorderLevel: 5,
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'PRD-003',
-    name: 'Fresh Passion Juice',
-    sku: 'SKU-JUC-01',
-    barcode: '600555444333',
-    price: 200,
-    cost: 80,
-    quantity: 40,
-    category: 'Beverages',
-    description: 'Fresh natural passion fruit juice',
-    reorderLevel: 8,
-    active: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+// In-memory product storage initialized from products.json
+let products = [];
+try {
+  const localPath = path.join(process.cwd(), 'products.json');
+  const bundlePath = path.join(__dirname, '../../products.json');
+  const jsonPath = fs.existsSync(localPath) ? localPath : bundlePath;
+  if (fs.existsSync(jsonPath)) {
+    const rawData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+    products = rawData.map((p, idx) => ({
+      id: `PRD-${String(idx + 1).padStart(4, '0')}`,
+      name: p.name,
+      sku: p.barcode ? (p.barcode.startsWith('SKU-') ? p.barcode : `SKU-${p.barcode.slice(-6)}`) : `SKU-${idx + 1}`,
+      barcode: p.barcode || `600${String(idx + 1).padStart(9, '0')}`,
+      price: Number(p.price) || 0,
+      cost: Number(p.buyingPrice) || Math.round(Number(p.price) * 0.7),
+      quantity: p.qty !== undefined ? Number(p.qty) : 50,
+      category: p.category || 'General',
+      taxRate: p.taxRate !== undefined ? Number(p.taxRate) : 16,
+      description: `${p.name} - Official inventory item`,
+      reorderLevel: 10,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }));
   }
-];
+} catch (e) {
+  console.warn('Could not load products.json, using fallback:', e.message);
+}
+
+if (products.length === 0) {
+  products = [
+    {
+      id: 'PRD-0001',
+      name: 'Espresso Coffee',
+      sku: 'SKU-ESP-01',
+      barcode: '600123456789',
+      price: 250,
+      cost: 100,
+      quantity: 50,
+      category: 'Beverages',
+      taxRate: 16,
+      description: 'Rich dark roast espresso',
+      reorderLevel: 10,
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+}
 let adjustmentHistory = [];
 
 /**
@@ -86,7 +89,7 @@ router.post(
  * GET /api/products
  * List all products with optional filtering
  */
-router.get('/', verifyToken, (req, res) => {
+router.get('/', (req, res) => {
   try {
     const { category, search, lowStock } = req.query;
 
@@ -104,7 +107,9 @@ router.get('/', verifyToken, (req, res) => {
       filtered = productService.getLowStockProducts(filtered);
     }
 
+    // Support both direct array expectations and object wrapper
     res.json({
+      success: true,
       products: filtered,
       total: filtered.length,
       inventoryValue: productService.getInventoryValue(filtered),

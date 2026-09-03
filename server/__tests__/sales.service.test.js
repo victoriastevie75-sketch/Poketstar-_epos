@@ -2,7 +2,7 @@
  * Sales Service Tests
  */
 
-const salesService = require('../../services/sales.service');
+const salesService = require('../services/sales.service');
 
 describe('SalesService', () => {
   const mockItems = [

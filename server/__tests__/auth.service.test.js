@@ -2,7 +2,7 @@
  * Authentication Service Tests
  */
 
-const authService = require('../../services/auth.service');
+const authService = require('../services/auth.service');
 
 describe('AuthService', () => {
   describe('hashPassword', () => {
