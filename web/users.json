@@ -1,0 +1,23 @@
+[
+  {
+    "id": "USR-001",
+    "username": "admin",
+    "name": "Stevie Administrator",
+    "role": "admin",
+    "pin": "1234",
+    "tillId": "Till-01",
+    "status": "active",
+    "phone": "+254700000001",
+    "email": "admin@poketstar.com",
+    "permissions": [
+      "sales",
+      "discounts",
+      "refunds",
+      "inventory",
+      "reports",
+      "users"
+    ],
+    "createdAt": "2026-01-01T00:00:00.000Z",
+    "lastLogin": "2026-09-06T05:45:06.174Z"
+  }
+]

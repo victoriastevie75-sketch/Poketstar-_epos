@@ -132,7 +132,7 @@ async function build() {
     stdio: 'inherit'
   });
   cleanPeSignature(EXE_32);
-  console.log(`  ✅ 32-Bit (x86) Executable compiled cleanly.`);
+  console.log(`  [OK] 32-Bit (x86) Executable compiled cleanly.`);
 
   // 64-Bit (x64)
   fs.copyFileSync(nodeX64, EXE_64);
@@ -141,7 +141,7 @@ async function build() {
     stdio: 'inherit'
   });
   cleanPeSignature(EXE_64);
-  console.log(`  ✅ 64-Bit (x64) Executable compiled cleanly.`);
+  console.log(`  [OK] 64-Bit (x64) Executable compiled cleanly.`);
 
   // Default universal alias
   fs.copyFileSync(EXE_32, EXE_UNI);
@@ -164,7 +164,7 @@ async function build() {
     zip.addLocalFile(path.join(ROOT_DIR, 'products.json'));
   }
   zip.writeZip(ZIP_FILE);
-  console.log(`  ✅ Portable ZIP Archive created: ${ZIP_FILE}`);
+  console.log(`  [OK] Portable ZIP Archive created: ${ZIP_FILE}`);
 
   // Step 6: Distribute to dist/ and web/ endpoints
   console.log(`\n[6/6] Distributing release artifacts to /dist and /web endpoints...`);
@@ -231,19 +231,19 @@ async function build() {
 
   console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎉 WINDOWS RELEASE SUITE COMPILED & VALIDATED SUCCESSFULLY!
+[SUCCESS] WINDOWS RELEASE SUITE COMPILED & VALIDATED SUCCESSFULLY!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 32-Bit Universal Binary: PoketStar-POS-32bit.exe (${s32 ? s32.sizeMB : ''})
-   👉 Clean PE32 headers (no invalid signatures), universal Win 7/8/10/11 support
-📦 64-Bit Optimized Binary: PoketStar-POS-64bit.exe (${s64 ? s64.sizeMB : ''})
-   👉 High-performance 64-bit V8 JIT execution
-📦 Portable ZIP Archive:    PoketStar-POS-Portable.zip (${sZip ? sZip.sizeMB : ''})
-   👉 Contains binaries, Start-POS-Desktop.bat, HTML & database
+[PACKAGE] 32-Bit Universal Binary: PoketStar-POS-32bit.exe (${s32 ? s32.sizeMB : ''})
+   > Clean PE32 headers (no invalid signatures), universal Win 7/8/10/11 support
+[PACKAGE] 64-Bit Optimized Binary: PoketStar-POS-64bit.exe (${s64 ? s64.sizeMB : ''})
+   > High-performance 64-bit V8 JIT execution
+[PACKAGE] Portable ZIP Archive:    PoketStar-POS-Portable.zip (${sZip ? sZip.sizeMB : ''})
+   > Contains binaries, Start-POS-Desktop.bat, HTML & database
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `);
 }
 
 build().catch((err) => {
-  console.error('\n❌ Build Error:', err);
+  console.error('\n[ERROR] Build Error:', err);
   process.exit(1);
 });

@@ -13,19 +13,16 @@ router.get('/methods', (req, res) => {
       {
         id: 'cash',
         label: 'Cash',
-        icon: '💵',
         enabled: true
       },
       {
         id: 'mpesa',
         label: 'M-Pesa',
-        icon: '📱',
         enabled: true
       },
       {
         id: 'card',
         label: 'Card',
-        icon: '💳',
         enabled: true
       }
     ]

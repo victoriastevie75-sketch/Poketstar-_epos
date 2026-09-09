@@ -29,7 +29,7 @@ function log(msg, isError = false) {
 
 process.on('uncaughtException', (err) => {
   log(`[Uncaught Exception]: ${err.stack || err.message}`, true);
-  console.log('\n⚠️ Notice: An unexpected event occurred, but Poket Star POS is remaining online.');
+  console.log('\n[Notice] An unexpected event occurred, but Poket Star POS is remaining online.');
 });
 
 process.on('unhandledRejection', (reason) => {
@@ -151,17 +151,17 @@ async function main() {
     const memMb = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
     console.log(`
-🚀 Poket Star Desktop POS Engine is Online!
+Poket Star Desktop POS Engine is Online!
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📍 POS Local URL:       ${appUrl}
-💻 System Architecture: ${archLabel}
-🖨️ Thermal Printer:     ESC/POS Direct Ready (80mm & 58mm)
-⚡ Performance Status:   Blazing Fast (${memMb} MB RAM Used)
-💾 Local Storage:       ${process.cwd()}
+POS Local URL:       ${appUrl}
+System Architecture: ${archLabel}
+Thermal Printer:     ESC/POS Direct Ready (80mm & 58mm)
+Performance Status:   Blazing Fast (${memMb} MB RAM Used)
+Local Storage:       ${process.cwd()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-💡 Opening Poket Star POS desktop application window...
-💡 Press 'o' in console to re-open window, or Ctrl+C to stop.
+Opening Poket Star POS desktop application window...
+Press 'o' in console to re-open window, or Ctrl+C to stop.
     `);
 
     // Auto open desktop window after engine warms up

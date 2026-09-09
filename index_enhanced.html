@@ -887,9 +887,9 @@
 </head>
 <body>
 
-    <!-- Brand Logo P★ -->
+    <!-- Brand Logo P -->
     <div class="brand-logo">
-        <span class="p">P</span><span class="star">★</span>
+        <span class="p">P</span><span class="star"></span>
     </div>
 
     <!-- Top Desktop Status Bar -->
@@ -903,7 +903,7 @@
         <div class="bar-right">
             <span id="live-clock">10:35 AM</span>
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
-                <span class="theme-icon">🌙</span>
+                <span class="theme-icon"></span>
             </button>
         </div>
     </div>
@@ -914,12 +914,12 @@
         <!-- LEFT: POS Sales Terminal -->
         <div class="window">
             <div class="window-header">
-                <div class="window-title">💳 Poket Star POS | Sales Terminal</div>
+                <div class="window-title"> Poket Star POS | Sales Terminal</div>
                 <div class="window-dots"><div class="dot red"></div><div class="dot"></div><div class="dot"></div></div>
             </div>
             <div class="window-body">
                 <div class="pos-nav">
-                    <div class="pos-logo">🌟 Poket <span>Star</span></div>
+                    <div class="pos-logo"> Poket <span>Star</span></div>
                     <div class="pos-tabs">
                         <button class="active" onclick="switchTab('sales')">Sales</button>
                         <button onclick="switchTab('products')">Products</button>
@@ -959,9 +959,9 @@
                     </div>
 
                     <div class="payment-methods">
-                        <button class="payment-method-btn active" data-payment-method="cash">💵 Cash</button>
-                        <button class="payment-method-btn" data-payment-method="mpesa">📱 M-Pesa</button>
-                        <button class="payment-method-btn" data-payment-method="card">💳 Card</button>
+                        <button class="payment-method-btn active" data-payment-method="cash"> Cash</button>
+                        <button class="payment-method-btn" data-payment-method="mpesa"> M-Pesa</button>
+                        <button class="payment-method-btn" data-payment-method="card"> Card</button>
                     </div>
 
                     <div class="actions">
@@ -977,8 +977,8 @@
                 <!-- PRODUCTS TAB -->
                 <div id="products-tab" class="tab-content hidden">
                     <h2 style="color: var(--accent-blue); margin-bottom: 12px;">Product Management</h2>
-                    <button class="btn" onclick="showAddProductModal()">➕ Add New Product</button>
-                    <button class="btn secondary" onclick="showBulkImportModal()" style="margin-left: 8px;">📥 Bulk Import</button>
+                    <button class="btn" onclick="showAddProductModal()"> Add New Product</button>
+                    <button class="btn secondary" onclick="showBulkImportModal()" style="margin-left: 8px;"> Bulk Import</button>
                     <div id="productListTab" style="margin-top: 15px; display: grid; gap: 8px;"></div>
                 </div>
 
@@ -1004,9 +1004,9 @@
                                 <div class="stat-value" id="avgSale">KES 0.00</div>
                             </div>
                         </div>
-                        <button class="btn" id="viewDetailedReportsBtn" style="width: 100%; margin-top: 12px;">📋 View All Sales Records</button>
-                        <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 8px;">📊 Export Sales (JSON)</button>
-                        <button class="btn" id="saveAllBtn" style="width: 100%; margin-top: 8px; background: #10b981;">💾 Save All Changes</button>
+                        <button class="btn" id="viewDetailedReportsBtn" style="width: 100%; margin-top: 12px;"> View All Sales Records</button>
+                        <button class="btn" id="exportSalesBtn" style="width: 100%; margin-top: 8px;"> Export Sales (JSON)</button>
+                        <button class="btn" id="saveAllBtn" style="width: 100%; margin-top: 8px; background: #10b981;"> Save All Changes</button>
                     </div>
                 </div>
             </div>
@@ -1015,7 +1015,7 @@
         <!-- CENTER: Product List Sidebar -->
         <div class="window">
             <div class="window-header">
-                <div class="window-title">📦 Product List</div>
+                <div class="window-title"> Product List</div>
                 <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
             </div>
             <div class="window-body">
@@ -1031,7 +1031,7 @@
             <!-- Window 1: Hold Sales Manager -->
             <div class="window">
                 <div class="window-header">
-                    <div class="window-title">⏸️ Hold Sales Manager</div>
+                    <div class="window-title"> Hold Sales Manager</div>
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
                 <div class="window-body">
@@ -1044,7 +1044,7 @@
             <!-- Window 2: Shortcuts & Info -->
             <div class="window">
                 <div class="window-header">
-                    <div class="window-title">⌨️ Keyboard Shortcuts</div>
+                    <div class="window-title"> Keyboard Shortcuts</div>
                     <div class="window-dots"><div class="dot"></div><div class="dot"></div></div>
                 </div>
                 <div class="window-body">
@@ -1090,13 +1090,13 @@
 
     <!-- Bottom App Quick Dock Menu -->
     <div class="desktop-dock">
-        <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)">💳</div>
-        <div class="dock-icon" onclick="switchTab('products')" title="Products">📦</div>
-        <div class="dock-icon" onclick="switchTab('reports')" title="Reports">📊</div>
-        <div class="dock-icon" onclick="showAddProductModal()" title="Add Product (Ctrl+N)">➕</div>
-        <div class="dock-icon" onclick="showBulkImportModal()" title="Bulk Import (Ctrl+I)">📥</div>
+        <div class="dock-icon" onclick="switchTab('sales'); document.getElementById('barcodeInput').focus();" title="Sales (Ctrl+S)"></div>
+        <div class="dock-icon" onclick="switchTab('products')" title="Products"></div>
+        <div class="dock-icon" onclick="switchTab('reports')" title="Reports"></div>
+        <div class="dock-icon" onclick="showAddProductModal()" title="Add Product (Ctrl+N)"></div>
+        <div class="dock-icon" onclick="showBulkImportModal()" title="Bulk Import (Ctrl+I)"></div>
         <div class="dock-icon" id="holdBadgeIcon" onclick="focusHoldSales()" title="Hold Sales (Ctrl+H)">
-            ⏸️
+            
             <span class="dock-badge hidden" id="holdBadge">0</span>
         </div>
     </div>
@@ -1156,7 +1156,7 @@
         <div class="modal-inner">
             <h2>Detailed Sales Records</h2>
             <div id="detailedReportsContent" style="overflow-y: auto; max-height: 400px;"></div>
-            <button onclick="printReports()" style="width: 100%; margin-top: 12px; background: #10b981;">🖨️ Print Reports</button>
+            <button onclick="printReports()" style="width: 100%; margin-top: 12px; background: #10b981;"> Print Reports</button>
             <button onclick="closeDetailedReports()" style="width: 100%; margin-top: 8px;">Close</button>
         </div>
     </div>
@@ -1279,14 +1279,14 @@
         function toggleTheme() {
             document.body.classList.toggle('light-mode');
             const icon = document.querySelector('.theme-icon');
-            icon.textContent = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+            icon.textContent = document.body.classList.contains('light-mode') ? '' : '';
             localStorage.setItem('poketstar_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
         }
 
         // Load saved theme
         if (localStorage.getItem('poketstar_theme') === 'light') {
             document.body.classList.add('light-mode');
-            document.querySelector('.theme-icon').textContent = '☀️';
+            document.querySelector('.theme-icon').textContent = '';
         }
 
         function switchTab(tabName) {
@@ -1407,9 +1407,9 @@
                 saveAllData();
                 updateUI();
                 closeBulkImportModal();
-                alert(`✅ Successfully imported ${importedProducts.length} products!`);
+                alert(` Successfully imported ${importedProducts.length} products!`);
             } catch (error) {
-                alert('❌ Error importing products: ' + error.message);
+                alert(' Error importing products: ' + error.message);
             }
         }
 
@@ -1429,7 +1429,7 @@
             }
 
             if (product.rating < 3) {
-                alert('⚠️ This product is restricted (low rating) and cannot be sold.');
+                alert(' This product is restricted (low rating) and cannot be sold.');
                 return;
             }
 
@@ -1529,7 +1529,7 @@
             saveAllData();
             updateUI();
             generateReceipt(sale);
-            alert('✅ Sale completed successfully!');
+            alert(' Sale completed successfully!');
         }
 
         function holdSale() {
@@ -1549,7 +1549,7 @@
             cart = [];
             updateUI();
             saveAllData();
-            alert('✅ Sale held successfully!');
+            alert(' Sale held successfully!');
         }
 
         function resumeHoldSale(holdSaleId) {
@@ -1579,7 +1579,7 @@
 
             receipt.textContent = `
 ╔════════════════════════════════╗
-║     POKET STAR P★ RECEIPT      ║
+║     POKET STAR P RECEIPT      ║
 ║  Transaction Receipt           ║
 ╚════════════════════════════════╝
 
@@ -1601,7 +1601,7 @@ Payment Method:  ${sale.paymentMethod.toUpperCase()}
 ─────────────────────────────────
 
 Thank you for your purchase!
-Powered by Poket Star P★ POS
+Powered by Poket Star P POS
 
 ╔════════════════════════════════╗
 `;
@@ -1632,7 +1632,7 @@ Powered by Poket Star P★ POS
                         Total: KES ${sale.grandTotal.toFixed(2)} (${sale.paymentMethod})
                     </div>
                     <button onclick="reprinkSale('${sale.id}')" style="margin-top: 6px; padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">
-                        🖨️ Reprint
+                         Reprint
                     </button>
                 </div>
             `).join('');
@@ -1658,7 +1658,7 @@ Powered by Poket Star P★ POS
             const reportWindow = window.open('', 'Reports', 'width=800,height=600');
             const reportHTML = salesHistory.map(sale => `
                 <div style="page-break-after: always; border: 1px solid #ccc; padding: 20px; margin-bottom: 20px;">
-                    <h2 style="text-align: center; color: #0084ff;">POKET STAR P★ - SALES REPORT</h2>
+                    <h2 style="text-align: center; color: #0084ff;">POKET STAR P - SALES REPORT</h2>
                     <p><strong>Date:</strong> ${new Date(sale.timestamp).toLocaleString()}</p>
                     <p><strong>Transaction ID:</strong> ${sale.id}</p>
                     <table style="width: 100%; border-collapse: collapse;">
@@ -1687,7 +1687,7 @@ Powered by Poket Star P★ POS
             reportWindow.document.write(`
                 <html>
                 <head>
-                    <title>Sales Reports - Poket Star P★</title>
+                    <title>Sales Reports - Poket Star P</title>
                     <style>
                         body { font-family: Arial, sans-serif; margin: 20px; }
                         @media print { body { margin: 0; } }
@@ -1825,7 +1825,7 @@ Powered by Poket Star P★ POS
         }
 
         function syncInventory() {
-            alert('✅ Inventory synced successfully!');
+            alert(' Inventory synced successfully!');
         }
 
         function saveAllData() {

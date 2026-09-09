@@ -1,0 +1,17 @@
+==========================================
+          POKET STAR RETAIL OS          
+       THERMAL PRINTER TEST PAGE        
+==========================================
+Date/Time: 9/7/2026, 10:33:45 AM
+Paper Width: 80MM
+Printer Status: ONLINE / OPERATIONAL
+==========================================
+Character Set: ASCII 32-126 OK
+Barcode Scanner Engine: READY
+Kenya ETR Tax Module: CERTIFIED
+==========================================
+       THANK YOU FOR YOUR BUSINESS      
+       *** END OF TEST PRINT ***        
+
+
+

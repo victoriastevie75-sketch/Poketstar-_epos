@@ -1,13 +1,16 @@
 // Poket Star EPOS — Progressive Web App Service Worker
 // Enables 100% Offline Access for Retail Sales, Inventory & All 1,629 Products
 
-const CACHE_NAME = 'poketstar-pos-v2.0';
+const CACHE_NAME = 'poketstar-pos-v4.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/products.json',
   '/src/offline-products.js',
   '/manifest.json',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/apple-touch-icon.png',
   '/src/assets/images/pocket_star_gold_silver_official_1785328099213.jpg',
   '/src/assets/images/pocket_star_p1_1785328099213.jpg',
   '/src/assets/images/pocket_star_p2_1785328099213.jpg',
@@ -102,7 +105,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static Assets & Web App Shell: Cache first, background refresh
+  // For HTML / Navigation requests: Network first, fallback to offline cached index.html
+  if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Static Assets: Cache first, background refresh
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {

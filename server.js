@@ -15,6 +15,22 @@ try {
 }
 const app = express();
 
+// Disable X-Powered-By to prevent server fingerprinting
+app.disable('x-powered-by');
+
+// Import Cyber Security Middleware
+let securityModule;
+try {
+  securityModule = require('./server/middleware/security');
+} catch (e) {
+  console.warn('[Server] [WARN] Security module loading note:', e.message);
+}
+
+// Apply HTTP Security Headers (MIME-sniffing, XSS filtering, HSTS, Referrer Policy)
+if (securityModule && securityModule.securityHeadersMiddleware) {
+  app.use(securityModule.securityHeadersMiddleware);
+}
+
 // High Performance Gzip Compression (excluding binary downloads to prevent corruption)
 if (compression) {
   app.use(compression({
@@ -30,8 +46,43 @@ if (compression) {
 }
 
 // Middleware
+let cookieParser;
+try {
+  cookieParser = require('cookie-parser');
+} catch (e) {}
+
+if (cookieParser) {
+  app.use(cookieParser());
+}
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// CORS & Cookie Credentials Middleware (Allows cross-site printing cookies in iframes and standalone windows with secure preflight)
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  const origin = req.headers.origin;
+  if (origin) {
+    // Validate that origin is a valid HTTP/HTTPS or localhost URI
+    if (/^https?:\/\/[a-zA-Z0-9\-\.:_]+$/.test(origin)) {
+      res.header('Access-Control-Allow-Origin', origin);
+    }
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
+  next();
+});
+
+// Apply API Rate Limiting to prevent denial-of-service and brute force
+if (securityModule && securityModule.apiLimiter) {
+  app.use('/api', securityModule.apiLimiter);
+}
 
 // Fast In-Memory Cache for index.html
 let cachedIndexHtml = null;
@@ -58,41 +109,109 @@ function getIndexHtml() {
 // Pre-warm the cache
 getIndexHtml();
 
-// Serve static assets with caching headers
-app.use(express.static(path.join(__dirname), { maxAge: '1h' }));
-app.use('/web', express.static(path.join(__dirname, 'web'), { maxAge: '1h' }));
+// Explicit un-cached route for Service Worker so clients immediately get updates
+app.get('/sw.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
+// Fast instant delivery of root HTML with no-cache headers
+app.get(['/', '/index.html'], (req, res) => {
+  const html = getIndexHtml();
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  if (html) {
+    return res.send(html);
+  }
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Serve static assets with caching headers (excluding HTML and SW)
+app.use(express.static(path.join(__dirname), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  }
+}));
+app.use('/web', express.static(path.join(__dirname, 'web'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('sw.js')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+    }
+  }
+}));
 
 // Mount API routes with error handling
 try {
   const authRoutes = require('./server/routes/auth.routes');
   app.use('/api/auth', authRoutes);
-  console.log('[Server] ✓ Auth routes loaded');
+  console.log('[Server] [OK] Auth routes loaded');
 } catch (e) {
-  console.warn('[Server] ⚠ Auth routes not available:', e.message);
+  console.warn('[Server] [WARN] Auth routes not available:', e.message);
 }
 
 try {
   const paymentsRoutes = require('./server/routes/payments.routes');
   app.use('/api/payments', paymentsRoutes);
-  console.log('[Server] ✓ Payments routes loaded');
+  console.log('[Server] [OK] Payments routes loaded');
 } catch (e) {
-  console.warn('[Server] ⚠ Payments routes not available:', e.message);
+  console.warn('[Server] [WARN] Payments routes not available:', e.message);
 }
 
 try {
   const productsRoutes = require('./server/routes/products.routes');
   app.use('/api/products', productsRoutes);
-  console.log('[Server] ✓ Products routes loaded');
+  console.log('[Server] [OK] Products routes loaded');
 } catch (e) {
-  console.warn('[Server] ⚠ Products routes not available:', e.message);
+  console.warn('[Server] [WARN] Products routes not available:', e.message);
 }
 
 try {
   const salesRoutes = require('./server/routes/sales.routes');
   app.use('/api/sales', salesRoutes);
-  console.log('[Server] ✓ Sales routes loaded');
+  console.log('[Server] [OK] Sales routes loaded');
 } catch (e) {
-  console.warn('[Server] ⚠ Sales routes not available:', e.message);
+  console.warn('[Server] [WARN] Sales routes not available:', e.message);
+}
+
+try {
+  const usersRoutes = require('./server/routes/users.routes');
+  app.use('/api/users', usersRoutes);
+  console.log('[Server] [OK] Users registry routes loaded');
+} catch (e) {
+  console.warn('[Server] [WARN] Users routes not available:', e.message);
+}
+
+try {
+  const printerRoutes = require('./server/routes/printer.routes');
+  app.use('/api/printer', printerRoutes);
+  app.use('/receipts', express.static(path.join(__dirname, 'receipts')));
+  app.get(['/print-slip', '/receipt-view'], (req, res) => {
+    res.redirect('/api/printer/view' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : ''));
+  });
+  console.log('[Server] [OK] Thermal printer routes loaded');
+} catch (e) {
+  console.warn('[Server] [WARN] Printer routes not available:', e.message);
+}
+
+try {
+  const securityRoutes = require('./server/routes/security.routes');
+  app.use('/api/security', securityRoutes);
+  console.log('[Server] [OK] Cyber security & audit routes loaded');
+} catch (e) {
+  console.warn('[Server] [WARN] Security routes not available:', e.message);
 }
 
 // Health check endpoint
@@ -202,17 +321,6 @@ app.get('/api/download/info', (req, res) => {
   });
 });
 
-// Fast instant delivery of root HTML
-app.get('/', (req, res) => {
-  const html = getIndexHtml();
-  if (html) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=120');
-    return res.send(html);
-  }
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
-
 // 404 fallback
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
@@ -229,7 +337,7 @@ if (require.main === module) {
     console.log(`║  Poketstar POS Server Running    ║`);
     console.log(`╚══════════════════════════════════╝`);
     console.log(`
-🚀 Listening on http://0.0.0.0:${PORT}
+[Server] Listening on http://0.0.0.0:${PORT}
 `);
   });
 }

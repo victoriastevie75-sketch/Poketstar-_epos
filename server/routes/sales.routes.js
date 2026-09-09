@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { sanitizeString } = require('../middleware/security');
 const router = express.Router();
 
 /**
@@ -113,25 +114,42 @@ router.get('/:id', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { items, totals, payment } = req.body;
+  const { items, totals, total, payment, paymentMethod, tendered, change, subtotal, ref } = req.body;
   
-  if (!items || !totals || !payment) {
+  if (!items || (!totals && total === undefined && subtotal === undefined)) {
     return res.status(400).json({
       status: 'error',
-      message: 'Items, totals, and payment information are required'
+      message: 'Items and total or payment information are required'
     });
   }
 
   const sales = loadSales();
-  
+  const grandTotal = Number(totals?.grand !== undefined ? totals.grand : (total !== undefined ? total : (subtotal || 0))) || 0;
+  const rawSubtotal = Number(totals?.subtotal !== undefined ? totals.subtotal : (subtotal !== undefined ? subtotal : grandTotal)) || grandTotal;
+  const rawTax = Number(totals?.tax !== undefined ? totals.tax : 0) || 0;
+  const rawDiscount = Number(totals?.discount !== undefined ? totals.discount : 0) || 0;
+  const payMethod = paymentMethod || payment?.method || 'cash';
+  const tenderedAmt = Number(tendered !== undefined ? tendered : (payment?.tendered !== undefined ? payment.tendered : grandTotal)) || grandTotal;
+  const changeAmt = Number(change !== undefined ? change : (payment?.change !== undefined ? payment.change : Math.max(0, tenderedAmt - grandTotal))) || 0;
+
   const newSale = {
-    id: `SALE-${Date.now()}`,
-    items,
-    totals,
+    id: req.body.id || `SALE-${Date.now()}`,
+    items: Array.isArray(items) ? items : [],
+    totals: {
+      subtotal: rawSubtotal,
+      tax: rawTax,
+      discount: rawDiscount,
+      grand: grandTotal
+    },
     payment: {
-      ...payment,
+      method: payMethod,
+      tendered: tenderedAmt,
+      change: changeAmt,
+      reference: ref || payment?.reference || null,
       processedAt: new Date().toISOString()
     },
+    subtotal: grandTotal,
+    paymentMethod: payMethod,
     created_at: new Date().toISOString(),
     status: 'COMPLETED'
   };
