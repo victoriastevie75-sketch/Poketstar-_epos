@@ -428,7 +428,7 @@ static void launch_pos_window(int port) {
     snprintf(url, sizeof(url), "http://127.0.0.1:%d", port);
 
     char app_arg[256];
-    snprintf(app_arg, sizeof(app_arg), "--app=%s --window-size=1280,840 --disable-pinch", url);
+    snprintf(app_arg, sizeof(app_arg), "--app=%s --window-size=1280,840 --disable-pinch --disable-devtools", url);
 
     const char* p_progX86 = getenv("ProgramFiles(x86)");
     const char* p_prog = getenv("ProgramFiles");

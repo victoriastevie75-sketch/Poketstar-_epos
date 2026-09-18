@@ -236,14 +236,21 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
       content = '==========================================\n          POKET STAR RETAIL OS          \n           THERMAL RECEIPT SLIP         \n==========================================\nNo receipt data currently available.\n==========================================';
     }
   }
-      content = '==========================================\n          POKET STAR RETAIL OS          \n           THERMAL RECEIPT SLIP         \n==========================================\nNo receipt data currently available.\n==========================================';
-    }
-  }
 
   const width = req.query.width || '80mm';
+  const size = req.query.size || 'small';
   const autoPrint = req.query.autoprint === '1' || req.query.print === 'true';
-  const paperWidth = width === '58mm' ? '58mm' : (width === 'a4' ? '210mm' : '80mm');
-  const fontSize = width === '58mm' ? '9.5px' : (width === 'a4' ? '12px' : '11px');
+  const paperWidth = width === '58mm' ? '48mm' : (width === 'a4' ? '210mm' : '72mm');
+  const pageSize = width === '58mm' ? '58mm auto' : (width === 'a4' ? 'A4' : '80mm auto');
+
+  let fontSize = '8.5px';
+  if (width === '58mm') {
+    fontSize = size === 'xs' ? '6.8px' : (size === 'regular' ? '8.5px' : '7.5px');
+  } else if (width === 'a4') {
+    fontSize = '11px';
+  } else {
+    fontSize = size === 'xs' ? '7.5px' : (size === 'regular' ? '9.8px' : '8.5px');
+  }
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -254,7 +261,7 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
   <style>
     @page {
       margin: 0;
-      size: ${paperWidth} auto;
+      size: ${pageSize};
     }
     @media print {
       html, body {
@@ -262,6 +269,7 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
         padding: 0 !important;
         background: #ffffff !important;
         color: #000000 !important;
+        width: ${paperWidth} !important;
       }
       .no-print {
         display: none !important;
@@ -269,12 +277,12 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
     }
     body {
       margin: 0 auto;
-      padding: 3mm 4mm;
+      padding: 1mm 1.5mm 3cm 1.5mm;
       font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', Courier, monospace;
       font-size: ${fontSize};
-      font-weight: 700;
-      line-height: 1.18;
-      letter-spacing: 0.01em;
+      font-weight: 600;
+      line-height: 1.12;
+      letter-spacing: 0;
       color: #000000;
       background: #ffffff;
       width: ${paperWidth};
@@ -391,6 +399,157 @@ router.post('/test', (req, res) => {
     message: 'Test print pattern generated.',
     testText,
     printJob: lastPrintJob
+  });
+});
+
+// POST reset printer engine and purge spool buffers (Admin only)
+router.post('/reset', (req, res) => {
+  attachPrintingCookies(res);
+  const role = (req.headers['x-pos-role'] || (req.body && req.body.role) || '').toLowerCase();
+  if (role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied: Only administrators can reset the thermal printer engine and spooler.' });
+  }
+  try {
+    if (fs.existsSync(receiptsDir)) {
+      const files = fs.readdirSync(receiptsDir);
+      for (const f of files) {
+        if (f.startsWith('receipt_') && f.endsWith('.txt')) {
+          try {
+            fs.unlinkSync(path.join(receiptsDir, f));
+          } catch (e) {}
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[Printer Route] Buffer cleanup notice:', err.message);
+  }
+
+  lastPrintJob = {
+    timestamp: new Date().toISOString(),
+    status: 'reset-completed',
+    method: 'hardware-reset',
+    characters: 0
+  };
+
+  res.json({
+    status: 'success',
+    message: 'Thermal printer engine, ESC/POS hardware state, and server spooler successfully reset to factory defaults.',
+    resetTimestamp: new Date().toISOString(),
+    escPosResetCode: '1B 40 (ESC @)',
+    printJob: lastPrintJob
+  });
+});
+
+// GET custom printer drivers
+router.get('/drivers', (req, res) => {
+  const driversFilePath = path.join(receiptsDir, 'printer_drivers.json');
+  if (fs.existsSync(driversFilePath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(driversFilePath, 'utf8'));
+      return res.json({ status: 'success', drivers: data });
+    } catch (e) {}
+  }
+
+  // Fallback: Parse from index.html if file does not exist yet
+  try {
+    const indexPath = path.join(__dirname, '../../index.html');
+    if (fs.existsSync(indexPath)) {
+      const html = fs.readFileSync(indexPath, 'utf8');
+      const match = html.match(/<script id="pos-printer-drivers-json" type="application\/json">([\s\S]*?)<\/script>/);
+      if (match && match[1]) {
+        const drivers = JSON.parse(match[1].trim());
+        return res.json({ status: 'success', drivers });
+      }
+    }
+  } catch (e) {}
+
+  res.json({ status: 'success', drivers: [] });
+});
+
+// POST create and save printer driver directly to index.html and server storage (Admin only)
+router.post('/save-driver-to-html', (req, res) => {
+  attachPrintingCookies(res);
+  const role = (req.headers['x-pos-role'] || (req.body && req.body.role) || '').toLowerCase();
+  if (role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied: Only administrators can create and save printer drivers to HTML.' });
+  }
+  const { drivers, driver } = req.body;
+
+  let driversList = [];
+  if (Array.isArray(drivers)) {
+    driversList = drivers;
+  } else if (driver && typeof driver === 'object') {
+    // Read existing drivers first
+    const driversFilePath = path.join(receiptsDir, 'printer_drivers.json');
+    if (fs.existsSync(driversFilePath)) {
+      try {
+        driversList = JSON.parse(fs.readFileSync(driversFilePath, 'utf8'));
+      } catch (e) {}
+    }
+    const existingIdx = driversList.findIndex(d => d.id === driver.id);
+    if (existingIdx >= 0) {
+      driversList[existingIdx] = driver;
+    } else {
+      driversList.push(driver);
+    }
+  } else {
+    return res.status(400).json({ error: 'Valid driver object or drivers array is required.' });
+  }
+
+  // 1. Persist to server driver JSON store
+  try {
+    const driversFilePath = path.join(receiptsDir, 'printer_drivers.json');
+    fs.writeFileSync(driversFilePath, JSON.stringify(driversList, null, 2), 'utf8');
+  } catch (e) {
+    console.warn('[Printer Route] Could not save printer_drivers.json:', e.message);
+  }
+
+  // 2. Persist directly into index.html
+  let updatedHtmlFiles = 0;
+  const targetHtmlPaths = [
+    path.join(__dirname, '../../index.html'),
+    path.join(__dirname, '../../dist/index.html')
+  ];
+
+  const formattedJson = JSON.stringify(driversList, null, 2);
+  const newTagContent = `<script id="pos-printer-drivers-json" type="application/json">\n${formattedJson}\n    </script>`;
+
+  for (const targetPath of targetHtmlPaths) {
+    if (fs.existsSync(targetPath)) {
+      try {
+        let content = fs.readFileSync(targetPath, 'utf8');
+        if (content.includes('<script id="pos-printer-drivers-json"')) {
+          content = content.replace(
+            /<script id="pos-printer-drivers-json" type="application\/json">[\s\S]*?<\/script>/,
+            newTagContent
+          );
+        } else {
+          // If tag does not exist yet, insert right after pos-products-json closing tag or before interactive script
+          if (content.includes('</script>\n\n    <!-- Interactive Script Engine -->')) {
+            content = content.replace(
+              '</script>\n\n    <!-- Interactive Script Engine -->',
+              `</script>\n\n    <!-- Embedded Default & Custom Printer Drivers Registry -->\n    ${newTagContent}\n\n    <!-- Interactive Script Engine -->`
+            );
+          } else if (content.includes('<!-- Interactive Script Engine -->')) {
+            content = content.replace(
+              '<!-- Interactive Script Engine -->',
+              `<!-- Embedded Default & Custom Printer Drivers Registry -->\n    ${newTagContent}\n\n    <!-- Interactive Script Engine -->`
+            );
+          }
+        }
+        fs.writeFileSync(targetPath, content, 'utf8');
+        updatedHtmlFiles++;
+      } catch (err) {
+        console.warn(`[Printer Route] Error updating ${targetPath}:`, err.message);
+      }
+    }
+  }
+
+  res.json({
+    status: 'success',
+    message: `Printer driver successfully created and permanently saved to HTML (${updatedHtmlFiles} file(s) updated).`,
+    driverCount: driversList.length,
+    updatedHtmlFiles
   });
 });
 

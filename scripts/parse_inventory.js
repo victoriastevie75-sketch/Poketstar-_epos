@@ -61,6 +61,14 @@ function parseFileExact(filePath) {
             .replace(/\s*(ITEMS|items|ltems|lTEMS|TIEMS)\s*$/i, "")
             .trim();
 
+        text = text.replace(/87303322[^\x00-\x7F\s]*\s*DASANI\s*50/i, "87303322 DASANI 50");
+        if (text === "616110048616110048") {
+            text = "616110048 616110048";
+        }
+        if (text.startsWith("https://bitMAGIC DR")) {
+            text = "https://bit MAGIC DR";
+        }
+
         let barcode = "";
         let name = "";
 
@@ -132,7 +140,21 @@ for (const p of allExact) {
 fs.writeFileSync(path.join(__dirname, "../products.json"), JSON.stringify(exactProducts, null, 2), "utf8");
 console.log("Written products.json with", exactProducts.length, "items.");
 
-// 2. Write /src/offline-products.js
+// 2. Write /web/products.json
+try {
+    fs.writeFileSync(path.join(__dirname, "../web/products.json"), JSON.stringify(exactProducts, null, 2), "utf8");
+    console.log("Written web/products.json");
+} catch (e) {}
+
+// 3. Write /dist/products.json
+try {
+    if (fs.existsSync(path.join(__dirname, "../dist"))) {
+        fs.writeFileSync(path.join(__dirname, "../dist/products.json"), JSON.stringify(exactProducts, null, 2), "utf8");
+        console.log("Written dist/products.json");
+    }
+} catch (e) {}
+
+// 4. Write /src/offline-products.js
 const offlineJs = `// Offline Embedded Master Catalog (Exact PDF Export)\nwindow.OFFLINE_PRODUCTS = ${JSON.stringify(exactProducts, null, 2)};\n`;
 fs.writeFileSync(path.join(__dirname, "../src/offline-products.js"), offlineJs, "utf8");
 console.log("Written src/offline-products.js");

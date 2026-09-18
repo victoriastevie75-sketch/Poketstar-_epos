@@ -1342,8 +1342,8 @@ window.OFFLINE_PRODUCTS = [
     "taxRate": 16
   },
   {
-    "name": "87303322刷 DASANI 50",
-    "barcode": "-",
+    "name": "DASANI 50",
+    "barcode": "87303322",
     "buyingPrice": 28,
     "price": 40,
     "qty": 50,
@@ -3106,8 +3106,8 @@ window.OFFLINE_PRODUCTS = [
     "taxRate": 16
   },
   {
-    "name": "616110048616110048",
-    "barcode": "-",
+    "name": "616110048",
+    "barcode": "616110048",
     "buyingPrice": 28,
     "price": 40,
     "qty": 50,
@@ -16966,8 +16966,8 @@ window.OFFLINE_PRODUCTS = [
     "taxRate": 16
   },
   {
-    "name": "DR",
-    "barcode": "https://bitMAGIC",
+    "name": "MAGIC DR",
+    "barcode": "https://bit",
     "buyingPrice": 35,
     "price": 50,
     "qty": 50,
