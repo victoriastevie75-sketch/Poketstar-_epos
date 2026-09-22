@@ -11,8 +11,8 @@ function updateFile(filePath) {
     // 1. Meta author
     if (!html.includes('<meta name="author"')) {
         html = html.replace(
-            '<meta name="description" content="Boutique Retail OS — Enterprise Point of Sale & Invoicing">',
-            '<meta name="description" content="Boutique Retail OS — Enterprise Point of Sale & Invoicing">\n    <meta name="author" content="Stephen barasa">'
+            '<meta name="description" content="Enterprise Point of Sale & Invoicing">',
+            '<meta name="description" content="Enterprise Point of Sale & Invoicing">\n    <meta name="author" content="Stephen barasa">'
         );
     } else {
         html = html.replace(/<meta name="author"[^>]*>/i, '<meta name="author" content="Stephen barasa">');

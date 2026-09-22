@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poket Star</title>
-    <meta name="description" content="Boutique Retail OS — Enterprise Point of Sale & Invoicing">
+    <meta name="description" content="Enterprise Point of Sale & Invoicing">
     <meta name="author" content="Stephen barasa">
     <meta property="og:title" content="Poket Star">
-    <meta property="og:description" content="Boutique Retail OS — Enterprise Point of Sale & Invoicing">
+    <meta property="og:description" content="Enterprise Point of Sale & Invoicing">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#121413">
     <meta name="mobile-web-app-capable" content="yes">
@@ -167,7 +167,7 @@
             --text-main: var(--ink);
         }
 
-        /* ===== BOUTIQUE THEMES SYSTEM ===== */
+        /* ===== THEMES SYSTEM ===== */
         /* 1. Retail Ivory (Clean Light Mode) */
         body.light-mode, body[data-theme="light"] {
             --bg: #f4f6f5;
@@ -212,7 +212,7 @@
             --text-main: #f1f5f9;
         }
 
-        /* 3. Gold Luxe (Warm Amber Boutique Mode) */
+        /* 3. Gold Luxe (Warm Amber Mode) */
         body.theme-gold, body[data-theme="gold"] {
             --bg: #14110b;
             --ink: #fcf6ea;
@@ -256,7 +256,7 @@
             --text-main: #ecfdf5;
         }
 
-        /* 5. Boutique Noir (Classic Dark Mode) */
+        /* 5. Classic Dark (Sage Emerald Dark Mode) */
         body.theme-dark, body[data-theme="dark"] {
             --bg: #111312;
             --ink: #e2e8e5;
@@ -292,7 +292,7 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Boutique Typography */
+        /* Typography */
         h1, h2, h3, .brand-title, .hero h1 {
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-weight: 600;
@@ -309,7 +309,7 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* Top Boutique Header Bar */
+        /* Top Header Bar */
         .header-bar, .desktop-bar {
             padding: 0.85rem 2rem;
             display: flex;
@@ -382,7 +382,7 @@
             background: var(--ink-faint);
         }
 
-        /* 3-Pane Boutique Workspace */
+        /* 3-Pane Workspace */
         .workspace {
             flex: 1;
             display: grid;
@@ -454,7 +454,7 @@
             width: 100%;
             border: 1.5px solid var(--border);
             background: var(--bg);
-            padding: 0.65rem 0.75rem 0.65rem 2rem;
+            padding: 0.65rem 0.75rem;
             font-size: 0.88rem;
             font-family: inherit;
             font-style: normal;
@@ -471,30 +471,21 @@
             background: var(--card);
         }
 
-        .sidebar-scanner-box .scanner-icon {
-            position: absolute;
-            left: 0.65rem;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            pointer-events: none;
-        }
-
         .sidebar-scanner-box .autocomplete-dropdown {
             position: absolute;
             top: 100%;
             left: 0;
-            right: 0;
-            width: 100%;
+            width: max(100%, 380px);
+            min-width: 360px;
+            max-width: 500px;
             background: var(--card);
-            border: 1px solid var(--border);
+            border: 1.5px solid var(--border);
             border-radius: 4px;
-            max-height: 250px;
+            max-height: 320px;
             overflow-y: auto;
             z-index: 1000;
             margin-top: 4px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
         }
 
         .product-sidebar {
@@ -765,19 +756,19 @@
 
         #receipt {
             font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', Courier, monospace;
-            font-size: 0.76rem;
-            font-weight: 600;
-            line-height: 1.45;
+            font-size: 0.88rem;
+            font-weight: 700;
+            line-height: 1.35;
             letter-spacing: 0.015em;
             color: #000000;
             white-space: pre-wrap;
-            padding: 0.85rem 0.85rem 3cm 0.85rem;
+            padding: 0.95rem 0.95rem 3cm 0.95rem;
             border: 1px solid var(--border);
             background: #faf8f5;
             margin: 0.75rem 0 1rem;
             border-radius: 4px;
-            min-height: calc(180px + 3cm);
-            max-height: calc(240px + 3cm);
+            min-height: calc(200px + 3cm);
+            max-height: calc(300px + 3cm);
             overflow-y: auto;
             text-shadow: 0 0 0.25px #000000;
             box-sizing: border-box;
@@ -1864,50 +1855,62 @@
                 left: 0 !important;
                 top: 0 !important;
                 width: 100% !important;
-                max-width: 72mm !important;
+                max-width: 80mm !important;
                 margin: 0 auto !important;
-                padding: 1mm 1.5mm 3cm 1.5mm !important;
+                padding: 1.5mm 2mm 3cm 2mm !important;
                 background: #ffffff !important;
                 color: #000000 !important;
                 font-family: 'SF Mono', 'Cascadia Code', 'Courier New', Courier, monospace !important;
-                font-size: 8.5px !important;
-                font-weight: 600 !important;
+                font-size: 13.5px !important;
+                font-weight: 700 !important;
                 letter-spacing: 0 !important;
-                line-height: 1.12 !important;
-                white-space: pre-wrap !important;
+                line-height: 1.22 !important;
+                white-space: pre !important;
                 box-sizing: border-box !important;
             }
             body.paper-58mm #printableReceipt {
-                max-width: 48mm !important;
-                font-size: 7.5px !important;
-                line-height: 1.10 !important;
+                max-width: 56mm !important;
+                font-size: 12px !important;
+                line-height: 1.20 !important;
             }
             body.paper-80mm #printableReceipt {
-                max-width: 72mm !important;
-                font-size: 8.5px !important;
-                line-height: 1.12 !important;
+                max-width: 80mm !important;
+                font-size: 13.5px !important;
+                line-height: 1.22 !important;
             }
             body.receipt-size-xs #printableReceipt {
-                font-size: 7.5px !important;
+                font-size: 11px !important;
             }
             body.paper-58mm.receipt-size-xs #printableReceipt {
-                font-size: 6.8px !important;
+                font-size: 9.5px !important;
             }
             body.receipt-size-small #printableReceipt {
-                font-size: 8.5px !important;
+                font-size: 12px !important;
             }
             body.paper-58mm.receipt-size-small #printableReceipt {
-                font-size: 7.5px !important;
+                font-size: 10.5px !important;
             }
             body.receipt-size-regular #printableReceipt {
-                font-size: 9.8px !important;
+                font-size: 13.5px !important;
             }
             body.paper-58mm.receipt-size-regular #printableReceipt {
-                font-size: 8.5px !important;
+                font-size: 12px !important;
+            }
+            body.receipt-size-large #printableReceipt {
+                font-size: 14.5px !important;
+            }
+            body.paper-58mm.receipt-size-large #printableReceipt {
+                font-size: 13px !important;
+            }
+            body.receipt-size-xl #printableReceipt {
+                font-size: 15.5px !important;
+            }
+            body.paper-58mm.receipt-size-xl #printableReceipt {
+                font-size: 13.8px !important;
             }
             body.paper-a4 #printableReceipt {
                 max-width: 100% !important;
-                font-size: 11px !important;
+                font-size: 15px !important;
             }
             #printableReceipt * {
                 visibility: visible !important;
@@ -2021,7 +2024,7 @@
         </div>
     </div>
 
-    <!-- Top Boutique Header Bar -->
+    <!-- Top Header Bar -->
     <header class="header-bar">
         <div class="header-brand" onclick="openLogoSelectorModal()" title="Click to Change Logo">
             <img id="app-bar-logo-img" src="/src/assets/images/pocket_star_gold_silver_official_1785328099213.jpg" alt="Poket Star Logo" />
@@ -2050,7 +2053,7 @@
             <button class="header-btn" onclick="openLogoSelectorModal()" title="Choose App Logo">Logos</button>
             <div style="display: inline-flex; align-items: center; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; background: var(--bg);">
                 <button class="header-btn theme-toggle" onclick="toggleTheme()" title="Click to cycle next theme" id="themeToggleBtn" style="border: none; border-radius: 0; padding: 0.35rem 0.65rem;">Theme</button>
-                <button class="header-btn" onclick="openThemeSelectorModal()" title="Open 5 Boutique Themes Gallery" style="border: none; border-left: 1px solid var(--border); border-radius: 0; padding: 0.35rem 0.5rem; font-size: 11px;">▾</button>
+                <button class="header-btn" onclick="openThemeSelectorModal()" title="Open Themes Gallery" style="border: none; border-left: 1px solid var(--border); border-radius: 0; padding: 0.35rem 0.5rem; font-size: 11px;">▾</button>
             </div>
         </div>
     </header>
@@ -2072,7 +2075,7 @@
         </div>
     </div>
 
-    <!-- 3-Pane Boutique Workspace -->
+    <!-- 3-Pane POS Workspace -->
     <div class="workspace">
         
         <!-- PANE 1: Navigation & Quick Catalog -->
@@ -2097,7 +2100,6 @@
                     <div class="search-field search-container" style="margin-bottom: 0.35rem; position: relative;">
                         <div class="search-row" style="display: flex; flex-direction: column; gap: 0.45rem; align-items: stretch;">
                             <div class="scanner-input-wrapper">
-                                <span class="scanner-icon">🔍</span>
                                 <input id="barcodeInput" placeholder="Scan barcode or type name..." autocomplete="off" />
                             </div>
                             <button class="btn" id="addToCartBtn" style="width: 100%; padding: 0.55rem; font-size: 0.8rem; justify-content: center; font-weight: 600;">+ Add to Cart (Enter)</button>
@@ -2106,7 +2108,7 @@
                     </div>
 
                     <div style="font-size: 0.68rem; color: var(--text-muted); line-height: 1.35; background: var(--ink-faint); padding: 0.45rem 0.55rem; border-radius: 4px; border: 1px dashed var(--border);">
-                        <span>📷 Hardware scanner active. Auto-reads on scan or type item & press Enter.</span>
+                        <span>Hardware scanner active. Auto-reads on scan or type item & press Enter.</span>
                     </div>
                 </div>
 
@@ -2314,7 +2316,6 @@
                         </div>
                         <div class="sphere-user-search-group">
                             <div class="sphere-search-box">
-                                <span>🔍</span>
                                 <input type="text" id="sphereSearchInput" placeholder="Search sales, items, cashiers..." oninput="handleSphereSearch(this.value)" />
                             </div>
                             <div class="sphere-user-chip" onclick="openSwitchUserModal()" title="Current Active Cashier / Switch Till">
@@ -2940,7 +2941,7 @@
                 <h2 style="margin-bottom: 0; display: flex; align-items: center; gap: 8px;">Pocket Star Brand Logos</h2>
                 <button type="button" onclick="closeLogoSelectorModal()" class="btn secondary outline" style="padding: 4px 10px; font-size: 12px;">Close</button>
             </div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Select your preferred logo style below to instantly update the Pocket Star POS branding across the header & boutique interface.</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Select your preferred logo style below to instantly update the Pocket Star POS branding across the header & system interface.</p>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; max-height: 480px; overflow-y: auto; padding-right: 4px;" id="logoGridContainer">
                 <!-- Logo Option 1 (Official Gold & Silver) -->
@@ -3498,7 +3499,7 @@ const browserExecutables = [
 
                 <div style="margin-bottom: 0.85rem;">
                     <label class="label" style="display: block; margin-bottom: 0.35rem;">Email Address</label>
-                    <input type="email" id="userEmail" placeholder="staff@boutique.co.ke" style="width: 100%; padding: 0.65rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px;" />
+                    <input type="email" id="userEmail" placeholder="staff@poketstar.co.ke" style="width: 100%; padding: 0.65rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px;" />
                 </div>
 
                 <div style="background: var(--ink-faint); border: 1px solid var(--border); border-radius: 3px; padding: 0.75rem; margin-bottom: 1rem;">
@@ -3583,7 +3584,7 @@ const browserExecutables = [
         </div>
     </div>
 
-    <!-- BOUTIQUE THEMES SELECTOR MODAL -->
+    <!-- THEMES SELECTOR MODAL -->
     <div id="themeSelectorModal" class="modal hidden">
         <div class="modal-inner" style="max-width: 620px; width: 95%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
@@ -3598,10 +3599,10 @@ const browserExecutables = [
                 <!-- Theme Card 1: Classic Dark -->
                 <div onclick="selectTheme('dark')" id="theme-card-dark" style="cursor: pointer; padding: 14px; border: 2px solid var(--border); border-radius: 6px; background: #111312; color: #e2e8e5; transition: all 0.2s;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <strong style="font-size: 0.95rem;">Boutique Noir (Dark)</strong>
+                        <strong style="font-size: 0.95rem;">Classic Dark (Emerald)</strong>
                         <span style="width: 14px; height: 14px; border-radius: 50%; background: #5ca88d; display: inline-block;"></span>
                     </div>
-                    <div style="font-size: 0.75rem; color: #9ba39e; margin-bottom: 10px;">Classic luxury dark theme with sage emerald accents.</div>
+                    <div style="font-size: 0.75rem; color: #9ba39e; margin-bottom: 10px;">Classic dark theme with sage emerald accents.</div>
                     <div style="display: flex; gap: 6px;">
                         <span style="height: 14px; width: 24px; background: #181b1a; border-radius: 2px; border: 1px solid #2a2e2d;"></span>
                         <span style="height: 14px; width: 24px; background: #5ca88d; border-radius: 2px;"></span>
@@ -3615,7 +3616,7 @@ const browserExecutables = [
                         <strong style="font-size: 0.95rem; color: #161c19;">Retail Ivory (Light)</strong>
                         <span style="width: 14px; height: 14px; border-radius: 50%; background: #0f766e; display: inline-block;"></span>
                     </div>
-                    <div style="font-size: 0.75rem; color: #566861; margin-bottom: 10px;">High-visibility bright daylight boutique mode.</div>
+                    <div style="font-size: 0.75rem; color: #566861; margin-bottom: 10px;">High-visibility bright daylight cashier mode.</div>
                     <div style="display: flex; gap: 6px;">
                         <span style="height: 14px; width: 24px; background: #ffffff; border-radius: 2px; border: 1px solid #ccd8d2;"></span>
                         <span style="height: 14px; width: 24px; background: #0f766e; border-radius: 2px;"></span>
@@ -3643,7 +3644,7 @@ const browserExecutables = [
                         <strong style="font-size: 0.95rem; color: #dfb15b;">Gold Luxe (Amber)</strong>
                         <span style="width: 14px; height: 14px; border-radius: 50%; background: #dfb15b; display: inline-block;"></span>
                     </div>
-                    <div style="font-size: 0.75rem; color: #bdae98; margin-bottom: 10px;">Warm espresso tones paired with radiant boutique amber gold.</div>
+                    <div style="font-size: 0.75rem; color: #bdae98; margin-bottom: 10px;">Warm espresso tones paired with radiant amber gold.</div>
                     <div style="display: flex; gap: 6px;">
                         <span style="height: 14px; width: 24px; background: #1c1810; border-radius: 2px; border: 1px solid #3d3322;"></span>
                         <span style="height: 14px; width: 24px; background: #dfb15b; border-radius: 2px;"></span>
@@ -3799,9 +3800,10 @@ const browserExecutables = [
                 <div>
                     <label class="label" style="display: block; margin-bottom: 0.35rem;">Receipt Scale / Size</label>
                     <select id="modalReceiptSizeSelect" onchange="changeReceiptSize(this.value)" style="width: 100%; padding: 0.65rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px;">
-                        <option value="small">Compact / Small (8.5px - Paper Saver)</option>
-                        <option value="xs">Extra Small (7.5px - Minimal Height)</option>
-                        <option value="regular">Standard (10px)</option>
+                        <option value="large">Large / Bold (High Clarity - Recommended)</option>
+                        <option value="regular">Standard / Medium</option>
+                        <option value="xl">Extra Large (Max Size)</option>
+                        <option value="small">Compact</option>
                     </select>
                 </div>
                 <div>
@@ -3830,14 +3832,52 @@ const browserExecutables = [
             </div>
 
             <!-- Store Details on Receipt -->
-            <div style="margin-bottom: 1rem;">
-                <label class="label" style="display: block; margin-bottom: 0.35rem;">Store Name on Receipt</label>
-                <input type="text" id="receiptStoreNameInput" placeholder="POKET STAR BOUTIQUE" style="width: 100%; padding: 0.65rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px;" />
-            </div>
-
-            <div style="margin-bottom: 1rem;">
-                <label class="label" style="display: block; margin-bottom: 0.35rem;">Receipt Footer / Slogan</label>
-                <input type="text" id="receiptFooterInput" placeholder="THANK YOU FOR SHOPPING WITH US! GOODS ONCE SOLD ARE SUBJECT TO STORE POLICY." style="width: 100%; padding: 0.65rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px;" />
+            <div style="background: var(--ink-faint); border: 1px solid var(--border); border-radius: 4px; padding: 12px; margin-bottom: 1rem;">
+                <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem;">Receipt Header & Store Details</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Store Name</label>
+                        <input type="text" id="receiptStoreNameInput" placeholder="SAM MK STORES LTD" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Market / Location</label>
+                        <input type="text" id="receiptStoreAddressInput" placeholder="Bikeke Market,Kitale" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">P.O Box & PostCode</label>
+                        <input type="text" id="receiptStorePoBoxInput" placeholder="P.O Box : 42 PostCode :30215, Kitale" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Mobile / Tel</label>
+                        <input type="text" id="receiptStoreMobileInput" placeholder="0715586657" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">VAT Reg / PIN No.</label>
+                        <input type="text" id="receiptStoreVatPinInput" placeholder="Pin No.P052524818C" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Terminal / Till Name</label>
+                        <input type="text" id="receiptTerminalNameInput" placeholder="SERVER-PC" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Return Policy Disclaimer</label>
+                    <input type="text" id="receiptReturnPolicyInput" placeholder="GOODS ONES SOLD CANNOT BE RE-ACCEPTED" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Footer Message 1</label>
+                        <input type="text" id="receiptFooter1Input" placeholder="Thank you for your business!" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                    <div>
+                        <label class="label" style="display: block; font-size: 11px; margin-bottom: 0.25rem;">Footer Message 2</label>
+                        <input type="text" id="receiptFooter2Input" placeholder="Come again soon!" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--ink); border-radius: 2px; font-size: 12px;" />
+                    </div>
+                </div>
             </div>
 
             <!-- Footer actions -->
@@ -3891,7 +3931,7 @@ const browserExecutables = [
 
     <!-- SALE COMPLETED & PRINTING MODAL -->
     <div id="saleCompletedModal" class="modal hidden">
-        <div class="modal-inner" style="max-width: 500px; width: 95%;">
+        <div class="modal-inner" style="max-width: 550px; width: 95%;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
                 <h2 style="margin-bottom: 0; font-size: 1.8rem; color: var(--accent);">
                     <span>Sale Completed</span>
@@ -3943,7 +3983,7 @@ const browserExecutables = [
 
             <!-- Collapsible Receipt Slip Preview -->
             <div id="saleReceiptPreviewContainer" class="hidden" style="margin-bottom: 12px;">
-                <div style="background: #ffffff; border: 2px solid #000000; border-radius: 4px; padding: 8px 10px; font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', monospace; font-size: 8.5px; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: #000000; max-height: 240px; overflow-y: auto; white-space: pre-wrap; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);" id="saleReceiptPreviewText">
+                <div style="background: #ffffff; border: 2px solid #000000; border-radius: 4px; padding: 12px 14px; font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', monospace; font-size: 13.5px; font-weight: 700; letter-spacing: 0; line-height: 1.24; color: #000000; max-height: 380px; overflow-y: auto; overflow-x: auto; white-space: pre; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);" id="saleReceiptPreviewText">
                 </div>
             </div>
 
@@ -3970,9 +4010,10 @@ const browserExecutables = [
                     <div>
                         <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Receipt Scale</label>
                         <select id="posReceiptSizeSelect" onchange="changeReceiptSize(this.value)" style="width: 100%; padding: 4px 6px; font-size: 11px; border-radius: 2px; background: var(--bg); color: var(--ink); border: 1px solid var(--border);">
-                            <option value="small">Small (Default)</option>
-                            <option value="xs">Extra Small</option>
-                            <option value="regular">Standard</option>
+                            <option value="large">Large (High Clarity)</option>
+                            <option value="regular">Standard / Medium</option>
+                            <option value="xl">Extra Large (Max Size)</option>
+                            <option value="small">Compact</option>
                         </select>
                     </div>
                     <div>
@@ -4641,12 +4682,14 @@ const browserExecutables = [
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPwaPrompt = e;
-            const shelfBanner = document.getElementById('shelfInstallBanner');
-            if (shelfBanner && !sessionStorage.getItem('shelf_banner_dismissed')) {
-                shelfBanner.style.display = 'flex';
+            if (isAdmin()) {
+                const shelfBanner = document.getElementById('shelfInstallBanner');
+                if (shelfBanner && !sessionStorage.getItem('shelf_banner_dismissed')) {
+                    shelfBanner.style.display = 'flex';
+                }
+                const headerBtn = document.getElementById('headerInstallShelfBtn');
+                if (headerBtn) headerBtn.style.display = 'inline-flex';
             }
-            const headerBtn = document.getElementById('headerInstallShelfBtn');
-            if (headerBtn) headerBtn.style.display = 'inline-flex';
         });
 
         window.addEventListener('appinstalled', () => {
@@ -4665,8 +4708,9 @@ const browserExecutables = [
             const shelfBanner = document.getElementById('shelfInstallBanner');
             const headerBtn = document.getElementById('headerInstallShelfBtn');
             const navItem = document.getElementById('navInstallShelfItem');
+            const isUserAdmin = isAdmin();
 
-            if (isStandalone) {
+            if (isStandalone || !isUserAdmin) {
                 if (shelfBanner) shelfBanner.style.display = 'none';
                 if (headerBtn) headerBtn.style.display = 'none';
                 if (navItem) navItem.style.display = 'none';
@@ -4825,7 +4869,7 @@ const browserExecutables = [
             return retailPrice - calculateBasePrice(retailPrice, taxRate);
         }
 
-        // ===== BOUTIQUE THEMES CONTROLLER =====
+        // ===== THEMES CONTROLLER =====
         function selectTheme(themeName) {
             state.theme = themeName || 'dark';
             applyTheme();
@@ -4871,7 +4915,7 @@ const browserExecutables = [
                 showPosToast('Access Denied: Theme configuration is restricted to Administrators.', 'warning', 3000);
                 return;
             }
-            // Cycle through available boutique themes
+            // Cycle through available themes
             const themes = ['dark', 'light', 'midnight', 'gold', 'emerald'];
             const curIdx = themes.indexOf(state.theme || 'dark');
             const nextIdx = (curIdx + 1) % themes.length;
@@ -5097,10 +5141,27 @@ const browserExecutables = [
                 }
             }
 
-            // Install to Shelf header button: admin only
+            // 5) Run Outside Browser banner & controls: strictly visible to admin only
+            const shelfBanner = document.getElementById('shelfInstallBanner');
+            if (shelfBanner) {
+                if (!isUserAdmin) {
+                    shelfBanner.style.display = 'none';
+                } else if (!sessionStorage.getItem('shelf_banner_dismissed')) {
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                         window.navigator.standalone === true || 
+                                         window.location.search.includes('shelf=1');
+                    shelfBanner.style.display = isStandalone ? 'none' : 'flex';
+                }
+            }
+
+            // Install to Shelf header button & sidebar quick action: admin only
             const headerInstallShelfBtn = document.getElementById('headerInstallShelfBtn');
             if (headerInstallShelfBtn) {
                 headerInstallShelfBtn.style.display = isUserAdmin ? 'inline-flex' : 'none';
+            }
+            const navInstallShelf = document.getElementById('navInstallShelfItem');
+            if (navInstallShelf) {
+                navInstallShelf.style.display = isUserAdmin ? 'flex' : 'none';
             }
 
             // Quick Actions sidebar container: strictly accessible to admin only
@@ -5320,20 +5381,24 @@ const browserExecutables = [
                     const p = state.products[i];
                     if (p._searchStr ? p._searchStr.includes(query) : (p.name.toLowerCase().includes(query) || (p.barcode && p.barcode.toLowerCase().includes(query)))) {
                         matches.push(p);
-                        if (matches.length >= 8) break;
+                        if (matches.length >= 10) break;
                     }
                 }
                 if (matches.length > 0) {
                     autocompleteDropdown.innerHTML = matches.map(p => {
                         const realIdx = state.products.indexOf(p);
                         return `
-                        <div class="autocomplete-item" onclick="selectAutocomplete(${realIdx})">
-                            <div>
-                                <strong>${p.name}</strong> 
-                                <small style="color:var(--text-muted)">(${p.barcode || 'No Barcode'})</small>
-                                <span class="stock-badge ${p.taxRate === 0 ? 'stock-low' : 'stock-normal'}" style="font-size:9px; margin-left:4px;">${p.taxRate === 0 ? '0% EXEMPT' : '16% VAT'}</span>
+                        <div class="autocomplete-item" onclick="selectAutocomplete(${realIdx})" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--border); cursor: pointer;">
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 700; font-size: 0.94rem; color: var(--ink); line-height: 1.35; white-space: normal; word-break: break-word;">${p.name}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                    <span>Barcode: <code style="background:var(--ink-faint); padding:1px 4px; border-radius:2px; font-family:monospace;">${p.barcode || 'No Barcode'}</code></span>
+                                    <span class="stock-badge ${p.taxRate === 0 ? 'stock-low' : 'stock-normal'}" style="font-size:9px;">${p.taxRate === 0 ? '0% EXEMPT' : '16% VAT'}</span>
+                                    ${p.category ? `<span style="font-size: 9px; background: var(--ink-faint); padding: 1px 5px; border-radius: 2px;">${p.category}</span>` : ''}
+                                    ${p.qty !== undefined ? `<span style="font-size: 9px; color: ${p.qty > 0 ? 'var(--text-muted)' : '#ef4444'}; font-weight: 600;">${p.qty > 0 ? `${p.qty} in stock` : 'Out of Stock'}</span>` : ''}
+                                </div>
                             </div>
-                            <div style="font-weight:700; color:var(--accent-blue);">${format(p.price)}</div>
+                            <div style="font-weight: 700; color: var(--accent); font-size: 0.95rem; white-space: nowrap; text-align: right; padding-top: 1px;">${format(p.price)}</div>
                         </div>
                     `;
                     }).join('');
@@ -5783,8 +5848,7 @@ const browserExecutables = [
             if (!sale) return '';
             const is58 = widthSetting === '58mm';
             const W = is58 ? 32 : 42;
-            const divider = '='.repeat(W);
-            const subDivider = '-'.repeat(W);
+            const divider = '-'.repeat(W);
 
             function padCenter(text, len) {
                 text = String(text || '').trim();
@@ -5804,9 +5868,16 @@ const browserExecutables = [
                 return left.substring(0, Math.max(1, len - right.length - 1)) + ' ' + right;
             }
 
-            function formatMoney(amount) {
-                return 'KES ' + Number(amount || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            }
+            // Configurable store details with exact defaults matching user's receipt layout
+            const storeName = (localStorage.getItem('pos_store_name') || 'SAM MK STORES LTD').toUpperCase();
+            const storeAddress = localStorage.getItem('pos_store_address') || 'Bikeke Market,Kitale';
+            const poBox = localStorage.getItem('pos_store_pobox') || 'P.O Box : 42 PostCode :30215, Kitale';
+            const mobile = localStorage.getItem('pos_store_mobile') || '0715586657';
+            const vatPin = (localStorage.getItem('pos_store_vat_pin') || 'Pin No.P052524818C').replace(/^Pin\s*No\.?/i, 'Pin No.');
+            const terminalName = (localStorage.getItem('pos_terminal_name') || (state.currentUser && state.currentUser.tillId) || 'SERVER-PC').toUpperCase();
+            const returnPolicy = localStorage.getItem('pos_store_return_policy') || 'GOODS ONES SOLD CANNOT BE RE-ACCEPTED';
+            const footer1 = localStorage.getItem('pos_store_footer_1') || 'Thank you for your business!';
+            const footer2 = localStorage.getItem('pos_store_footer_2') || 'Come again soon!';
 
             let totalGrossVal = 0;
             let vat16Gross = 0;
@@ -5816,11 +5887,12 @@ const browserExecutables = [
             let exempt0Base = 0;
             let totalQty = 0;
 
-            const itemLines = (sale.items || []).map(it => {
+            const itemLines = [];
+
+            (sale.items || []).forEach(it => {
                 const qty = Number(it.qty) || 1;
                 totalQty += qty;
                 
-                // Parse saved tax rate (0 or 16)
                 let rate = 16;
                 if (it.taxRate !== undefined && it.taxRate !== null) {
                     rate = parseInt(it.taxRate, 10);
@@ -5844,20 +5916,34 @@ const browserExecutables = [
                     exempt0Base += lineTotal;
                 }
 
-                const taxCode = rate === 0 ? '[0%]' : '[16%]';
-                const nameWithTax = `${it.name || 'Item'} ${taxCode}`;
+                const itemName = String(it.name || 'ITEM').toUpperCase();
+                const qtyStr = String(qty);
+                const priceStr = Number(unitPrice % 1 === 0 ? unitPrice.toFixed(0) : unitPrice.toFixed(2)).toString();
                 const lineTotStr = Number(lineTotal).toFixed(2);
-                const priceStr = Number(unitPrice).toFixed(2);
 
                 if (is58) {
-                    const rightPart = `${qty}x ${lineTotStr}`;
-                    return row2(nameWithTax, rightPart, W);
+                    if (itemName.length > 15) {
+                        itemLines.push(itemName);
+                        itemLines.push(qtyStr.padStart(16, ' ') + priceStr.padStart(8, ' ') + lineTotStr.padStart(8, ' '));
+                    } else {
+                        const nameCol = itemName.padEnd(15, ' ');
+                        const qtyCol = qtyStr.padStart(3, ' ');
+                        const priceCol = priceStr.padStart(7, ' ');
+                        const totCol = lineTotStr.padStart(7, ' ');
+                        itemLines.push(`${nameCol}${qtyCol}${priceCol}${totCol}`);
+                    }
                 } else {
-                    const nameCol = nameWithTax.length > 21 ? nameWithTax.substring(0, 21) : nameWithTax.padEnd(21, ' ');
-                    const qtyCol = String(qty).padStart(4, ' ');
-                    const priceCol = priceStr.padStart(7, ' ');
-                    const totCol = lineTotStr.padStart(8, ' ');
-                    return `${nameCol} ${qtyCol} ${priceCol} ${totCol}`;
+                    if (itemName.length > 22) {
+                        itemLines.push(itemName);
+                        const rightPart = ' '.repeat(23) + qtyStr.padStart(3, ' ') + priceStr.padStart(7, ' ') + lineTotStr.padStart(9, ' ');
+                        itemLines.push(rightPart);
+                    } else {
+                        const nameCol = itemName.padEnd(23, ' ');
+                        const qtyCol = qtyStr.padStart(3, ' ');
+                        const priceCol = priceStr.padStart(7, ' ');
+                        const totCol = lineTotStr.padStart(9, ' ');
+                        itemLines.push(`${nameCol}${qtyCol}${priceCol}${totCol}`);
+                    }
                 }
             });
 
@@ -5866,63 +5952,100 @@ const browserExecutables = [
             const tendered = sale.tendered || grandTotal;
             const change = sale.change || Math.max(0, tendered - grandTotal);
             const rawMethod = (sale.paymentMethod || 'CASH').toUpperCase();
-            const payMethodWithRef = sale.ref ? `${rawMethod} (${sale.ref})` : rawMethod;
+            const payLabel = rawMethod === 'CASH' ? 'CASH PAID' : `${rawMethod} PAID`;
+
+            let saleTypeTitle = `${rawMethod} SALE`;
+            if (sale.ref) {
+                saleTypeTitle = `${rawMethod} SALE (${sale.ref})`;
+            }
+
             const dateObj = new Date(sale.timestamp || Date.now());
-            const dateStr = dateObj.toLocaleDateString('en-KE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            const timeStr = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const receiptId = String(sale.id || 'TXN-' + Date.now());
-            const cashierName = String(sale.cashier || (state.currentUser && state.currentUser.name) || 'Stevie Administrator');
-            const tillLabel = String(sale.tillId || (state.currentUser && state.currentUser.tillId) || 'Till-01');
-            const storeName = (localStorage.getItem('pos_store_name') || 'POKET STAR ENTERPRISE').toUpperCase();
-            const footerMsg = (localStorage.getItem('pos_store_footer_msg') || 'THANK YOU • VISIT AGAIN').toUpperCase();
+            const dayStr = String(dateObj.getDate()).padStart(2, '0');
+            const monStr = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const yrStr = dateObj.getFullYear();
+            const dateStr = `${dayStr}-${monStr}-${yrStr}`;
+            const hoursStr = String(dateObj.getHours()).padStart(2, '0');
+            const minsStr = String(dateObj.getMinutes()).padStart(2, '0');
+            const timeStr = `${hoursStr}:${minsStr}`;
+
+            let receiptNo = String(sale.receiptNo || sale.id || '11-0001');
+            if (receiptNo.startsWith('TXN-') || receiptNo.startsWith('RCP-')) {
+                const digits = receiptNo.replace(/[^0-9]/g, '');
+                if (digits.length >= 4) {
+                    receiptNo = `11-${digits.slice(-4)}`;
+                }
+            }
+
+            const cashierFull = String(sale.cashier || (state.currentUser && state.currentUser.name) || 'Steve');
+            const cashierName = cashierFull.split(' ')[0] || 'Steve';
 
             let out = [];
 
-            // UNIFIED FISCAL TAX INVOICE RECEIPT (Exact same format for Online & Offline sales)
-            out.push(divider);
+            // 1. Header block matching photo
             out.push(padCenter(storeName, W));
-            out.push(padCenter('RETAIL POINT OF SALE SYSTEM', W));
-            out.push(padCenter('PIN: P051234567Z | TEL: +254 700 000 000', W));
-            out.push(subDivider);
-            out.push(padCenter('TAX INVOICE / CASH SALE RECEIPT', W));
-            out.push(row2('Receipt ID :', receiptId, W));
-            out.push(row2('Date & Time:', dateStr + ' ' + timeStr, W));
-            out.push(row2('Terminal   :', `${tillLabel} (${cashierName})`, W));
-            out.push(row2('Payment    :', payMethodWithRef, W));
-            out.push(subDivider);
-
+            if (storeAddress) out.push(is58 ? padCenter(storeAddress, W) : `  ${storeAddress}`);
+            if (poBox) out.push(is58 ? padCenter(poBox, W) : `  ${poBox}`);
+            if (mobile) out.push(is58 ? padCenter(`Mobile : ${mobile}`, W) : `  Mobile : ${mobile}`);
+            out.push(padCenter(saleTypeTitle, W));
+            out.push(is58 ? padCenter(`VAT Reg:  ${vatPin}`, W) : `  VAT Reg:  ${vatPin}`);
+            
             if (is58) {
-                out.push(row2('ITEM (TAX)', 'QTY TOTAL', W));
+                out.push(row2(`Date: ${dateStr}`, `Time: ${timeStr}`, W));
+                out.push(row2(`Terminal:${terminalName}`, `Receipt No: ${receiptNo}`, W));
             } else {
-                out.push('ITEM (TAX)            QTY    PRICE   TOTAL');
+                out.push(row2(`Date: ${dateStr}`, `Time:       ${timeStr}`, W));
+                out.push(row2(`Terminal:${terminalName}`, `Receipt No: ${receiptNo}`, W));
             }
-            out.push(subDivider);
+            out.push(divider);
+
+            // 2. Items header & lines
+            if (is58) {
+                out.push('Item               Qty  Price  Total');
+            } else {
+                out.push('Item                   Qty Price    Total');
+            }
+            out.push(divider);
             itemLines.forEach(l => out.push(l));
-            out.push(subDivider);
-            out.push(row2(`ITEMS: ${(sale.items || []).length} lines`, `TOTAL QTY: ${totalQty}`, W));
-            out.push(row2('Gross Amount:', formatMoney(totalGrossVal), W));
-            out.push(row2('Net Base (16% VAT):', formatMoney(taxable16Base), W));
-            out.push(row2('VAT 16% (Rate A):', formatMoney(vat16Val), W));
-            if (exempt0Base > 0) {
-                out.push(row2('Net Base (0% Exempt):', formatMoney(exempt0Base), W));
-            }
-            out.push(subDivider);
-            out.push(row2('GRAND TOTAL:', formatMoney(grandTotal), W));
-            out.push(row2(`PAID (${rawMethod}):`, formatMoney(tendered), W));
-            out.push(row2('CHANGE DUE:', formatMoney(change), W));
-            out.push(subDivider);
-            out.push(padCenter('TAX ANALYSIS', W));
-            out.push(`A 16% VAT: Taxable ${taxable16Base.toFixed(2)} | Tax ${vat16Val.toFixed(2)}`);
-            if (exempt0Base > 0) {
-                out.push(`E  0% EXM: Taxable ${exempt0Base.toFixed(2)} | Tax 0.00`);
+            out.push(divider);
+
+            // 3. Totals & Payment
+            out.push(row2('TOTAL AMOUNT:', Number(grandTotal).toFixed(2), W));
+            out.push(row2(`${payLabel}:`, Number(tendered).toFixed(2), W));
+            out.push(row2('CHANGE DUE:', Number(change).toFixed(2), W));
+
+            // 4. Tax Analysis
+            out.push('TAX ANALYSIS');
+            out.push(divider);
+            if (is58) {
+                out.push('CODE   PRE-VAT    VAT    TOTAL');
+                out.push(divider);
+                out.push(`A 16%`.padEnd(6, ' ') + taxable16Base.toFixed(2).padStart(8, ' ') + vat16Val.toFixed(2).padStart(8, ' ') + vat16Gross.toFixed(2).padStart(10, ' '));
+                out.push(`B 0 %`.padEnd(6, ' ') + exempt0Base.toFixed(2).padStart(8, ' ') + (0).toFixed(2).padStart(8, ' ') + exempt0Gross.toFixed(2).padStart(10, ' '));
+                out.push(`TOTALS`.padEnd(6, ' ') + totalNetBase.toFixed(2).padStart(8, ' ') + vat16Val.toFixed(2).padStart(8, ' ') + grandTotal.toFixed(2).padStart(10, ' '));
+            } else {
+                out.push('CODE      PRE-VAT        VAT        TOTAL');
+                out.push(divider);
+                out.push(`A 16%     `.padEnd(10, ' ') + taxable16Base.toFixed(2).padStart(10, ' ') + vat16Val.toFixed(2).padStart(11, ' ') + vat16Gross.toFixed(2).padStart(11, ' '));
+                out.push(`B 0 %     `.padEnd(10, ' ') + exempt0Base.toFixed(2).padStart(10, ' ') + (0).toFixed(2).padStart(11, ' ') + exempt0Gross.toFixed(2).padStart(11, ' '));
+                out.push(`TOTALS    `.padEnd(10, ' ') + totalNetBase.toFixed(2).padStart(10, ' ') + vat16Val.toFixed(2).padStart(11, ' ') + grandTotal.toFixed(2).padStart(11, ' '));
             }
             out.push(divider);
-            out.push(padCenter(footerMsg, W));
-            out.push(padCenter('*** VERIFIED KRA TIMS/ETR FISCAL RECEIPT ***', W));
+
+            // 5. Cashier
+            out.push(`You were Served by : ${cashierName}`);
             out.push(divider);
-            // Additional 3cm physical roll feed spacing
-            out.push('');
-            out.push('');
+
+            // 6. Return policy
+            if (returnPolicy) {
+                out.push(returnPolicy);
+                out.push(divider);
+            }
+
+            // 7. Footer lines
+            if (footer1) out.push(`  ${footer1}`);
+            if (footer2) out.push(`  ${footer2}`);
+
+            // Roll feed lines
             out.push('');
             out.push('');
             out.push('');
@@ -5935,7 +6058,7 @@ const browserExecutables = [
             if (!sale) return;
             lastCompletedSale = sale;
             const widthSetting = localStorage.getItem('pos_printer_width') || '80mm';
-            const receiptSize = localStorage.getItem('pos_receipt_size') || 'small';
+            const receiptSize = localStorage.getItem('pos_receipt_size') || 'large';
             const receiptContent = formatThermalReceipt(sale, widthSetting);
 
             if (receiptEl) {
@@ -5943,16 +6066,18 @@ const browserExecutables = [
                 receiptEl.classList.remove('hidden');
             }
 
-            let fSize = '8.5px';
+            let fSize = '13.5px';
             if (widthSetting === '58mm') {
-                fSize = receiptSize === 'xs' ? '6.8px' : (receiptSize === 'regular' ? '8.5px' : '7.5px');
+                fSize = (receiptSize === 'xs' || receiptSize === 'small') ? '11px' : (receiptSize === 'xl' ? '13.5px' : (receiptSize === 'large' ? '12.5px' : '12px'));
+            } else if (widthSetting === 'a4') {
+                fSize = '15px';
             } else {
-                fSize = receiptSize === 'xs' ? '7.5px' : (receiptSize === 'regular' ? '9.8px' : '8.5px');
+                fSize = (receiptSize === 'xs' || receiptSize === 'small') ? '12px' : (receiptSize === 'xl' ? '15.5px' : (receiptSize === 'large' ? '14px' : '13.5px'));
             }
 
             const printableReceiptEl = document.getElementById('printableReceipt');
             if (printableReceiptEl) {
-                printableReceiptEl.innerHTML = `<pre style="margin:0; font-family:'SF Mono','Cascadia Code','Fira Code','Courier New',monospace; font-size:${fSize}; font-weight:600; letter-spacing:0; line-height:1.12; white-space:pre-wrap; color:#000000;">${receiptContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                printableReceiptEl.innerHTML = `<pre style="margin:0; font-family:'SF Mono','Cascadia Code','Fira Code','Courier New',monospace; font-size:${fSize}; font-weight:700; letter-spacing:0; line-height:1.22; white-space:pre; color:#000000;">${receiptContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
             }
 
             const previewTextEl = document.getElementById('saleReceiptPreviewText');
@@ -6338,7 +6463,7 @@ const browserExecutables = [
         function openPrintSlipInNewWindow(saleToPrint = null) {
             const sale = saleToPrint || lastCompletedSale || (state.sales.length > 0 ? state.sales[state.sales.length - 1] : null);
             const widthSetting = localStorage.getItem('pos_printer_width') || '80mm';
-            const receiptSize = localStorage.getItem('pos_receipt_size') || 'small';
+            const receiptSize = localStorage.getItem('pos_receipt_size') || 'large';
             const saleId = sale && sale.id ? sale.id : 'latest';
             
             if (sale) {
@@ -6372,25 +6497,27 @@ const browserExecutables = [
         // Output receipt directly to the client printer pipeline (hidden iframe + window.print fallback)
         // Output receipt directly to the client printer pipeline (hidden iframe configured for Edge/Chrome silent printing)
         function executeThermalPrinterOutput(receiptText, widthSetting = '80mm', sale = null, forceDialog = false) {
-            const receiptSize = localStorage.getItem('pos_receipt_size') || 'small';
-            const paperWidth = widthSetting === '58mm' ? '58mm' : '80mm';
-            const printableWidth = widthSetting === '58mm' ? '48mm' : '72mm';
-            const pageSize = widthSetting === '58mm' ? '58mm auto' : '80mm auto';
+            const receiptSize = localStorage.getItem('pos_receipt_size') || 'large';
+            const paperWidth = widthSetting === '58mm' ? '58mm' : (widthSetting === 'a4' ? '100%' : '80mm');
+            const printableWidth = widthSetting === '58mm' ? '54mm' : (widthSetting === 'a4' ? '100%' : '78mm');
+            const pageSize = widthSetting === '58mm' ? '58mm auto' : (widthSetting === 'a4' ? 'auto' : '80mm auto');
 
-            let fontSize = '8.5px';
+            let fontSize = '13.5px';
             if (widthSetting === '58mm') {
-                fontSize = receiptSize === 'xs' ? '6.8px' : (receiptSize === 'regular' ? '8.5px' : '7.5px');
+                fontSize = (receiptSize === 'xs' || receiptSize === 'small') ? '11px' : (receiptSize === 'xl' ? '13.5px' : (receiptSize === 'large' ? '12.5px' : '12px'));
+            } else if (widthSetting === 'a4') {
+                fontSize = '15px';
             } else {
-                fontSize = receiptSize === 'xs' ? '7.5px' : (receiptSize === 'regular' ? '9.8px' : '8.5px');
+                fontSize = (receiptSize === 'xs' || receiptSize === 'small') ? '12px' : (receiptSize === 'xl' ? '15.5px' : (receiptSize === 'large' ? '14px' : '13.5px'));
             }
 
-            document.body.classList.remove('paper-58mm', 'paper-80mm', 'receipt-size-xs', 'receipt-size-small', 'receipt-size-regular');
+            document.body.classList.remove('paper-58mm', 'paper-80mm', 'paper-a4', 'receipt-size-xs', 'receipt-size-small', 'receipt-size-regular', 'receipt-size-large', 'receipt-size-xl');
             document.body.classList.add(`paper-${widthSetting}`);
             document.body.classList.add(`receipt-size-${receiptSize}`);
 
             const printableReceiptEl = document.getElementById('printableReceipt');
             if (printableReceiptEl) {
-                printableReceiptEl.innerHTML = `<pre style="margin:0; font-family:'SF Mono','Cascadia Code',monospace; font-size:${fontSize}; font-weight:600; line-height:1.12; letter-spacing:0; white-space:pre-wrap; color:#000000;">${receiptText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
+                printableReceiptEl.innerHTML = `<pre style="margin:0; font-family:'SF Mono','Cascadia Code',monospace; font-size:${fontSize}; font-weight:700; line-height:1.22; letter-spacing:0; white-space:pre; color:#000000;">${receiptText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>`;
             }
 
             let iframe = document.getElementById('posDefaultPrinterFrame');
@@ -6441,11 +6568,11 @@ const browserExecutables = [
         }
         body {
             margin: 0;
-            padding: 1mm 1.5mm;
+            padding: 1.5mm 2mm;
             font-family: 'SF Mono', 'Cascadia Code', 'Segoe UI Mono', 'Courier New', Courier, monospace;
             font-size: ${fontSize};
-            font-weight: 600;
-            line-height: 1.12;
+            font-weight: 700;
+            line-height: 1.22;
             letter-spacing: 0;
             color: #000000;
             background: #ffffff;
@@ -6456,8 +6583,8 @@ const browserExecutables = [
         pre {
             margin: 0;
             padding: 0;
-            white-space: pre-wrap;
-            word-break: break-all;
+            white-space: pre;
+            word-break: normal;
             font-family: inherit;
             font-size: inherit;
             font-weight: inherit;
@@ -6926,7 +7053,7 @@ const browserExecutables = [
             if (widthSelect) widthSelect.value = localStorage.getItem('pos_printer_width') || '80mm';
 
             const sizeSelect = document.getElementById('modalReceiptSizeSelect');
-            if (sizeSelect) sizeSelect.value = localStorage.getItem('pos_receipt_size') || 'small';
+            if (sizeSelect) sizeSelect.value = localStorage.getItem('pos_receipt_size') || 'large';
 
             const formatSelect = document.getElementById('modalReceiptFormatSelect');
             if (formatSelect) formatSelect.value = localStorage.getItem('pos_receipt_format') || 'compact';
@@ -6953,7 +7080,7 @@ const browserExecutables = [
             if (spoolCb) spoolCb.checked = localStorage.getItem('pos_spool_server') !== 'false';
 
             const storeInput = document.getElementById('receiptStoreNameInput');
-            if (storeInput) storeInput.value = localStorage.getItem('pos_store_name') || 'POKET STAR BOUTIQUE';
+            if (storeInput) storeInput.value = localStorage.getItem('pos_store_name') || 'POKET STAR POS';
 
             const footerInput = document.getElementById('receiptFooterInput');
             if (footerInput) footerInput.value = localStorage.getItem('pos_store_footer_msg') || 'THANK YOU FOR SHOPPING WITH US! GOODS ONCE SOLD ARE SUBJECT TO STORE POLICY.';
@@ -7711,8 +7838,8 @@ exit
             if (!localStorage.getItem('pos_printer_width')) {
                 localStorage.setItem('pos_printer_width', '80mm');
             }
-            if (!localStorage.getItem('pos_receipt_size')) {
-                localStorage.setItem('pos_receipt_size', 'small');
+            if (!localStorage.getItem('pos_receipt_size') || localStorage.getItem('pos_receipt_size') === 'small') {
+                localStorage.setItem('pos_receipt_size', 'large');
             }
             if (!localStorage.getItem('pos_receipt_format')) {
                 localStorage.setItem('pos_receipt_format', 'compact');
@@ -7734,7 +7861,7 @@ exit
                 localStorage.setItem('pos_network_printer_port', '9100');
             }
             if (!localStorage.getItem('pos_store_name')) {
-                localStorage.setItem('pos_store_name', 'POKET STAR BOUTIQUE');
+                localStorage.setItem('pos_store_name', 'POKET STAR POS');
             }
             if (!localStorage.getItem('pos_store_footer_msg')) {
                 localStorage.setItem('pos_store_footer_msg', 'THANK YOU FOR SHOPPING WITH US! GOODS ONCE SOLD ARE SUBJECT TO STORE POLICY.');

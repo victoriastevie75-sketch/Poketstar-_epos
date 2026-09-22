@@ -121,7 +121,7 @@ async function main() {
   console.log(`
 ╔═════════════════════════════════════════════════════════════════╗
 ║                   POKET STAR EPOS SYSTEM                        ║
-║           Boutique Retail OS — Windows Desktop Edition          ║
+║           Enterprise POS — Windows Desktop Edition              ║
 ║               Architecture: ${archLabel.padEnd(28)}║
 ╚═════════════════════════════════════════════════════════════════╝
   `);

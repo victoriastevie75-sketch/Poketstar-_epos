@@ -233,23 +233,23 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
     if (fs.existsSync(latestPath)) {
       content = fs.readFileSync(latestPath, 'utf8');
     } else {
-      content = '==========================================\n          POKET STAR RETAIL OS          \n           THERMAL RECEIPT SLIP         \n==========================================\nNo receipt data currently available.\n==========================================';
+      content = '==========================================\n             POKET STAR POS             \n           THERMAL RECEIPT SLIP         \n==========================================\nNo receipt data currently available.\n==========================================';
     }
   }
 
   const width = req.query.width || '80mm';
-  const size = req.query.size || 'small';
+  const size = req.query.size || 'large';
   const autoPrint = req.query.autoprint === '1' || req.query.print === 'true';
-  const paperWidth = width === '58mm' ? '48mm' : (width === 'a4' ? '210mm' : '72mm');
+  const paperWidth = width === '58mm' ? '54mm' : (width === 'a4' ? '210mm' : '78mm');
   const pageSize = width === '58mm' ? '58mm auto' : (width === 'a4' ? 'A4' : '80mm auto');
 
-  let fontSize = '8.5px';
+  let fontSize = '13.5px';
   if (width === '58mm') {
-    fontSize = size === 'xs' ? '6.8px' : (size === 'regular' ? '8.5px' : '7.5px');
+    fontSize = (size === 'xs' || size === 'small') ? '11px' : (size === 'xl' ? '13.5px' : (size === 'large' ? '12.5px' : '12px'));
   } else if (width === 'a4') {
-    fontSize = '11px';
+    fontSize = '15px';
   } else {
-    fontSize = size === 'xs' ? '7.5px' : (size === 'regular' ? '9.8px' : '8.5px');
+    fontSize = (size === 'xs' || size === 'small') ? '12px' : (size === 'xl' ? '15.5px' : (size === 'large' ? '14px' : '13.5px'));
   }
 
   const html = `<!DOCTYPE html>
@@ -277,11 +277,11 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
     }
     body {
       margin: 0 auto;
-      padding: 1mm 1.5mm 3cm 1.5mm;
+      padding: 1.5mm 2mm 3cm 2mm;
       font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', Courier, monospace;
       font-size: ${fontSize};
-      font-weight: 600;
-      line-height: 1.12;
+      font-weight: 700;
+      line-height: 1.22;
       letter-spacing: 0;
       color: #000000;
       background: #ffffff;
@@ -291,8 +291,8 @@ router.get(['/view', '/view/:filename', '/print-slip'], (req, res) => {
     }
     pre {
       margin: 0;
-      white-space: pre-wrap;
-      word-break: break-all;
+      white-space: pre;
+      word-break: normal;
       font-family: inherit;
       font-size: inherit;
       font-weight: inherit;
@@ -366,7 +366,7 @@ router.post('/test', (req, res) => {
   const divider = width === '58mm' ? '--------------------------------' : '==========================================';
   const testText = [
     divider,
-    '          POKET STAR RETAIL OS          ',
+    '             POKET STAR POS             ',
     '       THERMAL PRINTER TEST PAGE        ',
     divider,
     `Date/Time: ${new Date().toLocaleString()}`,

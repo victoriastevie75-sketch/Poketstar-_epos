@@ -1,6 +1,6 @@
 {
   "name": "Poket Star",
-  "description": "Boutique Retail OS — Enterprise Point of Sale & Invoicing",
+  "description": "Enterprise Point of Sale & Invoicing",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

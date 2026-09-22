@@ -1,7 +1,7 @@
 {
   "id": "/",
   "short_name": "PoketStar",
-  "name": "Poket Star POS — Boutique Retail OS",
+  "name": "Poket Star POS",
   "description": "Enterprise Retail POS System with Offline Sync and Standalone Window Execution",
   "start_url": "/",
   "scope": "/",
