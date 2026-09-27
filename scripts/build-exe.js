@@ -154,6 +154,15 @@ async function build() {
   if (fs.existsSync(path.join(ROOT_DIR, 'Start-POS-Desktop.bat'))) {
     zip.addLocalFile(path.join(ROOT_DIR, 'Start-POS-Desktop.bat'));
   }
+  if (fs.existsSync(path.join(ROOT_DIR, 'app.ico'))) {
+    zip.addLocalFile(path.join(ROOT_DIR, 'app.ico'));
+  }
+  if (fs.existsSync(path.join(ROOT_DIR, 'favicon.ico'))) {
+    zip.addLocalFile(path.join(ROOT_DIR, 'favicon.ico'));
+  }
+  if (fs.existsSync(path.join(ROOT_DIR, 'pwa-512x512.png'))) {
+    zip.addLocalFile(path.join(ROOT_DIR, 'pwa-512x512.png'));
+  }
   if (fs.existsSync(path.join(ROOT_DIR, 'README-WINDOWS.txt'))) {
     zip.addLocalFile(path.join(ROOT_DIR, 'README-WINDOWS.txt'));
   }

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "default",
+    "name": "Main Store / Headquarters",
+    "code": "HQ-01",
+    "businessType": "Retail & Supermarket",
+    "currency": "KES",
+    "currencySymbol": "KSh",
+    "phone": "+254 700 000 000",
+    "email": "store@poketstar.com",
+    "address": "Central Business District, Main Avenue",
+    "taxPin": "P051234567Z",
+    "vatRate": 16,
+    "receiptHeader": "POKET STAR EPOS — HEADQUARTERS",
+    "receiptFooter": "Thank you for shopping with us! Powered by Poket Star EPOS",
+    "isDefault": true,
+    "createdAt": "2026-09-26T12:56:19.317Z",
+    "updatedAt": "2026-09-26T12:56:19.317Z"
+  },
+  {
+    "id": "sp-01",
+    "name": "Star Pharmacy",
+    "code": "SP-01",
+    "businessType": "Pharmacy & Healthcare",
+    "currency": "KES",
+    "currencySymbol": "KSh",
+    "phone": "",
+    "email": "",
+    "address": "",
+    "taxPin": "P059999999X",
+    "vatRate": 16,
+    "receiptHeader": "POKET STAR EPOS — STAR PHARMACY",
+    "receiptFooter": "Thank you for your business! Powered by Poket Star EPOS",
+    "isDefault": false,
+    "createdAt": "2026-09-26T12:56:19.365Z",
+    "updatedAt": "2026-09-26T12:56:19.365Z"
+  }
+]

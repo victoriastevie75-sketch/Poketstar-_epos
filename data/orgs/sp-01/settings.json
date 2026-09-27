@@ -1,0 +1,9 @@
+{
+  "taxRate": 16,
+  "currency": "KES",
+  "receiptHeader": "POKET STAR EPOS — STAR PHARMACY",
+  "receiptFooter": "Thank you for your business! Powered by Poket Star EPOS",
+  "autoPrint": false,
+  "soundEnabled": true,
+  "theme": "emerald"
+}

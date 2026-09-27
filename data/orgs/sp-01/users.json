@@ -1,0 +1,23 @@
+[
+  {
+    "id": "USR-sp-01-01",
+    "username": "admin",
+    "name": "Star Pharmacy Administrator",
+    "role": "admin",
+    "pin": "1234",
+    "tillId": "Till-01",
+    "status": "active",
+    "phone": "",
+    "email": "admin@sp-01.poketstar.internal",
+    "permissions": [
+      "sales",
+      "discounts",
+      "refunds",
+      "inventory",
+      "reports",
+      "users",
+      "orgs"
+    ],
+    "createdAt": "2026-09-26T12:56:19.365Z"
+  }
+]

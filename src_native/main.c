@@ -292,6 +292,28 @@ static unsigned __stdcall client_thread(void* sock_ptr) {
         }
     }
 
+    // Route: Products Bulk / CSV Import (POST)
+    if (_stricmp(path, "/api/products/bulk-import") == 0 || _stricmp(path, "/api/products/import-csv") == 0) {
+        if (_stricmp(method, "POST") == 0 && post_data && post_len > 0) {
+            // If full catalog array is sent or synced, persist to products.json if it starts with '['
+            const char* p = post_data;
+            while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+            if (*p == '[') {
+                char disk_file[MAX_PATH];
+                snprintf(disk_file, sizeof(disk_file), "%s\\products.json", g_exe_dir);
+                FILE* f = fopen(disk_file, "wb");
+                if (f) {
+                    fwrite(post_data, 1, post_len, f);
+                    fclose(f);
+                }
+            }
+        }
+        const char* bulk_resp = "{\"status\":\"success\",\"message\":\"CSV Import synced to local inventory\"}";
+        send_http_response(sock, 200, "OK", "application/json; charset=utf-8", bulk_resp, strlen(bulk_resp));
+        closesocket(sock);
+        return 0;
+    }
+
     // Route: Sales Log (GET & POST)
     if (_stricmp(path, "/api/sales") == 0) {
         if (_stricmp(method, "GET") == 0) {
@@ -320,6 +342,23 @@ static unsigned __stdcall client_thread(void* sock_ptr) {
             closesocket(sock);
             return 0;
         }
+    }
+
+    // Route: System State Sync (POST)
+    if (_stricmp(path, "/api/system/sync-exe") == 0) {
+        if (_stricmp(method, "POST") == 0 && post_data && post_len > 0) {
+            char state_file[MAX_PATH];
+            snprintf(state_file, sizeof(state_file), "%s\\system-state.json", g_exe_dir);
+            FILE* f = fopen(state_file, "wb");
+            if (f) {
+                fwrite(post_data, 1, post_len, f);
+                fclose(f);
+            }
+        }
+        const char* sync_resp = "{\"status\":\"success\",\"message\":\"System state synced to local executable storage\"}";
+        send_http_response(sock, 200, "OK", "application/json; charset=utf-8", sync_resp, strlen(sync_resp));
+        closesocket(sock);
+        return 0;
     }
 
     // Route: Payments Checkout Simulation
@@ -422,54 +461,117 @@ static unsigned __stdcall server_thread(void* arg) {
     return 0;
 }
 
-// Launch dedicated App Window
+// Helper: Query Windows Registry for Application Path
+static int get_app_path_from_registry(HKEY root_key, const char* subkey, char* out_path, DWORD max_len) {
+    HKEY hKey;
+    if (RegOpenKeyExA(root_key, subkey, 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        DWORD type = 0;
+        DWORD size = max_len;
+        if (RegQueryValueExA(hKey, NULL, NULL, &type, (LPBYTE)out_path, &size) == ERROR_SUCCESS) {
+            RegCloseKey(hKey);
+            // Strip quotes if present
+            if (out_path[0] == '"') {
+                size_t len = strlen(out_path);
+                if (len > 2 && out_path[len - 1] == '"') {
+                    memmove(out_path, out_path + 1, len - 2);
+                    out_path[len - 2] = '\0';
+                }
+            }
+            if (file_exists_on_disk(out_path)) {
+                return 1;
+            }
+        }
+        RegCloseKey(hKey);
+    }
+    return 0;
+}
+
+// Launch dedicated Standalone App Window (Without browser tabs, navigation, or URL address bar)
 static void launch_pos_window(int port) {
     char url[128];
     snprintf(url, sizeof(url), "http://127.0.0.1:%d", port);
 
-    char app_arg[256];
-    snprintf(app_arg, sizeof(app_arg), "--app=%s --window-size=1280,840 --disable-pinch --disable-devtools", url);
+    char app_arg[512];
+    snprintf(app_arg, sizeof(app_arg), "--app=%s --window-size=1280,840 --kiosk-printing --disable-save-password-bubble --disable-pinch --disable-devtools --no-first-run --app-id=PoketStarPOS", url);
 
-    const char* p_progX86 = getenv("ProgramFiles(x86)");
-    const char* p_prog = getenv("ProgramFiles");
-    const char* p_local = getenv("LocalAppData");
-
-    char target[MAX_PATH];
+    char target[MAX_PATH] = {0};
     int found = 0;
 
-    // 1. Microsoft Edge (preferred for modern Windows)
-    if (p_prog && !found) {
-        snprintf(target, sizeof(target), "%s\\Microsoft\\Edge\\Application\\msedge.exe", p_prog);
-        if (file_exists_on_disk(target)) found = 1;
-    }
-    if (p_progX86 && !found) {
-        snprintf(target, sizeof(target), "%s\\Microsoft\\Edge\\Application\\msedge.exe", p_progX86);
-        if (file_exists_on_disk(target)) found = 1;
-    }
-    if (p_local && !found) {
-        snprintf(target, sizeof(target), "%s\\Microsoft\\Edge\\Application\\msedge.exe", p_local);
-        if (file_exists_on_disk(target)) found = 1;
+    // 1. Check Registry App Paths for Microsoft Edge, Google Chrome, Brave
+    const char* reg_subkeys[] = {
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\msedge.exe",
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\chrome.exe",
+        "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\brave.exe"
+    };
+    for (int i = 0; i < 3 && !found; i++) {
+        if (get_app_path_from_registry(HKEY_LOCAL_MACHINE, reg_subkeys[i], target, sizeof(target))) found = 1;
+        if (!found && get_app_path_from_registry(HKEY_CURRENT_USER, reg_subkeys[i], target, sizeof(target))) found = 1;
     }
 
-    // 2. Google Chrome
-    if (p_prog && !found) {
-        snprintf(target, sizeof(target), "%s\\Google\\Chrome\\Application\\chrome.exe", p_prog);
-        if (file_exists_on_disk(target)) found = 1;
-    }
-    if (p_progX86 && !found) {
-        snprintf(target, sizeof(target), "%s\\Google\\Chrome\\Application\\chrome.exe", p_progX86);
-        if (file_exists_on_disk(target)) found = 1;
-    }
-    if (p_local && !found) {
-        snprintf(target, sizeof(target), "%s\\Google\\Chrome\\Application\\chrome.exe", p_local);
-        if (file_exists_on_disk(target)) found = 1;
+    // 2. Comprehensive Disk Search Across 32-bit and 64-bit Program Files & Local AppData
+    if (!found) {
+        const char* env_w64 = getenv("ProgramW6432");
+        const char* env_p86 = getenv("ProgramFiles(x86)");
+        const char* env_pf  = getenv("ProgramFiles");
+        const char* env_loc = getenv("LocalAppData");
+        const char* env_sys = getenv("SystemDrive");
+        const char* sys_drive = (env_sys && strlen(env_sys) > 0) ? env_sys : "C:";
+
+        const char* prefixes[8] = {0};
+        int pfx_count = 0;
+        if (env_w64) prefixes[pfx_count++] = env_w64;
+        if (env_pf)  prefixes[pfx_count++] = env_pf;
+        if (env_p86) prefixes[pfx_count++] = env_p86;
+        if (env_loc) prefixes[pfx_count++] = env_loc;
+
+        char drive_pf[MAX_PATH], drive_pf86[MAX_PATH];
+        snprintf(drive_pf, sizeof(drive_pf), "%s\\Program Files", sys_drive);
+        snprintf(drive_pf86, sizeof(drive_pf86), "%s\\Program Files (x86)", sys_drive);
+        prefixes[pfx_count++] = drive_pf;
+        prefixes[pfx_count++] = drive_pf86;
+
+        const char* rel_paths[] = {
+            "Microsoft\\Edge\\Application\\msedge.exe",
+            "Google\\Chrome\\Application\\chrome.exe",
+            "BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+            "Programs\\BraveSoftware\\Brave-Browser\\Application\\brave.exe",
+            "Programs\\Opera\\launcher.exe",
+            "Vivaldi\\Application\\vivaldi.exe"
+        };
+
+        for (int p = 0; p < pfx_count && !found; p++) {
+            if (!prefixes[p]) continue;
+            for (int r = 0; r < 6 && !found; r++) {
+                snprintf(target, sizeof(target), "%s\\%s", prefixes[p], rel_paths[r]);
+                if (file_exists_on_disk(target)) {
+                    found = 1;
+                    break;
+                }
+            }
+        }
     }
 
+    // 3. Launch the dedicated App Mode Window
     if (found) {
-        ShellExecuteA(NULL, "open", target, app_arg, NULL, SW_SHOWNORMAL);
-    } else {
-        ShellExecuteA(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+        printf("[INFO] Opening dedicated Poket Star application window: %s\n", target);
+        HINSTANCE hInst = ShellExecuteA(NULL, "open", target, app_arg, NULL, SW_SHOWNORMAL);
+        if ((uintptr_t)hInst > 32) {
+            return;
+        }
     }
+
+    // 4. Fallback A: Launch via shell 'start msedge --app=' or 'start chrome --app=' command aliases
+    char cmd_edge[512];
+    snprintf(cmd_edge, sizeof(cmd_edge), "/c start \"\" msedge --app=\"%s\" --window-size=1280,840 --disable-pinch || start \"\" chrome --app=\"%s\" --window-size=1280,840 --disable-pinch || start \"\" brave --app=\"%s\" --window-size=1280,840", url, url, url);
+    HINSTANCE hCmd = ShellExecuteA(NULL, "open", "cmd.exe", cmd_edge, NULL, SW_HIDE);
+    if ((uintptr_t)hCmd > 32) {
+        return;
+    }
+
+    // 5. Fallback B: Launch via MSHTA Standalone Desktop Application Frame
+    char hta_arg[512];
+    snprintf(hta_arg, sizeof(hta_arg), "javascript:window.resizeTo(1280,840);window.moveTo((screen.width-1280)/2,(screen.height-840)/2);document.write('<title>Poket Star POS</title><body style=\"margin:0;padding:0;overflow:hidden;\"><iframe src=\"%s\" style=\"border:none;width:100vw;height:100vh;\"></iframe></body>');", url);
+    ShellExecuteA(NULL, "open", "mshta.exe", hta_arg, NULL, SW_SHOWNORMAL);
 }
 
 // Console Control Handler for clean exit

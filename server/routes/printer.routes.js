@@ -38,6 +38,9 @@ function textToEscPosBuffer(text) {
 // Helper: Attach printing cookies with SameSite=None and Secure
 function attachPrintingCookies(res) {
   try {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-POS-Role, X-Organization-Id');
     const cookieOpts = {
       maxAge: 365 * 24 * 60 * 60 * 1000,
       httpOnly: false,
@@ -51,6 +54,13 @@ function attachPrintingCookies(res) {
     res.cookie('pos_print_session', 'session_' + Date.now(), cookieOpts);
   } catch (e) {}
 }
+
+router.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-POS-Role, X-Organization-Id');
+  res.sendStatus(204);
+});
 
 // GET & POST printing cookies management
 router.get('/cookies', (req, res) => {
@@ -116,10 +126,13 @@ router.post('/print', printerLimiter, (req, res) => {
   const filename = `receipt_${safeSaleId}.txt`;
   const filePath = path.join(receiptsDir, filename);
   const latestPath = path.join(receiptsDir, 'latest_receipt.txt');
+  const latestRawPath = path.join(receiptsDir, 'latest_receipt.bin');
+  const escPosBuf = textToEscPosBuffer(content);
 
   try {
     fs.writeFileSync(filePath, content, 'utf8');
     fs.writeFileSync(latestPath, content, 'utf8');
+    fs.writeFileSync(latestRawPath, escPosBuf);
   } catch (err) {
     console.warn('[Printer Route] File write notice:', err.message);
   }
@@ -132,17 +145,36 @@ router.post('/print', printerLimiter, (req, res) => {
     filename
   };
 
+  let responded = false;
+  const finishResponse = (spooledToHardware, methodUsed) => {
+    if (responded) return;
+    responded = true;
+    lastPrintJob.spooledToHardware = Boolean(spooledToHardware);
+    if (methodUsed) lastPrintJob.method = methodUsed;
+    res.json({
+      status: 'success',
+      spooledToHardware: Boolean(spooledToHardware),
+      message: 'Receipt sent to printer spooler successfully.',
+      spoolFile: `/receipts/${filename}`,
+      printJob: lastPrintJob
+    });
+  };
+
+  // Safety timeout so API always responds quickly (< 900ms)
+  const timer = setTimeout(() => finishResponse(false, lastPrintJob.method), 900);
+
   // 1. Direct Network Thermal Printer Socket (Raw Port 9100) - with strict IPv4 validation
   if (printerIp && isValidIpv4(printerIp)) {
     const port = isValidPort(printerPort) ? parseInt(printerPort, 10) : 9100;
     try {
       const socket = new net.Socket();
-      socket.setTimeout(2500);
+      socket.setTimeout(2000);
       socket.connect(port, printerIp.trim(), () => {
-        const escPosBuf = textToEscPosBuffer(content);
         socket.write(escPosBuf, () => {
           socket.end();
+          clearTimeout(timer);
           console.log(`[Printer Network] Dispatched ${escPosBuf.length} bytes to ${printerIp}:${port}`);
+          finishResponse(true, 'network-socket');
         });
       });
       socket.on('error', (sockErr) => {
@@ -156,41 +188,87 @@ router.post('/print', printerLimiter, (req, res) => {
     }
   }
 
-  // 2. Silent OS hardware dispatch with strict command injection protection
+  // 2. Silent OS hardware dispatch with strict command injection protection and zero dialog popups
   const cleanPrinterName = sanitizePrinterName(printerName);
   
   if (process.platform === 'win32') {
-    const printerTarget = cleanPrinterName ? `-PrinterName "${cleanPrinterName}"` : '';
     const safePathStr = latestPath.replace(/'/g, "''");
-    const psCmd = `powershell -NoProfile -NonInteractive -Command "Get-Content -LiteralPath '${safePathStr}' | Out-Printer ${printerTarget}"`;
-    exec(psCmd, (error) => {
-      if (error) {
-        console.log('[Printer Spooler] Windows Out-Printer note:', error.message);
+    const safePrinterStr = cleanPrinterName ? cleanPrinterName.replace(/'/g, "''") : '';
+    // PowerShell script that selects the physical/thermal printer and NEVER sends to "Microsoft Print to PDF" / "XPS" / "OneNote" / "Fax" (which pop up Save As dialogs)
+    const psScript = [
+      `$ErrorActionPreference = 'SilentlyContinue'`,
+      `$target = '${safePrinterStr}'`,
+      `if (-not $target) {`,
+      `  $printers = Get-CimInstance Win32_Printer`,
+      `  $real = $printers | Where-Object { $_.Name -notmatch 'PDF|XPS|OneNote|Fax|Microsoft Shared' }`,
+      `  $def = $real | Where-Object { $_.Default -eq $true } | Select-Object -First 1`,
+      `  if ($def) { $target = $def.Name }`,
+      `  else {`,
+      `    $thermal = $real | Where-Object { $_.Name -match 'POS|Thermal|Receipt|EPSON|XP-|RP|58|80|Star|Bixolon|Citizen|USB' } | Select-Object -First 1`,
+      `    if ($thermal) { $target = $thermal.Name }`,
+      `    elseif ($real) { $target = ($real | Select-Object -First 1).Name }`,
+      `  }`,
+      `}`,
+      `if ($target) {`,
+      `  Get-Content -Raw -LiteralPath '${safePathStr}' | Out-Printer -Name $target`,
+      `  Write-Output "PRINTED:$target"`,
+      `} else {`,
+      `  Write-Output "NO_HARDWARE_PRINTER"`,
+      `}`
+    ].join('; ');
+
+    const psCmd = `powershell.exe -WindowStyle Hidden -NoProfile -NonInteractive -Command "${psScript.replace(/"/g, '\\"')}"`;
+    exec(psCmd, { windowsHide: true, timeout: 4000 }, (error, stdout) => {
+      clearTimeout(timer);
+      const out = String(stdout || '').trim();
+      if (!error && out.includes('PRINTED:')) {
+        console.log('[Printer Spooler] Successfully sent receipt to Windows printer:', out);
+        finishResponse(true, 'windows-spooler');
       } else {
-        console.log('[Printer Spooler] Successfully sent receipt to default Windows printer');
+        finishResponse(false, 'windows-spooler');
       }
     });
   } else {
-    // Linux / POS Terminal CUPS direct silent spooling
-    exec('which lp || which lpr', (err, stdout) => {
-      if (!err && stdout && stdout.trim()) {
-        const bin = stdout.trim().split('\n')[0];
-        const destFlag = cleanPrinterName ? (bin.endsWith('lp') ? `-d "${cleanPrinterName}"` : `-P "${cleanPrinterName}"`) : '';
-        const cmd = bin.endsWith('lp') ? `lp -o raw ${destFlag} "${latestPath}"` : `lpr -l ${destFlag} "${latestPath}"`;
-        exec(cmd, (lpErr) => {
-          if (lpErr) console.log('[Printer Spooler] Linux print note:', lpErr.message);
-          else console.log('[Printer Spooler] Sent to Linux/CUPS printer');
-        });
-      }
-    });
-  }
+    // Linux / POS Terminal direct USB thermal device node or CUPS silent spooling
+    const usbNodes = ['/dev/usb/lp0', '/dev/usb/lp1', '/dev/lp0', '/dev/ttyUSB0', '/dev/ttyACM0'];
+    let wroteDirectUsb = false;
+    for (const nodePath of usbNodes) {
+      try {
+        if (fs.existsSync(nodePath)) {
+          fs.writeFileSync(nodePath, escPosBuf);
+          wroteDirectUsb = true;
+          clearTimeout(timer);
+          console.log(`[Printer Spooler] Sent raw ESC/POS directly to ${nodePath}`);
+          finishResponse(true, 'linux-usb-direct');
+          break;
+        }
+      } catch (e) {}
+    }
 
-  res.json({
-    status: 'success',
-    message: 'Receipt sent to printer spooler successfully.',
-    spoolFile: `/receipts/${filename}`,
-    printJob: lastPrintJob
-  });
+    if (!wroteDirectUsb) {
+      exec('which lp || which lpr', { windowsHide: true, timeout: 1500 }, (err, stdout) => {
+        if (!err && stdout && stdout.trim()) {
+          const bin = stdout.trim().split('\n')[0];
+          const destFlag = cleanPrinterName ? (bin.endsWith('lp') ? `-d "${cleanPrinterName}"` : `-P "${cleanPrinterName}"`) : '';
+          const cmd = bin.endsWith('lp')
+            ? `${bin} -o raw ${destFlag} "${latestPath}" || ${bin} ${destFlag} "${latestPath}"`
+            : `${bin} -l ${destFlag} "${latestPath}" || ${bin} ${destFlag} "${latestPath}"`;
+          exec(cmd, { windowsHide: true, timeout: 2500 }, (lpErr) => {
+            clearTimeout(timer);
+            if (!lpErr) {
+              console.log('[Printer Spooler] Sent to Linux/CUPS printer');
+              finishResponse(true, 'cups-spooler');
+            } else {
+              finishResponse(false, 'server-spooler');
+            }
+          });
+        } else {
+          clearTimeout(timer);
+          finishResponse(false, 'server-spooler');
+        }
+      });
+    }
+  }
 });
 
 // GET latest spooled receipt as text or JSON
@@ -545,9 +623,14 @@ router.post('/save-driver-to-html', (req, res) => {
     }
   }
 
+  try {
+    const { syncSystemToExeFiles } = require('../../scripts/sync-exe');
+    syncSystemToExeFiles({ printerDrivers: driversList }, { updateZip: true, silent: true });
+  } catch (syncErr) {}
+
   res.json({
     status: 'success',
-    message: `Printer driver successfully created and permanently saved to HTML (${updatedHtmlFiles} file(s) updated).`,
+    message: `Printer driver successfully created and permanently saved to HTML and EXE binaries (${updatedHtmlFiles} file(s) updated).`,
     driverCount: driversList.length,
     updatedHtmlFiles
   });

@@ -118,7 +118,15 @@ function main() {
       path.join(rootDir, 'PoketStar-POS.exe')
     );
   } else {
-    console.log('\n[STEP] MinGW compiler toolchain not present in current container — verifying existing binaries.');
+    console.log('\n[STEP] MinGW compiler toolchain not present in current container — patching PE .rsrc directly with live system state...');
+  }
+
+  // Always synchronize live index.html, products.json, users.json, and settings into the PE .rsrc section of all .exe files
+  try {
+    const { syncSystemToExeFiles } = require('./sync-exe.js');
+    syncSystemToExeFiles(null, { updateZip: false });
+  } catch (syncErr) {
+    console.warn('[WARN] EXE resource sync warning:', syncErr.message);
   }
 
   // 7. Replicate binaries to distribution directories
@@ -131,12 +139,26 @@ function main() {
     }
   }
 
-  // Also copy main web assets to dist for static deployment
-  const webAssets = ['index.html', 'styles.css', 'products.json', 'manifest.json', 'sw.js'];
+  // Also copy main web assets to dist and web for static and offline deployment
+  const webAssets = [
+    'index.html',
+    'styles.css',
+    'products.json',
+    'users.json',
+    'manifest.json',
+    'sw.js',
+    'anti-devtools.js',
+    'favicon.ico',
+    'favicon.png',
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'apple-touch-icon.png'
+  ];
   for (const asset of webAssets) {
     const src = path.join(rootDir, asset);
     if (fs.existsSync(src)) {
       fs.copyFileSync(src, path.join(rootDir, 'dist', asset));
+      fs.copyFileSync(src, path.join(rootDir, 'web', asset));
     }
   }
 
@@ -147,6 +169,9 @@ function main() {
     { src: 'PoketStar-POS-64bit.exe', dest: 'PoketStar-POS-64bit.exe' },
     { src: 'PoketStar-POS.exe', dest: 'PoketStar-POS.exe' },
     { src: 'Start-POS-Desktop.bat', dest: 'Start-POS-Desktop.bat' },
+    { src: 'app.ico', dest: 'app.ico' },
+    { src: 'favicon.ico', dest: 'favicon.ico' },
+    { src: 'pwa-512x512.png', dest: 'pwa-512x512.png' },
     { src: 'index.html', dest: 'index.html' },
     { src: 'products.json', dest: 'products.json' },
     { src: 'README-WINDOWS.txt', dest: 'README.txt' }

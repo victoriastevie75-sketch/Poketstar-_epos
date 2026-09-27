@@ -1,104 +1,70 @@
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const { sanitizeString } = require('../middleware/security');
 const router = express.Router();
+const { sanitizeString } = require('../middleware/security');
+const { getOrgSales, saveOrgSales } = require('../services/tenant.service');
 
 /**
- * Sales Routes
- * Handles sales transactions, invoices, and reporting
+ * Sales Routes — Multi-Tenant Scoped
+ * Handles isolated sales transactions, receipts, and reporting per organization
  */
 
-function getSalesFilePath() {
-  const candidates = [
-    path.join(__dirname, '../../sales.json'),
-    path.join(process.cwd(), 'sales.json'),
-    path.join(__dirname, '../../web/sales.json')
-  ];
-  
-  for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
-      return candidate;
-    }
-  }
-  
-  return path.join(process.cwd(), 'sales.json');
-}
-
-function loadSales() {
-  try {
-    const salesPath = getSalesFilePath();
-    if (fs.existsSync(salesPath)) {
-      const data = fs.readFileSync(salesPath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.error('Error loading sales:', err.message);
-  }
-  return [];
-}
-
-function saveSales(sales) {
-  try {
-    const salesPath = getSalesFilePath();
-    fs.writeFileSync(salesPath, JSON.stringify(sales, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('Error saving sales:', err.message);
-    return false;
-  }
-}
-
 router.get('/', (req, res) => {
-  const sales = loadSales();
+  const orgId = req.orgId || 'default';
+  const sales = getOrgSales(orgId);
   res.json({
     status: 'success',
+    organizationId: orgId,
     count: sales.length,
     sales
   });
 });
 
 router.get('/summary', (req, res) => {
-  const sales = loadSales();
+  const orgId = req.orgId || 'default';
+  const sales = getOrgSales(orgId);
   
-  const totalSales = sales.reduce((sum, sale) => sum + (sale.totals?.grand || 0), 0);
+  const totalSales = sales.reduce((sum, sale) => sum + (sale.totals?.grand || sale.total || 0), 0);
   const totalTransactions = sales.length;
   const totalTax = sales.reduce((sum, sale) => sum + (sale.totals?.tax || 0), 0);
   
   res.json({
     status: 'success',
+    organizationId: orgId,
     summary: {
-      totalSales,
+      totalSales: Math.round(totalSales * 100) / 100,
       totalTransactions,
-      totalTax,
-      averageTransaction: totalTransactions > 0 ? totalSales / totalTransactions : 0
+      totalTax: Math.round(totalTax * 100) / 100,
+      averageTransaction: totalTransactions > 0 ? Math.round((totalSales / totalTransactions) * 100) / 100 : 0
     }
   });
 });
 
 router.get('/daily', (req, res) => {
-  const sales = loadSales();
+  const orgId = req.orgId || 'default';
+  const sales = getOrgSales(orgId);
   const today = new Date().toDateString();
   
   const dailySales = sales.filter(sale => {
-    const saleDate = new Date(sale.created_at).toDateString();
+    const saleDate = new Date(sale.created_at || sale.timestamp || sale.date || Date.now()).toDateString();
     return saleDate === today;
   });
   
-  const totalDaily = dailySales.reduce((sum, sale) => sum + (sale.totals?.grand || 0), 0);
+  const totalDaily = dailySales.reduce((sum, sale) => sum + (sale.totals?.grand || sale.total || 0), 0);
   
   res.json({
     status: 'success',
+    organizationId: orgId,
     date: today,
     transactions: dailySales.length,
-    total: totalDaily,
+    total: Math.round(totalDaily * 100) / 100,
     sales: dailySales
   });
 });
 
 router.get('/:id', (req, res) => {
-  const sales = loadSales();
-  const sale = sales.find(s => s.id === req.params.id);
+  const orgId = req.orgId || 'default';
+  const sales = getOrgSales(orgId);
+  const sale = sales.find(s => s.id === req.params.id || s.ref === req.params.id);
   
   if (!sale) {
     return res.status(404).json({
@@ -109,12 +75,14 @@ router.get('/:id', (req, res) => {
 
   res.json({
     status: 'success',
+    organizationId: orgId,
     sale
   });
 });
 
 router.post('/', (req, res) => {
-  const { items, totals, total, payment, paymentMethod, tendered, change, subtotal, ref } = req.body;
+  const orgId = req.orgId || 'default';
+  const { items, totals, total, payment, paymentMethod, tendered, change, subtotal, ref, cashier, tillId } = req.body;
   
   if (!items || (!totals && total === undefined && subtotal === undefined)) {
     return res.status(400).json({
@@ -123,7 +91,7 @@ router.post('/', (req, res) => {
     });
   }
 
-  const sales = loadSales();
+  const sales = getOrgSales(orgId);
   const grandTotal = Number(totals?.grand !== undefined ? totals.grand : (total !== undefined ? total : (subtotal || 0))) || 0;
   const rawSubtotal = Number(totals?.subtotal !== undefined ? totals.subtotal : (subtotal !== undefined ? subtotal : grandTotal)) || grandTotal;
   const rawTax = Number(totals?.tax !== undefined ? totals.tax : 0) || 0;
@@ -134,6 +102,7 @@ router.post('/', (req, res) => {
 
   const newSale = {
     id: req.body.id || `SALE-${Date.now()}`,
+    organizationId: orgId,
     items: Array.isArray(items) ? items : [],
     totals: {
       subtotal: rawSubtotal,
@@ -141,24 +110,24 @@ router.post('/', (req, res) => {
       discount: rawDiscount,
       grand: grandTotal
     },
+    total: grandTotal,
     payment: {
       method: payMethod,
       tendered: tenderedAmt,
-      change: changeAmt,
-      reference: ref || payment?.reference || null,
-      processedAt: new Date().toISOString()
+      change: changeAmt
     },
-    subtotal: grandTotal,
-    paymentMethod: payMethod,
-    created_at: new Date().toISOString(),
-    status: 'COMPLETED'
+    ref: ref || `REC-${Date.now().toString().slice(-6)}`,
+    cashier: cashier || req.body.cashierName || 'admin',
+    tillId: tillId || 'Till-01',
+    created_at: req.body.created_at || new Date().toISOString()
   };
 
-  sales.push(newSale);
+  sales.unshift(newSale);
   
-  if (saveSales(sales)) {
+  if (saveOrgSales(orgId, sales)) {
     res.status(201).json({
       status: 'success',
+      organizationId: orgId,
       message: 'Sale recorded successfully',
       sale: newSale
     });
@@ -170,8 +139,9 @@ router.post('/', (req, res) => {
   }
 });
 
-router.post('/refund/:id', (req, res) => {
-  const sales = loadSales();
+router.delete('/:id', (req, res) => {
+  const orgId = req.orgId || 'default';
+  const sales = getOrgSales(orgId);
   const index = sales.findIndex(s => s.id === req.params.id);
   
   if (index === -1) {
@@ -181,79 +151,21 @@ router.post('/refund/:id', (req, res) => {
     });
   }
 
-  const sale = sales[index];
+  const deleted = sales.splice(index, 1)[0];
   
-  if (sale.status === 'REFUNDED') {
-    return res.status(400).json({
-      status: 'error',
-      message: 'Sale already refunded'
-    });
-  }
-
-  sale.status = 'REFUNDED';
-  sale.refundedAt = new Date().toISOString();
-  
-  if (saveSales(sales)) {
+  if (saveOrgSales(orgId, sales)) {
     res.json({
       status: 'success',
-      message: 'Sale refunded successfully',
-      sale
+      organizationId: orgId,
+      message: 'Sale record deleted',
+      sale: deleted
     });
   } else {
     res.status(500).json({
       status: 'error',
-      message: 'Failed to process refund'
+      message: 'Failed to delete sale'
     });
   }
-});
-
-router.get('/report/daily', (req, res) => {
-  const sales = loadSales();
-  
-  // Group by date
-  const byDate = {};
-  sales.forEach(sale => {
-    const date = new Date(sale.created_at).toDateString();
-    if (!byDate[date]) {
-      byDate[date] = {
-        date,
-        transactions: 0,
-        total: 0,
-        tax: 0
-      };
-    }
-    byDate[date].transactions++;
-    byDate[date].total += sale.totals?.grand || 0;
-    byDate[date].tax += sale.totals?.tax || 0;
-  });
-
-  res.json({
-    status: 'success',
-    report: Object.values(byDate)
-  });
-});
-
-router.get('/report/payment-methods', (req, res) => {
-  const sales = loadSales();
-  
-  const byMethod = {};
-  sales.forEach(sale => {
-    const method = sale.payment?.method || 'UNKNOWN';
-    if (!byMethod[method]) {
-      byMethod[method] = {
-        method,
-        count: 0,
-        total: 0
-      };
-    }
-    byMethod[method].count++;
-    byMethod[method].total += sale.totals?.grand || 0;
-  });
-
-  res.json({
-    status: 'success',
-    report: Object.values(byMethod)
-  });
 });
 
 module.exports = router;

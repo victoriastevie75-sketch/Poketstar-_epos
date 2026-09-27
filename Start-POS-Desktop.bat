@@ -8,6 +8,9 @@ echo.
 
 cd /d "%~dp0"
 
+REM Ensure Desktop shortcut with official Poket Star logo is created
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$desktop = [Environment]::GetFolderPath('Desktop'); $lnkPath = Join-Path $desktop 'Poket Star POS.lnk'; if (!(Test-Path $lnkPath)) { $wsh = New-Object -ComObject WScript.Shell; $sc = $wsh.CreateShortcut($lnkPath); $sc.TargetPath = '%~dp0Start-POS-Desktop.bat'; $sc.WorkingDirectory = '%~dp0'; if (Test-Path '%~dp0app.ico') { $sc.IconLocation = '%~dp0app.ico,0'; } $sc.Description = 'Poket Star Enterprise POS'; $sc.Save(); }" >nul 2>nul
+
 echo [1/3] Checking system architecture and runtime environment...
 IF "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
     echo Detected 64-bit Windows Architecture (AMD64).
@@ -45,15 +48,15 @@ IF %ERRORLEVEL% EQU 0 (
         echo Starting embedded POS engine via Node.js Server...
         start "" node server.js
         timeout /t 2 /nobreak >nul
-        start msedge.exe --app="http://localhost:3000" --window-size=1280,840 2>nul || start chrome.exe --app="http://localhost:3000" --window-size=1280,840 2>nul || start "" "http://localhost:3000"
+        start "" msedge.exe --app="http://127.0.0.1:3000" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || start "" chrome.exe --app="http://127.0.0.1:3000" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || start "" brave.exe --app="http://127.0.0.1:3000" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || mshta.exe "javascript:window.resizeTo(1280,840);window.moveTo((screen.width-1280)/2,(screen.height-840)/2);document.write('<title>Poket Star POS</title><body style=\"margin:0;padding:0;overflow:hidden;\"><iframe src=\"http://127.0.0.1:3000\" style=\"border:none;width:100vw;height:100vh;\"></iframe></body>');"
         goto :launched
     )
 )
 
 echo.
-echo [3/3] Opening POS Interface in Web App Standalone Mode...
+echo [3/3] Opening POS Interface in Dedicated Standalone App Mode...
 IF EXIST "index.html" (
-    start msedge.exe --app="%CD%\index.html" --window-size=1280,840 --disable-pinch 2>nul || start chrome.exe --app="%CD%\index.html" --window-size=1280,840 --disable-pinch 2>nul || start "" "%CD%\index.html"
+    start "" msedge.exe --app="%CD%\index.html" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || start "" chrome.exe --app="%CD%\index.html" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || start "" brave.exe --app="%CD%\index.html" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 --disable-pinch 2>nul || mshta.exe "%CD%\index.html"
     goto :launched
 )
 

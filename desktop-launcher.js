@@ -55,63 +55,67 @@ function getAvailablePort(preferredPort) {
   });
 }
 
-// Helper to open browser or standalone App Window
+// Helper to open standalone App Window
 function openDesktopApp(url) {
   const isWin = process.platform === 'win32' || Boolean(process.env.WINDIR) || Boolean(process.env.SYSTEMROOT);
   const isMac = process.platform === 'darwin';
 
   if (isWin) {
-    // Check possible locations for Microsoft Edge or Google Chrome (both 32-bit and 64-bit paths)
     const progFilesX86 = process.env['PROGRAMFILES(X86)'] || 'C:\\Program Files (x86)';
     const progFiles = process.env['PROGRAMFILES'] || 'C:\\Program Files';
+    const progW6432 = process.env['PROGRAMW6432'] || 'C:\\Program Files';
     const localAppData = process.env['LOCALAPPDATA'] || '';
+    const sysDrive = process.env['SystemDrive'] || 'C:';
 
     const browserExecutables = [
       // Microsoft Edge (Standard on Windows 10 & 11)
       path.join(progFilesX86, 'Microsoft/Edge/Application/msedge.exe'),
       path.join(progFiles, 'Microsoft/Edge/Application/msedge.exe'),
+      path.join(progW6432, 'Microsoft/Edge/Application/msedge.exe'),
       localAppData ? path.join(localAppData, 'Microsoft/Edge/Application/msedge.exe') : null,
-      'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-      'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+      `${sysDrive}\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe`,
+      `${sysDrive}\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe`,
 
       // Google Chrome
       path.join(progFilesX86, 'Google/Chrome/Application/chrome.exe'),
       path.join(progFiles, 'Google/Chrome/Application/chrome.exe'),
+      path.join(progW6432, 'Google/Chrome/Application/chrome.exe'),
       localAppData ? path.join(localAppData, 'Google/Chrome/Application/chrome.exe') : null,
-      'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-      'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+      `${sysDrive}\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe`,
+      `${sysDrive}\\Program Files\\Google\\Chrome\\Application\\chrome.exe`,
 
       // Brave Browser
       path.join(progFiles, 'BraveSoftware/Brave-Browser/Application/brave.exe'),
-      path.join(progFilesX86, 'BraveSoftware/Brave-Browser/Application/brave.exe')
+      path.join(progFilesX86, 'BraveSoftware/Brave-Browser/Application/brave.exe'),
+      localAppData ? path.join(localAppData, 'Programs/BraveSoftware/Brave-Browser/Application/brave.exe') : null,
+      localAppData ? path.join(localAppData, 'BraveSoftware/Brave-Browser/Application/brave.exe') : null
     ];
 
     let foundBrowser = browserExecutables.find(p => p && fs.existsSync(p));
 
     if (foundBrowser) {
       log(`Launching dedicated POS application window via: ${foundBrowser}`);
-      exec(`start "" "${foundBrowser}" --app="${url}" --window-size=1280,840 --disable-pinch --overscroll-history-navigation=0`, (err) => {
+      exec(`start "" "${foundBrowser}" --app="${url}" --kiosk-printing --disable-save-password-bubble --disable-features=AutofillServerCommunication,PasswordManagerOnboarding,PrintPreview --window-size=1280,840 --disable-pinch --overscroll-history-navigation=0 --app-id=PoketStarPOS --class=PoketStarPOS`, { windowsHide: true }, (err) => {
         if (err) {
-          log(`Fallback to system default browser shell due to: ${err.message}`);
-          exec(`cmd /c start "" "${url}"`);
+          log(`Launch command alias fallback: ${err.message}`);
+          exec(`cmd /c start "" msedge --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 || start "" chrome --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 || start "" brave --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840`, { windowsHide: true });
         }
       });
       return;
     }
 
-    // Universal Windows Shell fallback (works on Windows 7, 8, 10, 11, POSReady)
-    log('Opening POS via Windows Shell launcher...');
-    exec(`cmd /c start "" "${url}"`, (err) => {
+    // Windows Shell App Mode Execution via start msedge / chrome aliases
+    log('Opening dedicated POS window via shell application alias...');
+    exec(`cmd /c start "" msedge --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 || start "" chrome --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840 || start "" brave --app="${url}" --kiosk-printing --disable-save-password-bubble --window-size=1280,840`, { windowsHide: true }, (err) => {
       if (err) {
-        exec(`rundll32 url.dll,FileProtocolHandler "${url}"`, (err2) => {
-          if (err2) log(`Browser open notice: ${err2.message}`, true);
-        });
+        log('MSHTA window fallback...');
+        exec(`mshta.exe "javascript:window.resizeTo(1280,840);window.moveTo((screen.width-1280)/2,(screen.height-840)/2);document.write('<title>Poket Star POS</title><body style=\\"margin:0;padding:0;overflow:hidden;\\"><iframe src=\\"${url}\\" style=\\"border:none;width:100vw;height:100vh;\\"></iframe></body>');"`);
       }
     });
   } else if (isMac) {
-    exec(`open "${url}"`);
+    exec(`open -n -a "Google Chrome" --args --app="${url}" --kiosk-printing --disable-save-password-bubble || open "${url}"`);
   } else {
-    exec(`xdg-open "${url}"`);
+    exec(`google-chrome --app="${url}" --kiosk-printing --disable-save-password-bubble || chromium --app="${url}" --kiosk-printing --disable-save-password-bubble || xdg-open "${url}"`);
   }
 }
 

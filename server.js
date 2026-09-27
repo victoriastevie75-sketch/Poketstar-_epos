@@ -7,6 +7,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const zlib = require('zlib');
 let compression;
 try {
   compression = require('compression');
@@ -84,9 +85,19 @@ if (securityModule && securityModule.apiLimiter) {
   app.use('/api', securityModule.apiLimiter);
 }
 
-// Fast In-Memory Cache for index.html
+// Multi-Tenant / Multi-Organization Scoping Middleware
+try {
+  const tenantMiddleware = require('./server/middleware/tenant.middleware');
+  app.use('/api', tenantMiddleware);
+} catch (e) {
+  console.warn('[Server] [WARN] Tenant middleware note:', e.message);
+}
+
+// Fast In-Memory Cache for index.html (with pre-compressed Gzip & ETag)
 let cachedIndexHtml = null;
+let cachedIndexGzip = null;
 let cachedIndexMtime = null;
+let cachedIndexEtag = null;
 
 function getIndexHtml() {
   const indexPath = path.join(__dirname, 'index.html');
@@ -95,6 +106,12 @@ function getIndexHtml() {
     if (!cachedIndexHtml || cachedIndexMtime !== stats.mtimeMs) {
       cachedIndexHtml = fs.readFileSync(indexPath, 'utf8');
       cachedIndexMtime = stats.mtimeMs;
+      cachedIndexEtag = `W/"${stats.size.toString(16)}-${Math.floor(stats.mtimeMs).toString(16)}"`;
+      try {
+        cachedIndexGzip = zlib.gzipSync(Buffer.from(cachedIndexHtml, 'utf8'), { level: 6 });
+      } catch (e) {
+        cachedIndexGzip = null;
+      }
     }
   } catch (err) {
     if (!cachedIndexHtml) {
@@ -118,14 +135,24 @@ app.get('/sw.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'sw.js'));
 });
 
-// Fast instant delivery of root HTML with no-cache headers
+// Fast instant delivery of root HTML with ETag & pre-compressed Gzip buffer
 app.get(['/', '/index.html'], (req, res) => {
   const html = getIndexHtml();
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
+  res.setHeader('Cache-Control', 'no-cache');
+  if (cachedIndexEtag) {
+    res.setHeader('ETag', cachedIndexEtag);
+    if (req.headers['if-none-match'] === cachedIndexEtag) {
+      return res.status(304).end();
+    }
+  }
   if (html) {
+    const acceptEnc = req.headers['accept-encoding'] || '';
+    if (cachedIndexGzip && acceptEnc.includes('gzip')) {
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Vary', 'Accept-Encoding');
+      return res.end(cachedIndexGzip);
+    }
     return res.send(html);
   }
   res.sendFile(path.join(__dirname, 'index.html'));
@@ -154,6 +181,15 @@ app.use('/web', express.static(path.join(__dirname, 'web'), {
 }));
 
 // Mount API routes with error handling
+try {
+  const orgsRoutes = require('./server/routes/orgs.routes');
+  app.use('/api/orgs', orgsRoutes);
+  app.use('/api/organizations', orgsRoutes);
+  console.log('[Server] [OK] Multi-Tenant Organizations routes loaded');
+} catch (e) {
+  console.warn('[Server] [WARN] Organizations routes not available:', e.message);
+}
+
 try {
   const authRoutes = require('./server/routes/auth.routes');
   app.use('/api/auth', authRoutes);
@@ -236,29 +272,143 @@ function findExePath(filename) {
   return candidatePaths.find(p => fs.existsSync(p));
 }
 
+// ===== LIVE SYSTEM-TO-EXE SYNCHRONIZATION ENGINE =====
+let syncExeModule = null;
+try {
+  syncExeModule = require('./scripts/sync-exe');
+} catch (e) {
+  console.warn('[Server] [WARN] EXE sync module note:', e.message);
+}
+
+let isSyncingExe = false;
+let lastExeSyncResult = null;
+const trackedMtimes = new Map();
+
+function recordTrackedMtimes() {
+  const trackedFiles = ['index.html', 'products.json', 'users.json', 'sales.json'];
+  for (const f of trackedFiles) {
+    const fp = path.join(__dirname, f);
+    if (fs.existsSync(fp)) {
+      try {
+        trackedMtimes.set(f, fs.statSync(fp).mtimeMs);
+      } catch (e) {}
+    }
+  }
+}
+
+function runExeSyncNow(payload = null, options = {}) {
+  if (!syncExeModule || isSyncingExe) return lastExeSyncResult;
+  isSyncingExe = true;
+  try {
+    lastExeSyncResult = syncExeModule.syncSystemToExeFiles(payload, options);
+    cachedIndexHtml = null;
+    cachedIndexMtime = null;
+    getIndexHtml();
+    recordTrackedMtimes();
+    return lastExeSyncResult;
+  } catch (err) {
+    console.warn('[Server] [WARN] EXE sync error:', err.message);
+    return null;
+  } finally {
+    isSyncingExe = false;
+  }
+}
+
+function ensureExeFilesUpToDate(includeZip = false) {
+  if (!syncExeModule || isSyncingExe) return;
+  try {
+    const exe32 = path.join(__dirname, 'PoketStar-POS-32bit.exe');
+    const exeMtime = fs.existsSync(exe32) ? fs.statSync(exe32).mtimeMs : 0;
+    const trackedFiles = ['index.html', 'products.json', 'users.json', 'sales.json'];
+    let needsSync = !exeMtime;
+    for (const f of trackedFiles) {
+      const fp = path.join(__dirname, f);
+      if (fs.existsSync(fp)) {
+        const st = fs.statSync(fp);
+        if (st.mtimeMs > exeMtime + 50 || (trackedMtimes.has(f) && st.mtimeMs !== trackedMtimes.get(f))) {
+          needsSync = true;
+          break;
+        }
+      }
+    }
+    if (needsSync || includeZip) {
+      runExeSyncNow(null, { updateZip: includeZip, silent: false });
+    }
+  } catch (e) {}
+}
+
+// Record initial mtimes without blocking server boot
+recordTrackedMtimes();
+let lastSyncFinishedAt = 0;
+
+// Single lightweight watcher for direct file edits
+let fileWatchDebounceTimer = null;
+const watchedFilesSet = new Set(['index.html', 'products.json', 'users.json', 'sales.json']);
+try {
+  fs.watch(__dirname, (eventType, changedFile) => {
+    if (!changedFile || !watchedFilesSet.has(changedFile)) return;
+    if (isSyncingExe || (Date.now() - lastSyncFinishedAt < 1000)) return;
+    const fullPath = path.join(__dirname, changedFile);
+    try {
+      if (fs.existsSync(fullPath)) {
+        const currentMtime = fs.statSync(fullPath).mtimeMs;
+        if (trackedMtimes.get(changedFile) === currentMtime) return;
+      }
+    } catch (e) {}
+    if (fileWatchDebounceTimer) clearTimeout(fileWatchDebounceTimer);
+    fileWatchDebounceTimer = setTimeout(() => {
+      runExeSyncNow(null, { updateZip: false, silent: true });
+      lastSyncFinishedAt = Date.now();
+    }, 800);
+  });
+} catch (e) {}
+
+// Live API endpoint to save all system changes directly into the .exe binaries
+app.post('/api/system/sync-exe', (req, res) => {
+  const payload = req.body && typeof req.body === 'object' ? req.body : {};
+  const includeZip = Boolean(payload.updateZip);
+  const result = runExeSyncNow(payload, { updateZip: includeZip, silent: true });
+  lastSyncFinishedAt = Date.now();
+  if (result) {
+    return res.json(result);
+  }
+  res.status(500).json({ status: 'error', message: 'Could not synchronize changes to EXE files.' });
+});
+
+app.get('/api/system/sync-status', (req, res) => {
+  ensureExeFilesUpToDate(false);
+  res.json(lastExeSyncResult || { status: 'ok', updatedAt: new Date().toISOString() });
+});
+
 // Windows Executable Download Endpoints (32-bit, 64-bit, and Universal Default)
 app.get(['/download/32bit', '/download/x86', '/download/PoketStar-POS-32bit.exe', '/api/download/32bit'], (req, res) => {
+  ensureExeFilesUpToDate(false);
   const exePath = findExePath('PoketStar-POS-32bit.exe') || findExePath('PoketStar-POS.exe');
   if (exePath) {
     res.setHeader('Content-Type', 'application/vnd.microsoft.portable-executable');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.download(exePath, 'PoketStar-POS-32bit.exe');
   }
   res.status(404).json({ error: '32-bit executable not found. Please run build:exe.' });
 });
 
 app.get(['/download/64bit', '/download/x64', '/download/PoketStar-POS-64bit.exe', '/api/download/64bit'], (req, res) => {
+  ensureExeFilesUpToDate(false);
   const exePath = findExePath('PoketStar-POS-64bit.exe') || findExePath('PoketStar-POS.exe');
   if (exePath) {
     res.setHeader('Content-Type', 'application/vnd.microsoft.portable-executable');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.download(exePath, 'PoketStar-POS-64bit.exe');
   }
   res.status(404).json({ error: '64-bit executable not found. Please run build:exe.' });
 });
 
 app.get(['/download/exe', '/download/PoketStar-POS.exe', '/api/download/exe'], (req, res) => {
+  ensureExeFilesUpToDate(false);
   const exePath = findExePath('PoketStar-POS.exe') || findExePath('PoketStar-POS-32bit.exe') || findExePath('PoketStar-POS-64bit.exe');
   if (exePath) {
     res.setHeader('Content-Type', 'application/vnd.microsoft.portable-executable');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.download(exePath, 'PoketStar-POS.exe');
   }
   res.status(404).json({
@@ -269,9 +419,11 @@ app.get(['/download/exe', '/download/PoketStar-POS.exe', '/api/download/exe'], (
 
 // Portable ZIP Package Download Endpoints
 app.get(['/download/zip', '/download/portable', '/download/PoketStar-POS-Portable.zip', '/api/download/zip'], (req, res) => {
+  ensureExeFilesUpToDate(true);
   const zipPath = findExePath('PoketStar-POS-Portable.zip');
   if (zipPath) {
     res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
     return res.download(zipPath, 'PoketStar-POS-Portable.zip');
   }
   res.status(404).json({ error: 'Portable ZIP package not found. Please run build:exe.' });
@@ -279,6 +431,7 @@ app.get(['/download/zip', '/download/portable', '/download/PoketStar-POS-Portabl
 
 // Binary Information Endpoint
 app.get('/api/download/info', (req, res) => {
+  ensureExeFilesUpToDate(false);
   const p32 = findExePath('PoketStar-POS-32bit.exe');
   const p64 = findExePath('PoketStar-POS-64bit.exe');
   const pUni = findExePath('PoketStar-POS.exe');
@@ -291,16 +444,19 @@ app.get('/api/download/info', (req, res) => {
 
   res.json({
     available: Boolean(stat32 || stat64 || statUni || statZip),
+    lastSyncedAt: lastExeSyncResult ? lastExeSyncResult.updatedAt : new Date().toISOString(),
     universal: {
       filename: 'PoketStar-POS.exe',
       available: Boolean(statUni),
       sizeMB: statUni ? `${(statUni.size / (1024 * 1024)).toFixed(2)} MB` : null,
+      mtime: statUni ? statUni.mtime.toISOString() : null,
       downloadUrl: '/download/PoketStar-POS.exe'
     },
     x86_32bit: {
       filename: 'PoketStar-POS-32bit.exe',
       available: Boolean(stat32),
       sizeMB: stat32 ? `${(stat32.size / (1024 * 1024)).toFixed(2)} MB` : null,
+      mtime: stat32 ? stat32.mtime.toISOString() : null,
       downloadUrl: '/download/PoketStar-POS-32bit.exe',
       arch: 'Windows 32-bit (x86 / IA-32) — Universal compatibility'
     },
@@ -308,6 +464,7 @@ app.get('/api/download/info', (req, res) => {
       filename: 'PoketStar-POS-64bit.exe',
       available: Boolean(stat64),
       sizeMB: stat64 ? `${(stat64.size / (1024 * 1024)).toFixed(2)} MB` : null,
+      mtime: stat64 ? stat64.mtime.toISOString() : null,
       downloadUrl: '/download/PoketStar-POS-64bit.exe',
       arch: 'Windows 64-bit (x64)'
     },
@@ -315,6 +472,7 @@ app.get('/api/download/info', (req, res) => {
       filename: 'PoketStar-POS-Portable.zip',
       available: Boolean(statZip),
       sizeMB: statZip ? `${(statZip.size / (1024 * 1024)).toFixed(2)} MB` : null,
+      mtime: statZip ? statZip.mtime.toISOString() : null,
       downloadUrl: '/download/PoketStar-POS-Portable.zip',
       desc: 'Complete Windows Portable Suite (Executables + Batch Launcher + Offline HTML + Catalog)'
     }

@@ -1,0 +1,160 @@
+{
+  "updatedAt": "2026-09-27T05:19:55.758Z",
+  "users": [
+    {
+      "id": "USR-org-3015-mujbs2di-01",
+      "username": "admin",
+      "name": "Main Store / Headquarters Administrator",
+      "role": "admin",
+      "pin": "1234",
+      "tillId": "Till-01",
+      "status": "active",
+      "phone": "+254 700 000 000",
+      "email": "store@poketstar.com",
+      "permissions": [
+        "sales",
+        "discounts",
+        "refunds",
+        "inventory",
+        "reports",
+        "users",
+        "orgs"
+      ],
+      "createdAt": "2026-09-27T04:35:24.143Z"
+    },
+    {
+      "id": "USR-121",
+      "name": "sam",
+      "username": "sam",
+      "role": "cashier",
+      "tillId": "Till-01",
+      "pin": "1111",
+      "phone": "",
+      "email": "",
+      "permissions": [
+        "sales",
+        "discounts",
+        "inventory"
+      ],
+      "status": "active",
+      "createdAt": "2026-09-27T04:36:08.750Z"
+    }
+  ],
+  "sales": [
+    {
+      "id": "TXN-1790424644809",
+      "cashier": "sam",
+      "cashierId": "USR-133",
+      "tillId": "Till-01",
+      "items": [
+        {
+          "barcode": "616111517",
+          "name": "GEISHA FR",
+          "retailPrice": 50,
+          "price": 50,
+          "taxRate": 16,
+          "qty": 1
+        }
+      ],
+      "subtotal": 50,
+      "paymentMethod": "cash",
+      "tendered": 100,
+      "change": 50,
+      "timestamp": "2026-09-26T12:10:44.809Z",
+      "ref": null
+    },
+    {
+      "id": "TXN-1790484110456",
+      "cashier": "sam",
+      "cashierId": "USR-121",
+      "tillId": "Till-01",
+      "items": [
+        {
+          "barcode": "6161100045545",
+          "name": "amara coconut 200ml",
+          "retailPrice": 150,
+          "price": 150,
+          "taxRate": 16,
+          "qty": 2
+        }
+      ],
+      "subtotal": 300,
+      "paymentMethod": "cash",
+      "tendered": 500,
+      "change": 200,
+      "timestamp": "2026-09-27T04:41:50.456Z",
+      "ref": null
+    }
+  ],
+  "heldSales": [],
+  "invoices": [
+    {
+      "id": "INV-2026-101",
+      "type": "CUSTOMER_INVOICE",
+      "partyName": "Afritech Solutions Kenya Ltd",
+      "partyPin": "P051122334A",
+      "date": "2026-09-26",
+      "dueDate": "2026-10-10",
+      "terms": "Net 14 Days",
+      "items": [
+        {
+          "name": "Espresso Coffee",
+          "qty": 10,
+          "retailPrice": 250,
+          "taxRate": 16
+        },
+        {
+          "name": "Mineral Water 500ml",
+          "qty": 20,
+          "retailPrice": 70,
+          "taxRate": 0
+        }
+      ],
+      "subtotal": 3551.72,
+      "vat16": 344.83,
+      "exempt": 1400,
+      "total": 3900,
+      "status": "UNPAID / CREDIT",
+      "notes": "Corporate Account Purchase Order Ref PO-7781"
+    },
+    {
+      "id": "PUR-2026-202",
+      "type": "SUPPLIER_PURCHASE",
+      "partyName": "Brookside Dairies Wholesale",
+      "partyInvoiceNo": "SUP-90412",
+      "date": "2026-09-26",
+      "dueDate": "2026-09-26",
+      "items": [
+        {
+          "name": "Fresh Milk 1L",
+          "qty": 50,
+          "unitCost": 80,
+          "taxRate": 16
+        }
+      ],
+      "subtotal": 3448.28,
+      "vat16": 551.72,
+      "exempt": 0,
+      "total": 4000,
+      "status": "PAID",
+      "notes": "Inventory Restock Delivery Receipt"
+    }
+  ],
+  "voidedSales": [],
+  "theme": "dark",
+  "activePrinterDriverId": "drv-escpos-generic",
+  "settings": {
+    "pos_store_name": "POKET STAR BOUTIQUE",
+    "pos_store_footer_msg": "THANK YOU FOR SHOPPING WITH US! GOODS ONCE SOLD ARE SUBJECT TO STORE POLICY.",
+    "pos_printer_width": "80mm",
+    "pos_receipt_format": "standard",
+    "pos_receipt_size": "large",
+    "pos_silent_print_mode": "true",
+    "pos_auto_print": "true",
+    "pos_print_sound": "true",
+    "pos_spool_server": "true",
+    "pos_network_printer_port": "9100",
+    "pos_serial_baud": "9600",
+    "pos_print_cookies_allowed": "true"
+  }
+}

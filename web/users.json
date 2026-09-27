@@ -1,23 +1,40 @@
 [
   {
-    "id": "USR-001",
+    "id": "USR-org-3015-mujbs2di-01",
     "username": "admin",
-    "name": "Stevie Administrator",
+    "name": "Main Store / Headquarters Administrator",
     "role": "admin",
     "pin": "1234",
     "tillId": "Till-01",
     "status": "active",
-    "phone": "+254700000001",
-    "email": "admin@poketstar.com",
+    "phone": "+254 700 000 000",
+    "email": "store@poketstar.com",
     "permissions": [
       "sales",
       "discounts",
       "refunds",
       "inventory",
       "reports",
-      "users"
+      "users",
+      "orgs"
     ],
-    "createdAt": "2026-01-01T00:00:00.000Z",
-    "lastLogin": "2026-09-06T05:45:06.174Z"
+    "createdAt": "2026-09-27T04:35:24.143Z"
+  },
+  {
+    "id": "USR-121",
+    "name": "sam",
+    "username": "sam",
+    "role": "cashier",
+    "tillId": "Till-01",
+    "pin": "1111",
+    "phone": "",
+    "email": "",
+    "permissions": [
+      "sales",
+      "discounts",
+      "inventory"
+    ],
+    "status": "active",
+    "createdAt": "2026-09-27T04:36:08.750Z"
   }
 ]

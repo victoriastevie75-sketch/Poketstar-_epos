@@ -1,0 +1,46 @@
+[
+  {
+    "id": "TXN-1790424644809",
+    "cashier": "sam",
+    "cashierId": "USR-133",
+    "tillId": "Till-01",
+    "items": [
+      {
+        "barcode": "616111517",
+        "name": "GEISHA FR",
+        "retailPrice": 50,
+        "price": 50,
+        "taxRate": 16,
+        "qty": 1
+      }
+    ],
+    "subtotal": 50,
+    "paymentMethod": "cash",
+    "tendered": 100,
+    "change": 50,
+    "timestamp": "2026-09-26T12:10:44.809Z",
+    "ref": null
+  },
+  {
+    "id": "TXN-1790484110456",
+    "cashier": "sam",
+    "cashierId": "USR-121",
+    "tillId": "Till-01",
+    "items": [
+      {
+        "barcode": "6161100045545",
+        "name": "amara coconut 200ml",
+        "retailPrice": 150,
+        "price": 150,
+        "taxRate": 16,
+        "qty": 2
+      }
+    ],
+    "subtotal": 300,
+    "paymentMethod": "cash",
+    "tendered": 500,
+    "change": 200,
+    "timestamp": "2026-09-27T04:41:50.456Z",
+    "ref": null
+  }
+]

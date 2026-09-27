@@ -7,17 +7,21 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const root = path.resolve(__dirname, '..');
-const officialLogoPath = path.join(root, 'src/assets/images/pocket_star_gold_silver_official_1785328099213.jpg');
+const officialLogoPath = path.join(root, 'src/assets/images/pocket_star_official_logo.png');
 
 let generatedWithConvert = false;
 if (fs.existsSync(officialLogoPath)) {
   try {
     const icoPath = path.join(root, 'src_native/app.ico');
     execSync(`convert "${officialLogoPath}" -define icon:auto-resize=256,128,64,48,32,16 "${icoPath}"`);
+    execSync(`convert "${officialLogoPath}" -define icon:auto-resize=256,128,64,48,32,16 "${path.join(root, 'app.ico')}"`);
     execSync(`convert "${officialLogoPath}" -resize 512x512 "${path.join(root, 'pwa-512x512.png')}"`);
     execSync(`convert "${officialLogoPath}" -resize 192x192 "${path.join(root, 'pwa-192x192.png')}"`);
+    execSync(`convert "${officialLogoPath}" -resize 410x410 -background white -gravity center -extent 512x512 "${path.join(root, 'pwa-maskable-512x512.png')}"`);
+    execSync(`convert "${officialLogoPath}" -resize 154x154 -background white -gravity center -extent 192x192 "${path.join(root, 'pwa-maskable-192x192.png')}"`);
     execSync(`convert "${officialLogoPath}" -resize 180x180 "${path.join(root, 'apple-touch-icon.png')}"`);
-    execSync(`convert "${officialLogoPath}" -define icon:auto-resize=64,48,32,16 "${path.join(root, 'favicon.ico')}"`);
+    execSync(`convert "${officialLogoPath}" -resize 64x64 "${path.join(root, 'favicon.png')}"`);
+    execSync(`convert "${officialLogoPath}" -define icon:auto-resize=256,128,64,48,32,16 "${path.join(root, 'favicon.ico')}"`);
     console.log('Successfully generated all desktop icons from official Poket Star app logo!');
     generatedWithConvert = true;
   } catch (err) {
@@ -233,15 +237,24 @@ if (!generatedWithConvert) {
   });
   console.log('Generated PWA Icons: pwa-192x192.png, pwa-512x512.png, apple-touch-icon.png');
 } else {
-  // Sync high-res icons to dist and web
-  const dirs = [path.join(root, 'dist'), path.join(root, 'web')];
+  // Sync high-res icons to dist, web, and public
+  const dirs = [path.join(root, 'dist'), path.join(root, 'web'), path.join(root, 'public')];
+  const iconFiles = [
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'pwa-maskable-192x192.png',
+    'pwa-maskable-512x512.png',
+    'apple-touch-icon.png',
+    'favicon.ico',
+    'favicon.png',
+    'app.ico'
+  ];
   dirs.forEach(d => {
-    if (fs.existsSync(d)) {
-      ['pwa-192x192.png', 'pwa-512x512.png', 'apple-touch-icon.png', 'favicon.ico'].forEach(file => {
-        const srcF = path.join(root, file);
-        if (fs.existsSync(srcF)) fs.copyFileSync(srcF, path.join(d, file));
-      });
-    }
+    fs.mkdirSync(d, { recursive: true });
+    iconFiles.forEach(file => {
+      const srcF = path.join(root, file);
+      if (fs.existsSync(srcF)) fs.copyFileSync(srcF, path.join(d, file));
+    });
   });
 }
 
