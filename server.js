@@ -46,15 +46,26 @@ if (compression) {
   }));
 }
 
-// Middleware
-let cookieParser;
-try {
-  cookieParser = require('cookie-parser');
-} catch (e) {}
-
-if (cookieParser) {
-  app.use(cookieParser());
-}
+// Middleware: Native zero-dependency cookie parser
+app.use((req, res, next) => {
+  req.cookies = {};
+  const rawCookies = req.headers.cookie;
+  if (rawCookies) {
+    rawCookies.split(';').forEach(pair => {
+      const idx = pair.indexOf('=');
+      if (idx > 0) {
+        const key = pair.substring(0, idx).trim();
+        const val = pair.substring(idx + 1).trim();
+        try {
+          req.cookies[key] = decodeURIComponent(val);
+        } catch (e) {
+          req.cookies[key] = val;
+        }
+      }
+    });
+  }
+  next();
+});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -341,28 +352,6 @@ function ensureExeFilesUpToDate(includeZip = false) {
 recordTrackedMtimes();
 let lastSyncFinishedAt = 0;
 
-// Single lightweight watcher for direct file edits
-let fileWatchDebounceTimer = null;
-const watchedFilesSet = new Set(['index.html', 'products.json', 'users.json', 'sales.json']);
-try {
-  fs.watch(__dirname, (eventType, changedFile) => {
-    if (!changedFile || !watchedFilesSet.has(changedFile)) return;
-    if (isSyncingExe || (Date.now() - lastSyncFinishedAt < 1000)) return;
-    const fullPath = path.join(__dirname, changedFile);
-    try {
-      if (fs.existsSync(fullPath)) {
-        const currentMtime = fs.statSync(fullPath).mtimeMs;
-        if (trackedMtimes.get(changedFile) === currentMtime) return;
-      }
-    } catch (e) {}
-    if (fileWatchDebounceTimer) clearTimeout(fileWatchDebounceTimer);
-    fileWatchDebounceTimer = setTimeout(() => {
-      runExeSyncNow(null, { updateZip: false, silent: true });
-      lastSyncFinishedAt = Date.now();
-    }, 800);
-  });
-} catch (e) {}
-
 // Live API endpoint to save all system changes directly into the .exe binaries
 app.post('/api/system/sync-exe', (req, res) => {
   const payload = req.body && typeof req.body === 'object' ? req.body : {};
@@ -376,7 +365,6 @@ app.post('/api/system/sync-exe', (req, res) => {
 });
 
 app.get('/api/system/sync-status', (req, res) => {
-  ensureExeFilesUpToDate(false);
   res.json(lastExeSyncResult || { status: 'ok', updatedAt: new Date().toISOString() });
 });
 
@@ -431,7 +419,6 @@ app.get(['/download/zip', '/download/portable', '/download/PoketStar-POS-Portabl
 
 // Binary Information Endpoint
 app.get('/api/download/info', (req, res) => {
-  ensureExeFilesUpToDate(false);
   const p32 = findExePath('PoketStar-POS-32bit.exe');
   const p64 = findExePath('PoketStar-POS-64bit.exe');
   const pUni = findExePath('PoketStar-POS.exe');

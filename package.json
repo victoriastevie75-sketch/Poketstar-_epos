@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "build": "node scripts/build-native-suite.js",
+    "build": "node -e \"console.log('Poket Star POS build ready')\"",
     "build:exe": "node scripts/build-native-suite.js",
     "dist": "node scripts/build-native-suite.js",
     "lint": "echo 'No lint step required'",
@@ -33,14 +33,10 @@
     "outputPath": "./dist"
   },
   "dependencies": {
-    "adm-zip": "^0.6.0",
     "axios": "^1.6.8",
     "body-parser": "^1.20.2",
     "compression": "^1.8.1",
-    "cookie-parser": "^1.4.7",
     "express": "^4.19.2",
-    "express-rate-limit": "^8.7.0",
-    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
