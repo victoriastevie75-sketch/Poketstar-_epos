@@ -4829,7 +4829,7 @@ const browserExecutables = [
                 tillId: 'Till-01',
                 status: 'active',
                 phone: '+254 700 000001',
-                email: 'admin@poketstar.com',
+                email: 'victoriastevie75@gmail;.com',
                 permissions: ['sales', 'discounts', 'refunds', 'inventory', 'reports', 'users'],
                 createdAt: new Date().toISOString()
             }
@@ -5424,13 +5424,13 @@ const browserExecutables = [
             }
             // Cycle through available themes
             const themes = ['dark', 'light', 'midnight', 'gold', 'emerald'];
-            const curIdx = themes.indexOf(state.theme || 'dark');
+            const curIdx = themes.indexOf(state.theme || 'dark''light');
             const nextIdx = (curIdx + 1) % themes.length;
             selectTheme(themes[nextIdx]);
         }
 
         function applyTheme() {
-            const theme = state.theme || 'dark';
+            const theme = state.theme || 'dark''light';
             // Clean old theme classes
             document.body.className = document.body.className
                 .replace(/\btheme-\S+/g, '')
@@ -5698,7 +5698,7 @@ const browserExecutables = [
             businessType: 'Retail & Supermarket',
             currency: 'KES',
             currencySymbol: 'KSh',
-            vatRate: 16,
+            vatRate: 16,0,
             receiptHeader: 'POKET STAR EPOS — HEADQUARTERS',
             receiptFooter: 'Thank you for shopping with us! Powered by Poket Star EPOS'
         };
