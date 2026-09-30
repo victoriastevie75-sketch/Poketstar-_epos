@@ -1082,9 +1082,9 @@
             if (codeEl && currentOrg) codeEl.textContent = `[${currentOrg.code || 'MAIN'}] ▾`;
         }
 
-        function renderOrgsTab() {
-            const countLabel = document.getElementById('orgsCountLabel');
-            const grid = document.getElementById('orgsListGrid');
+                        function renderOrgsTab() {
+            const countLabel = document.getElementById("orgsCountLabel");
+            const grid = document.getElementById("orgsListGrid");
             if (!grid) return;
 
             if (countLabel) {
@@ -1099,7 +1099,462 @@
             grid.innerHTML = organizationsList.map(org => {
                 const isActive = org.id === currentOrgId;
                 const stats = org.stats || { productCount: 0, salesCount: 0, revenue: 0, userCount: 1 };
-                const currSym = org.currencySymbol || (org.currency === 'USD' ? '
+                const currSym = org.currencySymbol || (org.currency === "USD" ? "$" : (org.currency === "EUR" ? "€" : (org.currency === "GBP" ? "£" : (org.currency === "TZS" ? "TSh" : (org.currency === "UGX" ? "USh" : (org.currency === "ZAR" ? "R" : "KSh"))))));
+                const prodCount = stats.productCount !== undefined ? stats.productCount : (isActive ? (state.products ? state.products.length : 0) : 0);
+                const salesCount = stats.salesCount !== undefined ? stats.salesCount : (isActive ? (state.sales ? state.sales.length : 0) : 0);
+                const revTotal = stats.revenue !== undefined ? stats.revenue : (isActive ? (state.sales ? state.sales.reduce((acc, s) => acc + (s.subtotal || 0), 0) : 0) : 0);
+
+                return `
+                    <div style="background: var(--card); border: 2px solid ${isActive ? "#3b82f6" : "var(--border)"}; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: ${isActive ? "0 0 15px rgba(59, 130, 246, 0.15)" : "none"}; position: relative;">
+                        ${isActive ? '<span style="position:absolute; top:12px; right:12px; background:#3b82f6; color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:4px; letter-spacing:0.04em;">ACTIVE WORKSPACE</span>' : ""}
+                        <div>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <span style="font-size:1.4rem;">🏢</span>
+                                <div>
+                                    <div style="font-weight:700; font-size:1.05rem; color:var(--ink);">${escapeHtml(org.name)}</div>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">
+                                        <strong style="color:var(--accent);">[${escapeHtml(org.code || "ORG")}]</strong> • ${escapeHtml(org.businessType || "Retail")} • ${escapeHtml(org.currency || "KES")} (${currSym})
+                                    </div>
+                                </div>
+                            </div>
+                            ${org.address ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">📍 ${escapeHtml(org.address)}</div>` : ""}
+                            ${org.taxPin ? `<div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">🏛️ PIN: <code>${escapeHtml(org.taxPin)}</code></div>` : ""}
+                            
+                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; background:var(--ink-faint); padding:10px 8px; border-radius:6px; margin:12px 0; text-align:center;">
+                                <div>
+                                    <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Products</div>
+                                    <div style="font-weight:700; font-size:1.1rem; color:var(--ink);">${prodCount}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Sales</div>
+                                    <div style="font-weight:700; font-size:1.1rem; color:var(--ink);">${salesCount}</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:10px; color:var(--text-muted); text-transform:uppercase;">Revenue</div>
+                                    <div style="font-weight:700; font-size:0.85rem; color:#10b981;">${currSym} ${Number(revTotal).toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; border-top:1px solid var(--border); padding-top:12px; margin-top:8px; flex-wrap:wrap;">
+                            ${isActive 
+                                ? '<button type="button" class="btn secondary" disabled style="opacity:0.8; font-size:0.8rem; padding:5px 10px;">✓ Current Store</button>'
+                                : `<button type="button" class="btn" onclick="switchOrganization('${org.id}')" style="background:#3b82f6; color:#fff; font-size:0.8rem; padding:5px 12px; font-weight:700;">Switch Workspace</button>`
+                            }
+                            <div style="display:inline-flex; gap:6px;">
+                                <button type="button" class="btn secondary outline" onclick="openEditOrgModal('${org.id}')" title="Edit Store Settings" style="font-size:0.75rem; padding:5px 8px;">⚙️ Edit</button>
+                                <button type="button" class="btn secondary outline" onclick="exportOrgBackup('${org.id}')" title="Download Organization Backup JSON" style="font-size:0.75rem; padding:5px 8px;">💾 Backup</button>
+                                ${!org.isDefault && org.id !== "default" 
+                                    ? `<button type="button" class="btn secondary outline" onclick="deleteOrg('${org.id}')" title="Archive / Delete Store" style="font-size:0.75rem; padding:5px 8px; color:#ef4444; border-color:rgba(239,68,68,0.3);">🗑️</button>`
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function filterOrgsList(query) {
+            const q = (query || "").toLowerCase().trim();
+            if (!q) {
+                renderOrgsTab();
+                return;
+            }
+            const grid = document.getElementById("orgsListGrid");
+            if (!grid) return;
+            const filtered = organizationsList.filter(o => 
+                (o.name && o.name.toLowerCase().includes(q)) ||
+                (o.code && o.code.toLowerCase().includes(q)) ||
+                (o.businessType && o.businessType.toLowerCase().includes(q)) ||
+                (o.address && o.address.toLowerCase().includes(q))
+            );
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="color:var(--text-muted); padding:30px; text-align:center;">No organizations match your search filter.</div>';
+                return;
+            }
+            const orig = organizationsList;
+            organizationsList = filtered;
+            renderOrgsTab();
+            organizationsList = orig;
+        }
+
+        function openOrgManagerModal() {
+            const modal = document.getElementById("orgManagerModal");
+            const list = document.getElementById("orgQuickSwitchList");
+            if (!modal || !list) return;
+
+            list.innerHTML = organizationsList.map(org => {
+                const isActive = org.id === currentOrgId;
+                const stats = org.stats || { productCount: 0, salesCount: 0 };
+                const currSym = org.currencySymbol || (org.currency === "USD" ? "$" : (org.currency === "EUR" ? "€" : (org.currency === "GBP" ? "£" : (org.currency === "TZS" ? "TSh" : (org.currency === "UGX" ? "USh" : (org.currency === "ZAR" ? "R" : "KSh"))))));
+
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:${isActive ? "rgba(59, 130, 246, 0.08)" : "var(--bg)"}; border:1px solid ${isActive ? "#3b82f6" : "var(--border)"}; padding:12px 14px; border-radius:6px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:1.3rem;">🏢</span>
+                            <div>
+                                <div style="font-weight:700; font-size:0.95rem; color:var(--ink);">
+                                    ${escapeHtml(org.name)} ${isActive ? '<span style="background:#3b82f6; color:#fff; font-size:9px; font-weight:800; padding:1px 6px; border-radius:3px; margin-left:6px;">ACTIVE</span>' : ""}
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--text-muted);">
+                                    <strong>[${escapeHtml(org.code || "ORG")}]</strong> • ${escapeHtml(org.businessType || "Retail")} • ${stats.productCount || 0} Products • ${stats.salesCount || 0} Sales
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            ${isActive 
+                                ? '<span style="color:#3b82f6; font-size:0.8rem; font-weight:700; padding:4px 8px;">Current</span>'
+                                : `<button type="button" class="btn" onclick="closeOrgManagerModal(); switchOrganization('${org.id}')" style="background:#3b82f6; color:#fff; font-size:0.78rem; padding:4px 10px; font-weight:700;">Switch</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            modal.classList.remove("hidden");
+        }
+
+        function closeOrgManagerModal() {
+            const modal = document.getElementById("orgManagerModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        function openCreateOrgModal() {
+            const modal = document.getElementById("newOrgModal");
+            if (modal) {
+                document.getElementById("newOrgName").value = "";
+                document.getElementById("newOrgCode").value = "";
+                document.getElementById("newOrgAddress").value = "";
+                document.getElementById("newOrgTaxPin").value = "";
+                document.getElementById("newOrgReceiptHeader").value = "";
+                modal.classList.remove("hidden");
+            }
+        }
+
+        function closeCreateOrgModal() {
+            const modal = document.getElementById("newOrgModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        async function saveNewOrganization(e) {
+            if (e) e.preventDefault();
+            const name = (document.getElementById("newOrgName")?.value || "").trim();
+            const code = (document.getElementById("newOrgCode")?.value || "").trim().toUpperCase();
+            const businessType = document.getElementById("newOrgBusinessType")?.value || "Retail & Supermarket";
+            const currency = document.getElementById("newOrgCurrency")?.value || "KES";
+            const taxRate = parseFloat(document.getElementById("newOrgTaxRate")?.value || "16");
+            const address = (document.getElementById("newOrgAddress")?.value || "").trim();
+            const taxPin = (document.getElementById("newOrgTaxPin")?.value || "").trim();
+            const receiptHeader = (document.getElementById("newOrgReceiptHeader")?.value || "").trim() || name;
+
+            if (!name || !code) {
+                showPosToast("Organization Name and Store Code are required.", "warning", 3000);
+                return;
+            }
+
+            const currSymMap = { KES: "KSh", USD: "$", EUR: "€", GBP: "£", TZS: "TSh", UGX: "USh", ZAR: "R" };
+            const payload = {
+                name,
+                code,
+                businessType,
+                currency,
+                currencySymbol: currSymMap[currency] || "KSh",
+                vatRate: isNaN(taxRate) ? 16 : taxRate,
+                address,
+                taxPin,
+                receiptHeader,
+                receiptFooter: `Thank you for shopping with ${name}! Powered by Poket Star EPOS`
+            };
+
+            try {
+                if (window.location.protocol.startsWith("http")) {
+                    const res = await fetch("/api/orgs", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...getOrgHeaders()
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (data.organization) {
+                        showPosToast(`Store "${name}" registered successfully!`, "success", 3500);
+                        closeCreateOrgModal();
+                        await loadOrganizations(false);
+                        await switchOrganization(data.organization.id);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Backend org registration fallback to local storage:", err);
+            }
+
+            // Client-side fallback if offline
+            const localId = "org-" + code.toLowerCase().replace(/[^a-z0-9]/g, "-") + "-" + Date.now().toString(36);
+            const newOrg = {
+                id: localId,
+                ...payload,
+                createdAt: new Date().toISOString(),
+                stats: { productCount: 0, salesCount: 0, revenue: 0, userCount: 1 }
+            };
+            organizationsList.push(newOrg);
+            localStorage.setItem("pos_cached_orgs", JSON.stringify(organizationsList));
+            showPosToast(`Store "${name}" created in offline mode!`, "success", 3500);
+            closeCreateOrgModal();
+            await switchOrganization(localId);
+        }
+
+        function openEditOrgModal(orgId) {
+            const org = organizationsList.find(o => o.id === orgId) || currentOrg;
+            if (!org) return;
+
+            const modal = document.getElementById("editOrgModal");
+            if (!modal) return;
+
+            document.getElementById("editOrgId").value = org.id;
+            document.getElementById("editOrgName").value = org.name || "";
+            document.getElementById("editOrgCode").value = org.code || "";
+            document.getElementById("editOrgBusinessType").value = org.businessType || "";
+            document.getElementById("editOrgCurrencySymbol").value = org.currencySymbol || (org.currency === "USD" ? "$" : "KSh");
+            document.getElementById("editOrgTaxRate").value = org.vatRate !== undefined ? org.vatRate : 16;
+            document.getElementById("editOrgAddress").value = org.address || "";
+            document.getElementById("editOrgReceiptFooter").value = org.receiptFooter || "";
+
+            modal.classList.remove("hidden");
+        }
+
+        function closeEditOrgModal() {
+            const modal = document.getElementById("editOrgModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        async function saveEditOrganization(e) {
+            if (e) e.preventDefault();
+            const orgId = document.getElementById("editOrgId")?.value;
+            if (!orgId) return;
+
+            const updates = {
+                name: (document.getElementById("editOrgName")?.value || "").trim(),
+                businessType: (document.getElementById("editOrgBusinessType")?.value || "").trim(),
+                currencySymbol: (document.getElementById("editOrgCurrencySymbol")?.value || "").trim(),
+                vatRate: parseFloat(document.getElementById("editOrgTaxRate")?.value || "16"),
+                address: (document.getElementById("editOrgAddress")?.value || "").trim(),
+                receiptFooter: (document.getElementById("editOrgReceiptFooter")?.value || "").trim()
+            };
+
+            try {
+                if (window.location.protocol.startsWith("http")) {
+                    const res = await fetch(`/api/orgs/${encodeURIComponent(orgId)}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...getOrgHeaders()
+                        },
+                        body: JSON.stringify(updates)
+                    });
+                    if (res.ok) {
+                        showPosToast("Organization settings updated successfully.", "success", 3000);
+                        closeEditOrgModal();
+                        await loadOrganizations(false);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.warn("Backend update org notice:", err);
+            }
+
+            // Local fallback
+            const idx = organizationsList.findIndex(o => o.id === orgId);
+            if (idx !== -1) {
+                organizationsList[idx] = { ...organizationsList[idx], ...updates };
+                localStorage.setItem("pos_cached_orgs", JSON.stringify(organizationsList));
+                if (currentOrgId === orgId) {
+                    currentOrg = organizationsList[idx];
+                    updateHeaderOrgBadge();
+                }
+                renderOrgsTab();
+                showPosToast("Store settings saved locally.", "success", 3000);
+            }
+            closeEditOrgModal();
+        }
+
+        async function deleteOrg(orgId) {
+            if (orgId === "default" || orgId === currentOrgId) {
+                showPosToast("Cannot delete the default or currently active organization.", "warning", 3500);
+                return;
+            }
+            const org = organizationsList.find(o => o.id === orgId);
+            if (!org) return;
+
+            if (!confirm(`Are you sure you want to delete workspace "${org.name}" [${org.code}]?\n\nNote: Existing backup files will remain intact.`)) {
+                return;
+            }
+
+            try {
+                if (window.location.protocol.startsWith("http")) {
+                    await fetch(`/api/orgs/${encodeURIComponent(orgId)}`, {
+                        method: "DELETE",
+                        headers: getOrgHeaders()
+                    });
+                }
+            } catch (e) {}
+
+            organizationsList = organizationsList.filter(o => o.id !== orgId);
+            localStorage.setItem("pos_cached_orgs", JSON.stringify(organizationsList));
+            renderOrgsTab();
+            showPosToast(`Organization "${org.name}" removed.`, "info", 3000);
+        }
+
+        async function exportOrgBackup(orgId) {
+            const targetId = orgId || currentOrgId;
+            const org = organizationsList.find(o => o.id === targetId) || currentOrg;
+            
+            try {
+                if (window.location.protocol.startsWith("http")) {
+                    const res = await fetch(`/api/orgs/${encodeURIComponent(targetId)}/backup`, {
+                        headers: getOrgHeaders()
+                    });
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `poketstar-org-backup-${(org.code || "store").toLowerCase()}-${new Date().toISOString().split("T")[0]}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        showPosToast(`Workspace backup for "${org.name}" exported successfully!`, "success", 3500);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn("Backend backup export note:", e);
+            }
+
+            // Local fallback backup
+            const backupData = {
+                version: "2.0",
+                organization: org,
+                exportedAt: new Date().toISOString(),
+                products: targetId === currentOrgId ? state.products : [],
+                sales: targetId === currentOrgId ? state.sales : [],
+                users: targetId === currentOrgId ? state.users : [],
+                invoices: targetId === currentOrgId ? state.invoices : []
+            };
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `poketstar-org-backup-${(org.code || "store").toLowerCase()}-${new Date().toISOString().split("T")[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showPosToast(`Local backup for "${org.name}" exported!`, "success", 3500);
+        }
+
+        function openImportOrgModal() {
+            const modal = document.getElementById("importOrgModal");
+            if (modal) modal.classList.remove("hidden");
+        }
+
+        function closeImportOrgModal() {
+            const modal = document.getElementById("importOrgModal");
+            if (modal) modal.classList.add("hidden");
+        }
+
+        async function handleImportOrgFile(event) {
+            const file = event.target?.files?.[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    if (!json.organization || !json.organization.name) {
+                        showPosToast("Invalid backup file structure: Missing organization profile.", "warning", 4000);
+                        return;
+                    }
+
+                    if (window.location.protocol.startsWith("http")) {
+                        const res = await fetch("/api/orgs/import-backup", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                ...getOrgHeaders()
+                            },
+                            body: JSON.stringify(json)
+                        });
+                        const data = await res.json();
+                        if (data.organization) {
+                            showPosToast(`Workspace "${data.organization.name}" imported successfully!`, "success", 4000);
+                            closeImportOrgModal();
+                            await loadOrganizations(false);
+                            await switchOrganization(data.organization.id);
+                            return;
+                        }
+                    }
+
+                    // Local import fallback
+                    const org = json.organization;
+                    const exists = organizationsList.some(o => o.id === org.id);
+                    if (!exists) organizationsList.push(org);
+                    localStorage.setItem("pos_cached_orgs", JSON.stringify(organizationsList));
+                    if (Array.isArray(json.products)) localStorage.setItem(`pos_products_${org.id}`, JSON.stringify(json.products));
+                    if (Array.isArray(json.sales)) localStorage.setItem(`pos_sales_${org.id}`, JSON.stringify(json.sales));
+                    if (Array.isArray(json.users)) localStorage.setItem(`pos_users_${org.id}`, JSON.stringify(json.users));
+
+                    showPosToast(`Workspace "${org.name}" imported to browser store!`, "success", 3500);
+                    closeImportOrgModal();
+                    await switchOrganization(org.id);
+                } catch (err) {
+                    showPosToast("Failed to parse JSON backup file: " + err.message, "warning", 4000);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function switchOrganization(orgId) {
+            if (!orgId) return;
+            currentOrgId = orgId;
+            localStorage.setItem("pos_active_org_id", orgId);
+
+            const found = organizationsList.find(o => o.id === orgId);
+            if (found) {
+                currentOrg = found;
+            }
+
+            updateHeaderOrgBadge();
+            showPosToast(`Switching to workspace: ${currentOrg.name} [${currentOrg.code || "ORG"}]...`, "info", 2000);
+
+            // Fetch products, sales, users, invoices for the newly selected workspace
+            try {
+                await fetchProductsFromAPI();
+            } catch (e) {}
+
+            try {
+                await loadUsersFromBackend();
+            } catch (e) {}
+
+            // Save state snapshot for this org
+            saveState();
+
+            // Refresh UI Views
+            renderOrgsTab();
+            renderCategoryFilters();
+            renderProductSidebar();
+            renderCart();
+            renderHoldSales();
+            renderInvoicesList();
+            renderUsersListTab();
+            updateReports();
+
+            showPosToast(`Workspace active: ${currentOrg.name}`, "success", 2500);
+        }
+
+
         function switchTab(tabName) {
             if (!canAccessTab(tabName)) {
                 const cur = state.currentUser || DEFAULT_SEED_USERS[0];
