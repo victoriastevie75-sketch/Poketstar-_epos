@@ -70,11 +70,13 @@ function initializeRegistry() {
     name: 'Main Store / Headquarters',
     code: 'HQ-01',
     businessType: 'Retail & Supermarket',
+    region: 'East Africa',
+    timezone: 'Africa/Nairobi',
     currency: 'KES',
     currencySymbol: 'KSh',
     phone: '+254 700 000 000',
-    email: 'store@poketstar.com',
-    address: 'Central Business District, Main Avenue',
+    email: 'victoriastevie75@gmail.com',
+    address: 'Central Business District, Main Avenue, East Africa',
     taxPin: 'P051234567Z',
     vatRate: 16,
     receiptHeader: 'POKET STAR EPOS — HEADQUARTERS',
@@ -194,15 +196,18 @@ function createOrganization(payload) {
     uniqueId = `${baseId}-${counter++}`;
   }
 
+  const eaCurrSymMap = { KES: 'KSh', TZS: 'TSh', UGX: 'USh', RWF: 'FRw', BIF: 'FBu', ETB: 'Br', SSP: 'SSP', SOS: 'Sh.So.', USD: '$', EUR: '€', GBP: '£', ZAR: 'R' };
   const newOrg = {
     id: uniqueId,
     name: rawName,
     code: (payload.code || `ORG-${orgs.length + 1}`).toUpperCase().trim(),
     businessType: payload.businessType || 'Retail Store',
+    region: payload.region || 'East Africa',
+    timezone: payload.timezone || 'Africa/Nairobi',
     currency: payload.currency || 'KES',
-    currencySymbol: payload.currencySymbol || (payload.currency === 'USD' ? '$' : 'KSh'),
+    currencySymbol: payload.currencySymbol || eaCurrSymMap[payload.currency] || 'KSh',
     phone: payload.phone || '',
-    email: payload.email || '',
+    email: payload.email || 'victoriastevie75@gmail.com',
     address: payload.address || '',
     taxPin: payload.taxPin || '',
     vatRate: payload.vatRate !== undefined ? Number(payload.vatRate) : 16,

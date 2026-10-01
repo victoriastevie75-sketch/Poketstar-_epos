@@ -2078,7 +2078,7 @@
                 <span class="status-badge" id="networkStatusDot" style="background:#10b981;"></span>
                 <span id="networkStatusText">Online (Synced)</span>
             </span>
-            <span class="label" id="live-clock">NAIROBI — 10:35 AM</span>
+            <span class="label" id="live-clock" title="System Region: East Africa (EAT / UTC+3 — Africa/Nairobi)">EAST AFRICA (EAT) — 10:35 AM</span>
             <button class="header-btn" id="headerInstallShelfBtn" onclick="installToShelf()" title="Install app to desktop shelf / taskbar and run standalone" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; display: none; align-items: center; gap: 5px;">Install to Shelf</button>
             <button class="header-btn" id="headerDownloadExeBtn" onclick="openDownloadExeModal()" title="Download Standalone Windows Desktop App (.EXE)" style="background: rgba(16, 185, 129, 0.08); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); font-weight: 600; display: none; align-items: center; gap: 5px;">Download .EXE</button>
             <button class="header-btn" id="headerSecurityAuditBtn" onclick="openSecurityAuditModal()" title="Cyber Security Diagnostics, OWASP Top 10 Protections & Test Suite" style="background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); font-weight: 700; display: none; align-items: center; gap: 5px;">Security Audit</button>
@@ -4399,14 +4399,19 @@ const browserExecutables = [
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                     <div>
-                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Currency</label>
+                        <label style="font-size: 0.78rem; font-weight: 700; color: var(--ink); margin-bottom: 4px; display: block;">Currency (East Africa Region)</label>
                         <select id="newOrgCurrency" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--ink);">
                             <option value="KES" selected>KES (Kenyan Shilling - KSh)</option>
+                            <option value="TZS">TZS (Tanzanian Shilling - TSh)</option>
+                            <option value="UGX">UGX (Ugandan Shilling - USh)</option>
+                            <option value="RWF">RWF (Rwandan Franc - FRw)</option>
+                            <option value="BIF">BIF (Burundian Franc - FBu)</option>
+                            <option value="ETB">ETB (Ethiopian Birr - Br)</option>
+                            <option value="SSP">SSP (South Sudanese Pound - SSP)</option>
+                            <option value="SOS">SOS (Somali Shilling - Sh.So.)</option>
                             <option value="USD">USD (US Dollar - $)</option>
                             <option value="EUR">EUR (Euro - €)</option>
                             <option value="GBP">GBP (British Pound - £)</option>
-                            <option value="TZS">TZS (Tanzanian Shilling - TSh)</option>
-                            <option value="UGX">UGX (Ugandan Shilling - USh)</option>
                             <option value="ZAR">ZAR (South African Rand - R)</option>
                         </select>
                     </div>
@@ -4829,7 +4834,7 @@ const browserExecutables = [
                 tillId: 'Till-01',
                 status: 'active',
                 phone: '+254 700 000001',
-                email: 'admin@poketstar.com',
+                email: 'victoriastevie75@gmail.com',
                 permissions: ['sales', 'discounts', 'refunds', 'inventory', 'reports', 'users'],
                 createdAt: new Date().toISOString()
             }
@@ -5485,10 +5490,21 @@ const browserExecutables = [
             payInput.focus();
         }
 
-        // Clock
+        // Clock — System Region: East Africa (EAT / UTC+3 — Africa/Nairobi)
+        const SYSTEM_REGION = 'East Africa';
+        const SYSTEM_TIMEZONE = 'Africa/Nairobi';
         function updateClock() {
             const now = new Date();
-            document.getElementById('live-clock').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            let timeFormatted;
+            try {
+                timeFormatted = now.toLocaleTimeString('en-KE', { timeZone: SYSTEM_TIMEZONE, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            } catch (e) {
+                timeFormatted = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            const clockEl = document.getElementById('live-clock');
+            if (clockEl) {
+                clockEl.textContent = `EAST AFRICA (EAT) — ${timeFormatted}`;
+            }
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -5696,6 +5712,8 @@ const browserExecutables = [
             name: 'Main Store / Headquarters',
             code: 'HQ-01',
             businessType: 'Retail & Supermarket',
+            region: 'East Africa',
+            timezone: 'Africa/Nairobi',
             currency: 'KES',
             currencySymbol: 'KSh',
             vatRate: 16,
@@ -5934,11 +5952,13 @@ const browserExecutables = [
                 return;
             }
 
-            const currSymMap = { KES: "KSh", USD: "$", EUR: "€", GBP: "£", TZS: "TSh", UGX: "USh", ZAR: "R" };
+            const currSymMap = { KES: "KSh", TZS: "TSh", UGX: "USh", RWF: "FRw", BIF: "FBu", ETB: "Br", SSP: "SSP", SOS: "Sh.So.", USD: "$", EUR: "€", GBP: "£", ZAR: "R" };
             const payload = {
                 name,
                 code,
                 businessType,
+                region: "East Africa",
+                timezone: "Africa/Nairobi",
                 currency,
                 currencySymbol: currSymMap[currency] || "KSh",
                 vatRate: isNaN(taxRate) ? 16 : taxRate,

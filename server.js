@@ -2,7 +2,10 @@
 /**
  * Poketstar POS Server
  * Unified Express server for serving the POS desktop environment & web demo APIs
+ * System Region: East Africa (EAT / UTC+3 — Africa/Nairobi)
  */
+
+process.env.TZ = process.env.TZ || 'Africa/Nairobi';
 
 const express = require('express');
 const path = require('path');
@@ -265,6 +268,8 @@ try {
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    region: 'East Africa',
+    timezone: 'Africa/Nairobi (EAT / UTC+3)',
     uptime: process.uptime(),
     memoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
     timestamp: new Date().toISOString()
