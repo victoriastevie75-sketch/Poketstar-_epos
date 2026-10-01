@@ -116,7 +116,109 @@ function showReceipt(sale){
   receipt.innerHTML = `<pre>Receipt\n\nID: ${sale.id}\nDate: ${sale.date}\n\n${sale.items.map(i=>`${i.name} x${i.qty} ${format(i.price*i.qty)}`).join('\n')}\n\nGrand: ${format(sale.grand)}</pre>`;
 }
 
-printReceiptBtn.onclick = ()=> window.print();
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function printReceiptSilently() {
+  const receiptEl = document.getElementById('receipt');
+  const receiptText = receiptEl ? receiptEl.textContent.trim() : '';
+
+  if (!receiptText) {
+    alert('No receipt available to print.');
+    return false;
+  }
+
+  let iframe = document.getElementById('pos-receipt-print-frame');
+
+  if (!iframe) {
+    iframe = document.createElement('iframe');
+    iframe.id = 'pos-receipt-print-frame';
+    iframe.setAttribute('title', 'Receipt Printer');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '-9999px';
+    iframe.style.bottom = '-9999px';
+    iframe.style.width = '0px';
+    iframe.style.height = '0px';
+    iframe.style.border = 'none';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+  }
+
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`<!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>Receipt Print</title>
+        <style>
+          html, body {
+            margin: 0;
+            padding: 0;
+            background: #fff;
+          }
+
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.35;
+            color: #000;
+            width: 80mm;
+            padding: 8px;
+            box-sizing: border-box;
+          }
+
+          pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+          }
+
+          @media print {
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+
+            html, body {
+              width: 80mm;
+              margin: 0;
+              padding: 0;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <pre>${escapeHtml(receiptText)}</pre>
+      </body>
+    </html>`);
+  doc.close();
+
+  try {
+    iframe.contentWindow.focus();
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Receipt print call failed:', err);
+        alert('Printing failed. Please check your printer connection.');
+      }
+    }, 300);
+    return true;
+  } catch (err) {
+    console.error('Receipt print setup failed:', err);
+    alert('Printing failed. Please check your printer connection.');
+    return false;
+  }
+}
+
+printReceiptBtn.onclick = printReceiptSilently;
 
 openAdmin.onclick = ()=> adminModal.classList.remove('hidden');
 closeAdmin.onclick = ()=> adminModal.classList.add('hidden');
