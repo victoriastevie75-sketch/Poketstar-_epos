@@ -5804,7 +5804,8 @@ exit
             const name = document.getElementById('p_name').value.trim();
             const barcode = document.getElementById('p_barcode').value.trim() || 'SKU-' + Date.now();
             const category = document.getElementById('p_category').value;
-            const taxRate = parseInt(document.getElementById('p_tax_rate').value, 10) || 16;
+            const rawTaxVal = parseInt(document.getElementById('p_tax_rate').value, 10);
+            const taxRate = (rawTaxVal === 0 || rawTaxVal === 16) ? rawTaxVal : (isNaN(rawTaxVal) ? 16 : rawTaxVal);
             const buyingPrice = parseFloat(document.getElementById('p_buying_price').value) || 0;
             const price = parseFloat(document.getElementById('p_price').value) || 0;
             const qty = parseInt(document.getElementById('p_qty').value, 10) || 0;

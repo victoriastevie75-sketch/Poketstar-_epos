@@ -289,7 +289,7 @@ router.post(['/bulk-import', '/import-csv'], (req, res) => {
 
 router.put('/:id', (req, res) => {
   const orgId = req.orgId || 'default';
-  const { name, barcode, price, qty, category } = req.body;
+  const { name, barcode, price, qty, category, taxRate } = req.body;
   const products = getOrgProducts(orgId);
   
   const index = products.findIndex(p => p.id === req.params.id || p.barcode === req.params.id);
@@ -307,6 +307,7 @@ router.put('/:id', (req, res) => {
     ...(price !== undefined && { price: parseFloat(price) }),
     ...(qty !== undefined && { qty: parseInt(qty, 10) }),
     ...(category && { category: sanitizeString(category) }),
+    ...(taxRate !== undefined && { taxRate: parseInt(taxRate, 10) }),
     updatedAt: new Date().toISOString()
   };
 
