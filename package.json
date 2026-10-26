@@ -1,14 +1,16 @@
 {
   "name": "poketstar-epos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Poket Star POS — Enterprise Desktop & Web POS Environment",
   "main": "server.js",
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
+    "desktop": "node desktop-launcher.js",
     "build": "node -e \"console.log('Poket Star POS build ready')\"",
     "build:exe": "node scripts/build-native-suite.js",
-    "dist": "node scripts/build-native-suite.js",
+    "release:desktop": "npm run build:exe",
+    "dist": "npm run release:desktop",
     "lint": "echo 'No lint step required'",
     "test": "jest"
   },
@@ -17,7 +19,8 @@
     "scripts": [
       "server.js",
       "server/**/*.js",
-      "src/**/*.js"
+      "src/**/*.js",
+      "desktop-launcher.js"
     ],
     "assets": [
       "index.html",
@@ -25,7 +28,8 @@
       "manifest.json",
       "sw.js",
       "web/**/*.{html,css,js,json}",
-      "src/**/*.{jpg,png,js,css,json}"
+      "src/**/*.{jpg,png,js,css,json}",
+      "public/**/*.*"
     ],
     "targets": [
       "node18-win-x64"
@@ -40,7 +44,9 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "adm-zip": "^3.0.0",
     "jest": "^29.7.0",
+    "pkg": "^5.8.1",
     "postject": "^1.0.0-alpha.6"
   }
 }
